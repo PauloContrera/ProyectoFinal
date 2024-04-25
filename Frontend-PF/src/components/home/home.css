@@ -1,0 +1,39 @@
+.menuTotal {
+    /* background-color: rgb(0, 0, 0); */
+    
+    display: flex;
+    margin-bottom: 3em;
+}
+.menuDesplejableTotal {
+    display: flex;
+    align-items: center;
+    margin-right: 1em;
+width: 30px;
+}
+svg{
+    fill:#ffffff;
+}
+.menuLogoTotal {
+    display: flex;
+    align-items: center;
+    height: min-content;
+
+}
+.menuLogoSoloLogo{
+    height: 60px;
+    display: flex;
+    align-items: center;
+}
+.menuLogoSoloLogo>img{
+    height: 60px;
+}
+.menuLogoSoloNombre{
+    display: flex;
+    align-items: center;
+}
+.menuLogoSoloNombre>img{
+    height: 50px;
+}
+.menuConfiguracionesTotal {
+
+}
