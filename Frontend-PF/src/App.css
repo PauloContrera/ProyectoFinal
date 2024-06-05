@@ -1,5 +1,32 @@
 :root {
-    background-color: #242424;
-    color: white;
+  --Bannerfondo1: #06141b; 
+  --Bannerfondo2: #11212d; 
+    background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%);
+
+
   }
+  body{
+    height: 100vh;
+
+
+    --Bannerfondo1: #06141b; 
+    --Bannerfondo2: #11212d; 
+    --LetrasColor1: #ccd0cf;
+    
+    color: var(--LetrasColor1);
+    
+    /* --Bannerfondo2: #CCD0CF; 
+    --Bannerfondo1: #9BA8AB;  */
+
+
+      background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%);
   
+  
+
+
+
+    /* --Bannerfondo1: #CCD0CF;  */
+    /* --Bannerfondo1: #4A5C6A;  */
+    /* --Bannerfondo1: #9BA8AB;  */
+      /* background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%); */
+  }

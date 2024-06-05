@@ -22,11 +22,16 @@ function Temperatura() {
     setVariableRoja(VariableRoja - 1);
   };
 
-  const promedio = Dia.reduce((acc, curr) => acc + curr.temperatura, 0) / Dia.length;
+  const promedio =
+    Dia.reduce((acc, curr) => acc + curr.temperatura, 0) / Dia.length;
 
   // Obtener último valor de temperatura
   const ultimoValor = Dia[Dia.length - 1].temperatura;
 
+  const minValor = Math.min(...Dia.map((dia) => dia.temperatura));
+
+  // Obtener el valor máximo de temperatura
+  const maxValor = Math.max(...Dia.map((dia) => dia.temperatura));
 
   return (
     <>
@@ -40,28 +45,59 @@ function Temperatura() {
           ></Grafico>
         </div>
         <div className="ControladoresTotal">
-            
+          <div class="ControladoresIndicadoresTotales">
+            <div class="ControladoresIndicadoresSolos">
+              <h2>Último valor: {ultimoValor}</h2>
+            </div>
+            <div class="ControladoresIndicadoresSolos">
+              <h2>Promedio: {promedio.toFixed(2)}</h2>
+            </div>
+
+            <div class="ControladoresIndicadoresHorizontales">
+              <div class="ControladoresIndicadoresSolos">
+                <h2>T° min: {minValor}</h2>
+              </div>
+              <div class="ControladoresIndicadoresSolos">
+                <h2>T° max: {maxValor}</h2>
+              </div>
+            </div>
+          </div>
           <div className="ControladoresSoloTotal">
-            <h3>Alerta Roja</h3>
+            <h3 className="ControladoresSolotitulo">Alerta Roja</h3>
             <div className="ControladoresSolo">
-            <button className="ControladoresSolobutton ControladoresSolorestar" onClick={() => RestarVariableRoja()}>-</button>
-            <p className="ControladoresSoloTexto">{VariableRoja}</p>
-            <button className="ControladoresSolobutton ControladoresSolosumar" onClick={() => SumarVariableRoja()}>+</button>
-          </div>
+              <button
+                className="ControladoresSolobutton ControladoresSolorestar"
+                onClick={() => RestarVariableRoja()}
+              >
+                -
+              </button>
+              <p className="ControladoresSoloTexto">{VariableRoja}</p>
+              <button
+                className="ControladoresSolobutton ControladoresSolosumar"
+                onClick={() => SumarVariableRoja()}
+              >
+                +
+              </button>
+            </div>
           </div>
           <div className="ControladoresSoloTotal">
-          <h3>Alerta Amarilla</h3>
-          <div className="ControladoresSolo">
-            <button className="ControladoresSolobutton ControladoresSolorestar" onClick={() => RestarVariableAmarrilla()}>-</button>
-            <div className="ControladoresSoloTexto">{VariableAmarrilla}</div>
-            <button className="ControladoresSolobutton ControladoresSolosumar" onClick={() => SumarVariableAmarrilla()}>+</button>
+            <h3 className="ControladoresSolotitulo">Alerta Amarilla</h3>
+            <div className="ControladoresSolo">
+              <button
+                className="ControladoresSolobutton ControladoresSolorestar"
+                onClick={() => RestarVariableAmarrilla()}
+              >
+                -
+              </button>
+              <div className="ControladoresSoloTexto">{VariableAmarrilla}</div>
+              <button
+                className="ControladoresSolobutton ControladoresSolosumar"
+                onClick={() => SumarVariableAmarrilla()}
+              >
+                +
+              </button>
+            </div>
           </div>
-          </div>
-          <div>
-      <h2>Promedio de temperatura: {promedio.toFixed(2)}</h2>
-      <h2>Último valor de temperatura: {ultimoValor}</h2>
-    </div>
-          
         </div>
       </div>
     </>
