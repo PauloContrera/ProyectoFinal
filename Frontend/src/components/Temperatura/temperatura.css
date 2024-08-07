@@ -1,0 +1,94 @@
+.GraficoTotal{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+    min-width: 400px;
+    /* max-width: 1000px; */
+    width: 100%;
+  height: calc(100vh - 80px);
+}
+.GraficoSolo{
+  height: 90%;
+  width: 100%;
+}
+.TemperaturaTotal{
+    display: flex;
+    /* align-items: center; */
+    justify-content: start;
+    
+    height: 100%;
+}
+.ControladoresIndicadoresTotal{
+  margin: 2em 2em 0em 2em;
+  height: max-content;
+  display: flex;
+  align-items: start;
+  /* justify-content: center; */
+  flex-direction: column;
+  /* height: 100%; */
+  width: 400px;
+
+  
+}
+.ControladoresIndicadores{
+  height: 420px;
+
+}
+.ControladoresIndicadoresSolos{
+
+  background-color: #11212D;
+}
+
+
+
+
+
+.ControladoresActivar{
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  height: min-content;
+  width: min-content;
+  /* margin: 0.5em 1em  ; */
+  background-color: #11212D;
+  width: 100%;
+}
+.ControladoresActivarTexto{
+  font-size: 1.5em;
+  color: var(--LetrasColor1);
+  margin-right: 0.5em;
+  font-weight: bold;
+  padding:  0.5em 1em;
+}
+
+.ControladoresActivarSwitch {
+  width: 30px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 50px;
+  padding: 0px 5px;
+  cursor: pointer;
+}
+
+.ControladoresActivarSwitch[data-isOn="true"] {
+  justify-content: flex-end;
+}
+.Controladoressolos{
+  width: 100%;
+}
+.ControladoresActivarHandle {
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border-radius: 50px;
+}
+
+
+
+
+
+
+

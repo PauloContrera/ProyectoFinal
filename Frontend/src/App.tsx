@@ -1,6 +1,6 @@
 // import React from 'react';
 import './App.css';
-import Home  from './components/home/home.jsx';
+import Home  from './components/Home/home.jsx';
 
 
 

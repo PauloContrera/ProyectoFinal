@@ -1,0 +1,36 @@
+.ControladorIndicadoresTotales {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+  padding: 1em 0;
+  width: 400px;
+  height: 250px;
+  
+}
+
+.ControladorIndicadoresSolos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* border-bottom: 1px solid #ccc; */
+
+  box-shadow: 0px 2px 0px #cccccc4d;
+
+
+}
+
+.ControladoresIndicadoresHorizontales {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  
+}
+
+.ControladorIndicadoresSolosTexto {
+
+  font-size: 1.5em;
+  color: var(--LetrasColor1);
+
+}

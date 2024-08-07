@@ -1,0 +1,17 @@
+
+  .MenuDesplejandose {
+    outline: none;
+    border: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 80px;
+    padding-left: 0.5em;
+
+    background: transparent;
+  }
