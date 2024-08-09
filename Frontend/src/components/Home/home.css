@@ -117,7 +117,6 @@ display: flex;
 }
 .menuConfiguracionesVerticalTotal.open {
     width: max-content;
-    padding: 0 1em 0 0;
     transition: 0.4s;
 }
 .menuConfiguracionesVerticalTotal.close {
@@ -128,6 +127,9 @@ display: flex;
     padding-left: 0.5em;
     opacity: 1;
     transition: 0.5s;
+    font-size: 1em;
+    padding: 0 1em 0 0;
+
 }
 
 
@@ -136,9 +138,11 @@ display: flex;
 .menuContenido{
     height: calc(100vh - 80px);
     width: 100%;
+    /* background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%); */
+
 }
 
 .selected {
-    background-color: blue; /* Color de fondo cuando está seleccionado */
+    background-color: rgb(143, 143, 190); /* Color de fondo cuando está seleccionado */
 }
   
