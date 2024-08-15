@@ -24,7 +24,7 @@ function Grafico({ datos, alto , variableAmarrilla, variableRoja, mostrarVariabl
         <AreaChart data={datos}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="hora" />
-          <YAxis domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+          <YAxis domain={["dataMin ", "dataMax "]} />
           <Tooltip />
           <Area
             type="monotone"
