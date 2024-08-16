@@ -5,7 +5,7 @@
     $user = "root";
     $pass = "";
     $server = "localhost";
-    $db ="proyectofinal";
+    $db ="heladeras_proyectofinal";
 
 class Connection extends mysqli {
     function __construct() {
