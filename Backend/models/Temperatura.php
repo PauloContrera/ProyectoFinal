@@ -38,6 +38,18 @@
             return $response;
         }
 
+        public static function getLastByFridgeId($fridge_id) {
+            $db = new Connection();
+            $query = "SELECT id, temperature, recorded_at FROM temperature_records WHERE fridge_id=? ORDER BY `recorded_at` DESC LIMIT 1";
+            $stmt = $db->prepare($query);
+            $stmt->bind_param("i", $fridge_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            return $result->fetch_assoc();
+        }
+
+
+        
         public static function insert($fridge_id, $temperature) {
             $db = new Connection();
             date_default_timezone_set('America/Buenos_Aires');
