@@ -1,0 +1,62 @@
+.stock-grupos-container {
+  width: calc(100% - 1rem);
+  padding: 1rem;
+
+  }
+.stock-gruposItemTotal{
+  padding: 0 0rem 0 2rem;
+
+}
+  .stock-grupos-table {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    
+  width: 100%;
+    /* width: max-content; */
+    border-collapse: collapse;
+    
+  }
+  
+  .stock-grupos-thead {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .stock-grupos-th {
+    color: #aa4747;
+    font-weight: 500;
+    vertical-align: middle;
+    text-align: left;
+    padding: 0 1rem ;
+    width: 200px;
+    height: 3rem;
+  }
+  
+  .stock-grupos-tbody {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .stock-grupos-tr {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .stock-grupos-td {
+    font-weight: 500;
+    vertical-align: middle;
+    padding: 1rem;
+  }
+  
+  .stock-grupos-button {
+    margin-right: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.25rem;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .stock-grupos-button:hover {
+    background-color: #e5e7eb;
+  }
+  

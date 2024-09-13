@@ -1,32 +1,15 @@
 :root {
-  --Bannerfondo1: #06141b; 
-  --Bannerfondo2: #11212d; 
-    background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%);
-
-
-  }
-  body{
-    height: 100vh;
-
-
-    --Bannerfondo1: #06141b; 
-    --Bannerfondo2: #11212d; 
-    --LetrasColor1: #ccd0cf;
-    
-    color: var(--LetrasColor1);
-    
-    /* --Bannerfondo2: #CCD0CF; 
-    --Bannerfondo1: #9BA8AB;  */
-
-
-      background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%);
+  --TamanoMenuVertical: 72px;
+  --LetrasColor1: #ffffff;
+  --LetrasColor2: #ccd0cf;
+  --ColorFondo1: #111827;
+  --ColorFondo2: #1f2937;
+  --ColorFondo3: #18181b;
   
-  
+}
 
+body {
+  color: var(--LetrasColor2);
+  background-color: var(--ColorFondo1);
 
-
-    /* --Bannerfondo1: #CCD0CF;  */
-    /* --Bannerfondo1: #4A5C6A;  */
-    /* --Bannerfondo1: #9BA8AB;  */
-      /* background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%); */
-  }
+}

@@ -1,0 +1,8 @@
+.TemperaturaSearchInput {
+  margin: 1rem 0 0 1rem;
+  padding: 1rem;
+  width: calc(100% - 4.1rem);
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

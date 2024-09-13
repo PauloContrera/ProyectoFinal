@@ -1,0 +1,33 @@
+.TempGruposTotal{
+    padding: 1rem;
+}
+.TempGruposTitulo{
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border: 0px;
+    color: var(--LetrasColor1);
+    cursor: pointer;
+    padding-right: 0.5rem;
+
+}
+
+.TempGruposTituloBoton{
+    margin-right: 0.5rem;
+}
+
+
+.TempGruposItems{
+width: 100%;
+}
+.TempGruposItemsDescripcion{
+    padding: 1em;
+}
+.TempGruposItemsGrilla{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(300px, 100%, 400px), 1fr));
+    gap: 2rem; /* Ajusta según tu preferencia */
+    justify-content: space-around;
+    width: 100%;
+    /* max-width: 700px; */
+}

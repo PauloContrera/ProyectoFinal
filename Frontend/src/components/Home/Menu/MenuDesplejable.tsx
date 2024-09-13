@@ -2,7 +2,15 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { MenuToggle } from "./MenuToggle";
 
-export const MenuDesplejable = ({ isOpen, toggleMenu }) => {
+interface MenuDesplejableProps {
+  isOpen: boolean;
+  toggleMenu: () => void;
+}
+
+export const MenuDesplejable: React.FC<MenuDesplejableProps> = ({
+  isOpen,
+  toggleMenu,
+}) => {
   return (
     <motion.nav
       initial={false}

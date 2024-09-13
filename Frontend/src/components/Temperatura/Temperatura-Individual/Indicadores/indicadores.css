@@ -5,8 +5,22 @@
   gap: 10px;
   padding: 1em 0;
   width: 400px;
-  height: 250px;
+  /* height: 250px; */
   
+}
+.ControladorIndicadoresSolosTexto{
+
+  font-family: "Inter", sans-serif;
+  color: var(--LetrasColor2);
+  font-size: 1rem;
+}
+.ControladorIndicadoresSolosTexto > span{
+
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.75rem;
+  color: var(--LetrasColor1);
 }
 
 .ControladorIndicadoresSolos {
@@ -30,7 +44,6 @@
 
 .ControladorIndicadoresSolosTexto {
 
-  font-size: 1.5em;
-  color: var(--LetrasColor1);
+
 
 }

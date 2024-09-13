@@ -1,0 +1,66 @@
+.menuDesplegable {
+    outline: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 40px;
+    padding: 1rem;
+    background: transparent;
+    transition: transform 0.5s ease;
+  }
+  
+  .menuLogoSoloTotal {
+    display: flex;
+    align-items: center;
+    height: 40px;
+  }
+  
+  .menuLogoSolo {
+    height: 2rem;
+  }
+  
+  .menuTextoSolo {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+    font-family: "Inter", sans-serif;
+    display: flex;
+    align-items: center;
+    color: var(--LetrasColor1);
+  }
+  
+  .menuConfiguracionesTotal {
+    display: flex;
+  }
+  
+  .menuConfiguracionesConfiguraciones {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: transparent;
+    height: 40px;
+    width: 40px;
+    border: 0;
+    padding: 0;
+    transition: transform 0.5s ease;
+  }
+  
+  .menuConfiguracionesConfiguracionesSVG {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+  
+  .Rotacion-positiva {
+    transform: rotate(90deg);
+  }
+  
+  .Rotacion-negativa {
+    transform: rotate(0deg);
+  }
+  
+ 

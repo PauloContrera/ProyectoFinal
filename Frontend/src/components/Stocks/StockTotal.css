@@ -1,0 +1,11 @@
+.StockTotal{
+    padding: 1rem;
+}
+.StockSearchInput {
+  padding: 1rem;
+  width: calc(100% - 2rem);
+  margin-bottom: 20px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

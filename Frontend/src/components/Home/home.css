@@ -1,148 +1,201 @@
-.menuTotal {
-    background-color: rgb(0, 0, 0);
-
-    /* display: grid;
-    grid-template-rows:  1fr;
-    grid-template-columns: 1fr; */
-    width: 100%;
+/* Estilo para el contenedor de la aplicación */
+.appContainer {
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* Estilo para el menú total, incluyendo menú horizontal */
+.menuTotal {
+    position: fixed; /* Fija el menú en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--TamanoMenuVertical);
     margin: 0;
     padding: 0;
-    gap: 0;
-}
-.menuTotal.open {
-  
+    z-index: 1000; /* Asegura que el menú quede por encima de otros elementos */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
 
 }
-.menuHorizaontalTotal{
-display: flex;
-}
-.menuVerticalTotal{
+
+.menuHorizaontalTotal {
     display: flex;
+    background-color: var(--ColorFondo2); /* Fondo del menú horizontal */
+}
+
+/* Estilo para el menú vertical */
+.menuVerticalTotal {
+    position: fixed; /* Fija el menú vertical */
+    top: var(--TamanoMenuVertical); /* Comienza justo debajo del menú horizontal */
+    left: 0;
+    width: min-content; /* Ancho por defecto cuando está cerrado */
+    height: calc(100vh - var(--TamanoMenuVertical)); /* Resta la altura del menú horizontal */
+    background-color: var(--ColorFondo2);
+    z-index: 1000; /* Asegura que esté por encima del contenido desplazable */
+    overflow-y: auto; /* Permite desplazamiento vertical si el contenido es alto */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 
 }
 
+/* Estilo para el contenedor del menú desplegable */
 .menuDesplejableTotal {
     display: flex;
     align-items: center;
     justify-content: start;
-    background-color: #11212D;
+    background-color: var(--ColorFondo2);
     width: 50px;
-
 }
 
-svg {
-    fill: var(--LetrasColor1);
-}
-
+/* Estilo para la sección del logo en el menú horizontal */
 .menuLogoHorizaontalTotal {
     display: flex;
     align-items: center;
     width: 100%;
-    /* height: min-content; */
-    background-color: #11212D;
-    padding: 0 1em;
+    background-color: var(--ColorFondo2);
+    
+  height: 40px;
+  padding: 1rem;;
     justify-content: space-between;
 }
 
-.menuLogoSoloTotal {
-    height: 100%;
-    display: flex;
-    align-items: center;
-}
-.menuLogoSolo {
-    height: 60px;
-}
-.menuTextoSolo {
-    height: 50px;
-}
-
-.menuConfiguracionesTotal {
-display: flex;
-}
-.menuConfiguracionesUsuarios{
-    display: flex;
-    align-items: center;
-    border-radius: 50%;
-}
-.menuConfiguracionesUsuarios>img{
-    height: 40px;
-    border-radius: 50%;
-
-}
-
-.menuConfiguracionesConfiguraciones{
-    display: flex;
-    align-items: center;
-    margin-right: 2em;
-
-}
-.menuConfiguracionesConfiguraciones>img{
-    height: 40px;
-}
 
 
 
+
+
+
+
+
+
+
+
+
+/* Contenedor para las configuraciones del menú vertical */
 .menuConfiguracionesVerticalTotal {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: start ;
-    background-color: #11212D;
-    width: 50px;
-    height: calc(100vh - 80px);
-
-}
-
-.menuConfiguracionesVerticalSolo {
-    margin-top: 2em;
-    display: flex;
+    align-items: start; /* Alinea los items al inicio */
     justify-content: start;
-    align-items: center;
-    width: 100%;
+    background-color: var(--ColorFondo2);
+    width: 50px; /* Ancho por defecto */
+    height: calc(100vh - var(--TamanoMenuVertical));
+    overflow: hidden;
+    transition: width 0.4s; /* Transición suave para el cambio de ancho */
 }
 
-.menuConfiguracionesVerticalSoloImg {
-   height: min-content;
-   width: 30px;
-   padding: 0 10px;
-}
-
+/* Contenedor para cada opción en el menú vertical */
 .menuConfiguracionesVerticalSolo {
     display: flex;
     align-items: center;
+    /* justify-content: center; */
     cursor: pointer;
-    height: 80px;
-    /* background-color: rgb(21, 56, 87); */
-}
-.menuConfiguracionesVerticalTotal.open {
-    width: max-content;
-    transition: 0.4s;
-}
-.menuConfiguracionesVerticalTotal.close {
-    width: 50;
-    transition: 0.4s;
-}
-.menuConfiguracionesVerticalSoloTexto.open {
-    padding-left: 0.5em;
-    opacity: 1;
-    transition: 0.5s;
-    font-size: 1em;
-    padding: 0 1em 0 0;
-
-}
-
-
-
-
-.menuContenido{
-    height: calc(100vh - 80px);
+    height: var(--TamanoMenuVertical);
+    padding: 0 0px; /* Espacio a la izquierda para iconos */
+    transition: background-color 0.3s;
     width: 100%;
-    /* background: linear-gradient(75deg, var(--Bannerfondo1) 5%, var(--Bannerfondo2) 50%, var(--Bannerfondo1) 95%); */
-
+}
+.menuConfiguracionesVerticalSoloDescrip{
+    padding: 0;
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--LetrasColor1);
+}
+.menuConfiguracionesVerticalSoloSVG{
+    width: 50px;
+    height: 1.5rem;
+    color: var(--LetrasColor1);
+}
+/* Imagen dentro de cada opción del menú vertical */
+.menuConfiguracionesVerticalSoloImg {
+    height: 30px;
+    width: 30px;
 }
 
-.selected {
-    background-color: rgb(143, 143, 190); 
+/* Estilo cuando el menú vertical está abierto */
+.menuConfiguracionesVerticalTotal.open {
+    width: max-content; /* Ancho cuando está abierto */
+    padding-right: 1em;
 }
+
+/* Estilo para el texto dentro de cada opción del menú vertical */
+.menuConfiguracionesVerticalSoloTexto {
+    font-size: 1em;
+    padding-left: 0.5em;
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.4s; /* Transición suave para la opacidad */
+}
+
+.menuConfiguracionesVerticalSoloTexto.open {
+    opacity: 1;
+}
+
+.selected > svg, .selected > .menuConfiguracionesVerticalSoloDescrip{
+    color: rgb(192 132 252);
+}
+
+
+
+/* Estilo para la sección del contenido principal */
+.menuContenido {
+    margin-left: 50px; /* Espacio para el menú vertical cerrado */
+    margin-top: var(--TamanoMenuVertical); /* Espacio para el menú horizontal */
+    height: calc(100vh - var(--TamanoMenuVertical)); /* Ajuste dinámico del contenido */
+    width: calc(100% - 50px); /* Ajuste dinámico del contenido */
+    overflow-y: auto; /* Permite desplazamiento vertical del contenido */
+}
+
+
+
+
+/* Estilos para pantallas mayores a 600px (comportamiento normal) */
+@media (min-width: 600px) {
+    .menuConfiguracionesVerticalSoloTexto {
+      display: block;
+    }
+  
+    .menuConfiguracionesVerticalSolo {
+      flex-direction: row; /* Alinea íconos y texto horizontalmente */
+    }
+  
+    .menuVerticalTotal {
+      display: block; /* Muestra el menú vertical */
+    }
+  }
+  
+  /* Estilos para pantallas menores a 600px (ocultar iconos y texto) */
+  @media (max-width: 600px) {
+    .menuConfiguracionesVerticalSoloTexto {
+      display: none; /* Oculta el texto cuando el menú está cerrado */
+    }
+  
+    .menuVerticalTotal {
+      display: none; /* Oculta el menú vertical por completo */
+    }
+  
+    /* Menú desplegable que se muestra al hacer click en el ícono de menú */
+    .menuVerticalTotal.open {
+      display: block; /* Muestra el menú vertical cuando el botón de menú está activado */
+      width: min-content; 
+
+      height: calc(100vh - var(--TamanoMenuVertical)); /* Altura completa menos el menú horizontal */
+    }
+  
+    .menuConfiguracionesVerticalSolo {
+      flex-direction: row;
+      justify-content: start;
+      align-items: center;
+    }
+    .menuContenido {
+        margin-left: 0px; /* Espacio para el menú vertical cerrado */
+        width: 100%; /* Ajuste dinámico del contenido */
+        overflow-y: auto; /* Permite desplazamiento vertical del contenido */
+    }
+  }
   

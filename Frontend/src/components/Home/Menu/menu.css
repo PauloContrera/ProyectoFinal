@@ -1,17 +1,61 @@
+.MenuDesplejandose {
+  outline: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 40px;
+  padding: 1rem;
+  background: transparent;
+}
+.menuLogoSoloTotal {
+  display: flex;
+  align-items: center;
+  height: 40px;
+}
+.menuLogoSolo {
+  /* height: 60px; */
+  height: 2rem;
+}
+.menuTextoSolo {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  margin-left: 0.5rem;
+  font-family: "Inter", sans-serif;
+  display: flex;
+  align-items: center;
+}
+.menuConfiguracionesTotal {
+  display: flex;
+}
+.menuConfiguracionesConfiguraciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: transparent;
+  height: 40px;
+  width: 40px;
+  border: 0;
+  padding: 0;
 
-  .MenuDesplejandose {
-    outline: none;
-    border: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 80px;
-    padding-left: 0.5em;
+}
+.menuConfiguracionesConfiguracionesSVG{
+  height: 1.5rem;
+  width: 1.5rem;
+  color: var(--LetrasColor1);
+}
 
-    background: transparent;
-  }
+.menuConfiguracionesUsuarios {
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.menuConfiguracionesUsuarios > img {
+  height: 40px;
+  border-radius: 50%;
+}
