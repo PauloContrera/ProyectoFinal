@@ -1,8 +1,94 @@
-.TemperaturaSearchInput {
-  margin: 1rem 0 0 1rem;
-  padding: 1rem;
-  width: calc(100% - 4.1rem);
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.TemperaturaTotal{
+  padding:1rem ;
+}
+.TempTotalCabera {
+  padding: 0 1rem;
+  margin: 1rem;
+  background-color: var(--ColorFondo5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 4rem);
+}
+
+.StockTotalTitulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", sans-serif;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  color: var(--LetrasColor1);
+  width: max-content;
+  height: 58px;
+}
+
+/* Estilo para la barra de búsqueda */
+.search-bar-container {
+  position: relative;
+  width: 50%;
+  margin: 1rem;
+}
+
+/* Estilos para el ícono SVG */
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--LetrasColor2);
+}
+
+/* Estilos para el input de búsqueda */
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 40px;
+  height: 40px;
+  font-size: 14px;
+  background-color: var(--ColorFondo2);
+  color: var(--LetrasColor2);
+  border: 1px solid var(--LetrasColor2);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--LetrasColor2);
+}
+
+.search-input:focus {
+  border-color: var(--BorderColor2);
+  box-shadow: 0 0 0 2px var(--BorderColor3);
+}
+
+/* Estilos responsivos */
+@media (max-width: 800px) {
+  .TempTotalCabera {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0;
+  }
+  
+  .search-bar-container {
+    width: calc(100% - 1rem);
+    margin: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .StockTotalTitulo {
+    font-size: 1.5rem;
+  }
+
+  .search-bar-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 350px) {
+  .StockTotalTitulo {
+    font-size: 1.3rem;
+  }
 }

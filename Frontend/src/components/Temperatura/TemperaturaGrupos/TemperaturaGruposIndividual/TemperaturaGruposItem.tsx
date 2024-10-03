@@ -13,6 +13,7 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
   const redondearTemperatura = (temperatura: string) => {
     return parseFloat(temperatura).toFixed(1);
   };
+
   const [variableMinima, setVariableMinima] = useState<number>(parseFloat(refrigerator.min_temp));
   const [variableMaxima, setVariableMaxima] = useState<number>(parseFloat(refrigerator.max_temp));
 
@@ -24,6 +25,10 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
     setVariableMaxima(nuevoValorMaximo);
   };
 
+  const temperaturaActual = parseFloat(refrigerator.last_temperature.temperature);
+  const estaEnRango = temperaturaActual >= variableMinima && temperaturaActual <= variableMaxima;
+  const temperaturaClass = estaEnRango ? "TempItemsValorValorEnRango" : "TempItemsValorValorFueraDeRango";
+
   return (
     <div className="TempItemsTotal">
       <div className="TempItemsTextoTotal">
@@ -31,13 +36,11 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
           <h3 className="TempItemsTextoTitulo">{refrigerator.name}</h3>
           <p className="TempItemsTextoUbi">{refrigerator.location}</p>
         </div>
-        <button className="TempItemsTextoInfo">
-          <Info className="Info" />
-        </button>
+
       </div>
       <div className="TempItemsValorTotal">
         <p className="TempItemsValorTexto">Última valor:</p>
-        <p className="TempItemsValorValor">
+        <p className={`TempItemsValorValor ${temperaturaClass}`}>
           {redondearTemperatura(refrigerator.last_temperature.temperature)}°C
         </p>
       </div>

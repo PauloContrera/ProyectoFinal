@@ -57,7 +57,7 @@ export default function StockGrupos({ group }: StockGruposProps) {
             />
           </svg>
         </motion.div>
-        <h2>{group[0]?.group.name || "Grupo"}</h2>
+        <h2 className="StockGruposnombre" >{group[0]?.group.name || "Grupo"}</h2>
       </button>
 
       {isVisible && (

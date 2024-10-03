@@ -80,7 +80,6 @@ function TemperaturaIndividual({
               alertaMinima={VariableMinima}
               alertaMaxima={VariableMaxima}
               mostrarAlertas={controladoresActivos}
-
             />
           </div>
         </div>

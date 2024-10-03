@@ -1,0 +1,138 @@
+:root {
+
+
+  --LetrasColor5: #3b82f6; /* Azul para enlaces */
+  --ColorLinkHover: #2b6cb0; /* Color más oscuro al pasar el ratón */
+  --ColorNotaFondo: #fefcbf; /* Fondo amarillo claro */
+  --ColorNotaTexto: #975a16; /* Texto amarillo oscuro */
+  --BorderColor1: #e5e7eb; /* Borde gris claro */
+}
+.Graficooooo{
+  margin: 1rem;
+  /* padding: 1rem; */
+  height: 200px;
+  width: 100%;
+  
+}
+
+/* Estilos generales */
+.DocumentacionTotal {
+  padding: 1rem; /* Espacio alrededor de la documentación */
+  font-family: "Inter", sans-serif;
+
+}
+
+/* Contenedor general */
+.Documentacion-container {
+  margin: 1rem;
+  background-color: var(--ColorFondo5);
+  color: var(--LetrasColor3);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Títulos */
+.Documentacion-title, .Documentacion-subtitle {
+  font-weight: 600;
+  margin: 2rem 0;
+  /* margin-bottom: 16px; */
+}
+.Documentacion-title{
+  margin: 1rem 0;
+}
+.Documentacion-title {
+  font-size: 2rem; /* Tamaño de título principal */
+}
+
+.Documentacion-subtitle {
+  font-size: 1.25rem; /* Tamaño de subtítulo */
+}
+
+/* Espaciado */
+.Documentacion-space {
+  margin-bottom: 16px; /* Espacio entre elementos */
+}
+
+/* Texto */
+.Documentacion-paragraph {
+  margin-bottom: 16px; /* Espacio debajo del párrafo */
+  font-size: 1rem; /* Tamaño de fuente estándar */
+  color: var(--LetrasColor3); /* Texto oscuro */
+  line-height: 1.5; /* Mejora la legibilidad */
+}
+
+/* Listas */
+.Documentacion-list {
+  list-style-type: disc; /* Estilo de lista con viñetas */
+  padding-left: 20px; /* Espacio dentro de la lista */
+  margin-bottom: 16px; /* Espacio debajo de la lista */
+}
+
+/* Enlaces */
+.Documentacion-link {
+  color: var(--ColorLink);
+  text-decoration: none;
+}
+
+.Documentacion-link:hover {
+  text-decoration: underline; /* Subrayado al pasar el ratón */
+  color: var(--ColorLinkHover); /* Color más oscuro al pasar el ratón */
+}
+
+/* Secciones */
+.Documentacion-section {
+  margin-bottom: 16px; /* Espacio entre secciones */
+}
+
+/* Estilos de tarjeta */
+.Documentacion-card {
+  background-color: #ffffff; /* Fondo blanco */
+  border: 1px solid var(--BorderColor1); /* Borde gris claro */
+  border-radius: 0.5rem; /* Esquinas redondeadas */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Sombra suave */
+  margin-bottom: 16px; /* Espacio debajo de la tarjeta */
+  padding: 16px; /* Espacio interno */
+}
+
+/* Estilos de nota */
+.Nota {
+  background-color: var(--ColorNotaFondo);
+  border-left: 4px solid #d69e2e; /* Borde izquierdo amarillo oscuro */
+  color: var(--ColorNotaTexto);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.Nota-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.Nota-icon {
+  margin-right: 8px; /* Espacio entre el ícono y el texto */
+}
+
+/* Sección de soporte */
+.Soporte {
+  margin-top: 32px;
+}
+
+.Soporte-title {
+  font-size: 1.25rem; /* Tamaño de fuente para título */
+  font-weight: 600; /* Negrita */
+  margin-bottom: 8px; /* Espacio debajo del título */
+}
+
+.Soporte-link {
+  color: var(--ColorLink); /* Azul claro para el link */
+  text-decoration: underline; /* Subrayado para indicar enlace */
+  font-weight: 500; /* Un poco más grueso para destacar */
+}
+
+.Soporte-link:hover {
+  color: var(--ColorLinkHover); /* Color más oscuro al pasar el ratón */
+}

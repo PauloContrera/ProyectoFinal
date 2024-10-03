@@ -13,47 +13,67 @@ export default function StockTotal() {
 
   // Filtrar grupos, heladeras, artículos y ubicación según el término de búsqueda
   const filteredGroups = GruposStocks.map((group) =>
-    group.map((fridge) => {
-      // Filtrar artículos en la heladera según el término de búsqueda
-      const filteredStock = fridge.stock.filter((item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    group
+      .map((fridge) => {
+        const filteredStock = fridge.stock.filter((item) =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-      // Verificar si el término de búsqueda coincide con el nombre de la heladera, grupo o ubicación
-      const matchesFridgeName = fridge.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesGroupName = fridge.group.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesLocation = fridge.location.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFridgeName = fridge.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesGroupName = fridge.group.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesLocation = fridge.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Si coincide con el nombre de heladera, grupo o ubicación, mantenemos todos los artículos
-      if (matchesFridgeName || matchesGroupName || matchesLocation) {
-        return { ...fridge, stock: fridge.stock }; // Devolver la heladera completa
-      }
+        if (matchesFridgeName || matchesGroupName || matchesLocation) {
+          return { ...fridge, stock: fridge.stock };
+        }
 
-      // Si coincide con algún artículo, solo mantenemos los artículos filtrados
-      if (filteredStock.length > 0) {
-        return { ...fridge, stock: filteredStock }; // Devolver heladera con stock filtrado
-      }
+        if (filteredStock.length > 0) {
+          return { ...fridge, stock: filteredStock };
+        }
 
-      // Si no hay coincidencias, devolver null
-      return null;
-    })
-    .filter(fridge => fridge !== null) // Eliminar las heladeras nulas
-  ).filter(group => group.length > 0); // Eliminar grupos vacíos
+        return null;
+      })
+      .filter((fridge) => fridge !== null)
+  ).filter((group) => group.length > 0);
 
   return (
     <div className="StockTotal">
-      <input
-        type="text"
-        placeholder="Buscar heladera, grupo, ubicación o artículo"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        className="StockSearchInput"
-      />
+      <div className="StockTotalCabesera">
+      <h2 className="StockTotalTitulo">Control de Stock</h2>
+      <div className="search-bar-container">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="search-icon"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input
+          className="search-input"
+          type="text"
+          placeholder="Buscar"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+      </div>
+      </div>
 
       {/* Mostrar los grupos filtrados con sus respectivas tablas */}
-      {filteredGroups.map((group, index) => (
-        <StockGrupos key={index} group={group} />
-      ))}
+      {filteredGroups.length > 0 ? (
+        filteredGroups.map((group, index) => (
+          <StockGrupos key={index} group={group} />
+        ))
+      ) : (
+        <p>No se encontraron resultados</p>
+      )}
     </div>
   );
 }

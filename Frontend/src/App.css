@@ -1,10 +1,14 @@
 :root {
   --TamanoMenuVertical: 72px;
-  --LetrasColor1: #ffffff;
-  --LetrasColor2: #ccd0cf;
   --ColorFondo1: #111827;
   --ColorFondo2: #1f2937;
   --ColorFondo3: #18181b;
+  --ColorFondo4: #1f2937;
+  --ColorFondo5: #111827;
+  --LetrasColor1: #ffffff;
+  --LetrasColor2: #ccd0cf;
+  --LetrasColor3: #f3f4f6;
+  --BorderColor1: #374151;
   
 }
 

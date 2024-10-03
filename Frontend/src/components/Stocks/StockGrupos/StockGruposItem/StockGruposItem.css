@@ -1,62 +1,253 @@
 .stock-grupos-container {
   width: calc(100% - 1rem);
   padding: 1rem;
-
-  }
-.stock-gruposItemTotal{
-  padding: 0 0rem 0 2rem;
-
 }
-  .stock-grupos-table {
+
+.stock-gruposItemTotal {
+  padding: 0 3rem 0 2rem;
+  
+  overflow: auto;
+}
+.StockItemsTitulo{
+  color: var(--LetrasColor4);
+}
+.stock-grupos-table {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stock-grupos-thead {
+  border-bottom: 1px solid var(--BorderColor1);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-family: "Inter", sans-serif;
+  text-align: left;
+  background-color: var(--ColorFondo4);
+  visibility: 1;
+  opacity: 1;
+  box-sizing: border-box;
+  height: 3rem;
+}
+
+.stock-grupos-th {
+  padding: 0 1rem;
+}
+
+/* No modificamos tbody ni tr */
+.stock-grupos-tbody {}
+
+.stock-grupos-tr {
+  border-bottom: 1px solid var(--BorderColor1);
+  color: var(--LetrasColor3);
+  padding: 0;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.stock-grupos-td {
+  font-weight: 500;
+  vertical-align: middle;
+  padding: 1rem;
+}
+
+
+/* La columna de Artículo se mantiene con su tamaño automático */
+.stock-grupos-td:first-child {
+  width: auto;
+}
+
+/* Centrar la columna de Cantidad y establecer un ancho mínimo */
+.stock-grupos-td:nth-child(2),
+.stock-grupos-th:nth-child(2) {
+  text-align: center;
+  width: 100px;
+}
+
+/* Centrar y fijar el ancho mínimo de la columna de Fecha de Vencimiento */
+.stock-grupos-td:nth-child(3),
+.stock-grupos-th:nth-child(3) {
+  text-align: center;
+  width: 150px;
+  white-space: nowrap; /* Evitar que la fecha se corte en varias líneas */
+}
+
+/* Fijar el tamaño de la columna de Acciones al mínimo necesario */
+.stock-grupos-td:nth-child(4),
+.stock-grupos-th:nth-child(4) {
+  text-align: center;
+  width: 120px;
+  white-space: nowrap; /* Mantener los botones en una sola línea */
+}
+
+.stock-grupos-button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.stock-grupos-button:hover {
+  background-color: #e5e7eb;
+}
+
+
+
+.StockItemBoton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: var(--ColorFondo3);
+  color: white;
+  height: 40px;
+  padding: 8px 16px;
+  margin-top: 16px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.StockItemBoton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.5);
+}
+
+.StockItemBoton:hover {
+  background-color: var(--ColorFondo3Hover);
+}
+
+.StockItemBoton:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+
+
+.custom-button {
+  margin: 0 0.25rem ;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  border: 1px solid #e5e7eb; /* border-input */
+  background-color: #ffffff; /* bg-background */
+  transition: background-color 0.3s ease, color 0.3s ease; /* transition-colors */
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 0.5rem 0.75rem; /* px-3 */
+  height: 2.25rem; /* h-9 */
+}
+
+.custom-button:hover {
+  background-color: #f0f0f0; /* hover:bg-accent */
+  color: #333; /* hover:text-accent-foreground */
+}
+
+.custom-button:focus-visible {
+  outline: 2px solid #3b82f6; /* focus-visible:ring-2 */
+  outline-offset: 2px; /* focus-visible:ring-offset-2 */
+}
+
+.custom-button:disabled {
+  pointer-events: none; /* disabled:pointer-events-none */
+  opacity: 0.5; /* disabled:opacity-50 */
+}
+
+.custom-icon {
+  width: 1rem; /* h-4 w-4 */
+  height: 1rem; /* h-4 w-4 */
+}
+
+
+.StockItemsEntradas{
+  /* background-color: red; */
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    height: 2.5rem;
+    border-color: rgb(209, 213, 219);
+    border-bottom-style: solid;
+    border-width: 1px;
+    border-radius: 6px;
+    color: var(--LetrasColor3);
+    font-family: "Inter", sans-serif;
     font-size: 0.875rem;
     line-height: 1.25rem;
+}
+.StockItemsEntradasCentrado{
+  text-align: center;
+}
+@media (max-width: 1000px) {
+  .stock-gruposItemTotal {
+    padding: 0 1rem 0 0rem;
     
-  width: 100%;
-    /* width: max-content; */
-    border-collapse: collapse;
+    overflow: auto;
+  }
+}
+@media (max-width: 700px) {
+  .stock-gruposItemTotal {
+    padding: 0 0rem 0 0rem;
     
+    overflow: auto;
   }
-  
-  .stock-grupos-thead {
-    border-bottom: 1px solid #e5e7eb;
+  .stock-grupos-container{
+    padding:  1rem 0;
   }
-  
-  .stock-grupos-th {
-    color: #aa4747;
-    font-weight: 500;
-    vertical-align: middle;
-    text-align: left;
-    padding: 0 1rem ;
-    width: 200px;
-    height: 3rem;
+  .StockItemBoton{
+    margin-bottom: 1rem;
   }
-  
-  .stock-grupos-tbody {
-    border-bottom: 1px solid #e5e7eb;
+}
+
+@media (max-width: 550px) {
+.StockItemsTitulo{
+  font-size: 0.8rem;
+}
+.StockItemBoton{
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  height: 35px;
+
+}
+.stock-grupos-thead{
+  font-size: 1rem;
+
+}
+.StockItemsEntradas, .stock-grupos-tr, .stock-grupos-table{
+  font-size: 0.7rem;
+
+}
+}
+
+@media (max-width: 400px) {
+  .StockItemsTitulo{
+    font-size: 0.6rem;
   }
-  
-  .stock-grupos-tr {
-    border-bottom: 1px solid #e5e7eb;
+  .StockItemBoton{
+    font-size: 0.6rem;
+    height: 30px;
   }
+  .stock-grupos-thead{
+    font-size: 0.9rem;
   
-  .stock-grupos-td {
-    font-weight: 500;
-    vertical-align: middle;
-    padding: 1rem;
   }
-  
-  .stock-grupos-button {
-    margin-right: 0.5rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.25rem;
-    background-color: #f3f4f6;
-    color: #1f2937;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  .StockItemsEntradas, .stock-grupos-tr, .stock-grupos-table{
+    font-size: 0.6rem;
   }
-  
-  .stock-grupos-button:hover {
-    background-color: #e5e7eb;
   }
-  

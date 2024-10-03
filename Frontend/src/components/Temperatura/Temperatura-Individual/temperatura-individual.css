@@ -2,7 +2,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 400px;
   /* max-width: 1000px; */
   width: 100%;
   /* height: calc(100vh - 80px); */
@@ -91,4 +90,45 @@
   padding: 1em;
   width: calc(100% - 2em);
   background-color: var(--ColorFondo2);
+}
+
+
+@media (max-width: 1000px) {
+  .GraficoTotal{
+    height: 100%;
+    max-height: 500px;
+
+  }
+  
+.TemperaturaIndividualContenido{
+  flex-direction: column;
+}
+
+.GraficoSolo {
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  height: calc(100vh - 136px - 1rem);
+  max-height: 500px;
+  min-height: 200px;
+  width: 100%;
+}
+.ControladoresIndicadoresTotal{
+  margin:  1rem 0 0 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.Controladoressolos{
+  width: calc(400px - 2rem);
+  margin-bottom: 1rem;
+}
+}
+
+
+@media (max-width: 500px) {
+  .ControladoresIndicadoresTotal{
+  width: 350px;
+  background-color: red;
+  }
+
 }

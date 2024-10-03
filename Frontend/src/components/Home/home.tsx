@@ -1,6 +1,7 @@
 import "./home.css";
 import TemperaturaTotal from "../Temperatura/Temperatura-Total";
-import FormularioLogin from "../Login/Formulario-Login";
+// import FormularioLogin from "../Login/Formulario-Login";
+import Documentacion from "../Document/documentacion";
 import StockTotal from "../Stocks/StockTotal";
 import { useState, useEffect } from "react";
 import { MenuDesplejable } from "./Menu/MenuDesplejable";
@@ -24,10 +25,10 @@ function Home({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; togg
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const componentsMap: ComponentsMap = {
+  const componentsMap: any = {
     Temperatura: <TemperaturaTotal />,
     Stocks: <StockTotal />,
-    Login: <FormularioLogin />,
+    Documentacion: <Documentacion />,
   };
 
   const handleComponentClick = (componentName: string): void => {
@@ -61,6 +62,7 @@ function Home({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; togg
                 isMenuOpen ? "open" : "close"
               }`}
             >
+              <div className="menuConfiguracionesVerticalArriba">
               <div
                 className={`menuConfiguracionesVerticalSolo ${
                   selectedComponent === "Temperatura" ? "selected" : ""
@@ -109,13 +111,14 @@ function Home({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; togg
                   <path d="M16 13H8"></path>
                   <path d="M16 17H8"></path>
                 </svg>
-                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Stock</h3>}
+               {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Stock</h3>}
+              </div>
               </div>
               <div
                 className={`menuConfiguracionesVerticalSolo ${
-                  selectedComponent === "Login" ? "selected" : ""
+                  selectedComponent === "Documentacion" ? "selected" : ""
                 }`}
-                onClick={() => handleComponentClick("Login")}
+                onClick={() => handleComponentClick("Documentacion")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -128,11 +131,12 @@ function Home({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; togg
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   className="menuConfiguracionesVerticalSoloSVG"
-                  data-id="289"
+                  data-id="211"
                 >
-                  <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
-                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Login</h3>}
+                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Documentacion</h3>}
               </div>
             </div>
           </div>

@@ -1,3 +1,12 @@
 .StockGrupos{
     margin-bottom: 1rem;
+
+}
+.StockGruposnombre{
+ color: var(--LetrasColor1);
+}
+@media (max-width: 400px) {
+    .StockGruposnombre{
+        font-size: 0.9rem;
+    }
 }

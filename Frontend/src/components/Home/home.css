@@ -79,7 +79,7 @@
     display: flex;
     flex-direction: column;
     align-items: start; /* Alinea los items al inicio */
-    justify-content: start;
+    justify-content: space-between;
     background-color: var(--ColorFondo2);
     width: 50px; /* Ancho por defecto */
     height: calc(100vh - var(--TamanoMenuVertical));
@@ -137,7 +137,9 @@
 }
 
 .selected > svg, .selected > .menuConfiguracionesVerticalSoloDescrip{
-    color: rgb(192 132 252);
+    color: var(--LetrasColor5);
+
+
 }
 
 

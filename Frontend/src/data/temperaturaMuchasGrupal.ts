@@ -27,7 +27,7 @@ const GruposTemperatura = [
       id: 2,
       name: "Vacunas",
       location: "Área de Vacunación",
-      min_temp: 1.0,
+      min_temp: 3.0,
       max_temp: 7.0,
       group: {
         id: 1,
@@ -36,7 +36,7 @@ const GruposTemperatura = [
       },
       last_temperature: {
         id: 20,
-        temperature: 3.5,
+        temperature: 2.5,
         recorded_at: "2024-08-15 11:42:49",
       },
       last_alert: null,

@@ -1,3 +1,11 @@
+.TempItemsValorValorEnRango {
+    color: #22c55e; 
+}
+
+.TempItemsValorValorFueraDeRango {
+    color: #ef4444; 
+}
+
 .TempItemsTotal{
     padding: 25px;
     background-color: var(--ColorFondo2);
@@ -65,7 +73,7 @@
 }
 .TempItemsValorValor{
     font-weight: 700;
-    color: var(--LetrasColor1);
+    /* color: var(--LetrasColor1); */
     font-size: 1.875rem;
     line-height: 2.25rem;
 }
@@ -94,3 +102,7 @@
     border-width: 0;
     border-style: solid;
 }
+.TempItemsHistorialBoton:hover {
+    background-color: var(--ColorFondo3Hover);
+  }
+  

@@ -1,11 +1,107 @@
 .StockTotal{
-    padding: 1rem;
+    margin: 1rem;
+    
+    background-color: var(--ColorFondo5);
 }
-.StockSearchInput {
-  padding: 1rem;
-  width: calc(100% - 2rem);
-  margin-bottom: 20px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.StockTotalCabesera{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 4rem);
+  padding: 0 1rem ;
+
 }
+.StockTotalTitulo{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* margin: 1rem 0rem 0 1rem; */
+  /* padding: 1rem 0rem 0 0rem; */
+  font-family: "Inter", sans-serif;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  color: var(--LetrasColor1);
+  width: max-content;
+  height: 58px;
+
+}
+
+  
+/* Contenedor que posiciona el input y el ícono */
+.search-bar-container {
+  position: relative;
+  width: 50%;
+  margin: 1rem;
+}
+
+/* Estilos para el ícono SVG */
+.search-icon {
+  position: absolute;
+  left: 10px; /* Ajusta la posición horizontal del ícono */
+  top: 50%;
+  transform: translateY(-50%); /* Centra el ícono verticalmente */
+
+  color: var(--LetrasColor2); /* Color gris claro para el ícono */
+}
+
+/* Estilos para el input de búsqueda */
+.search-input {
+  width: 100%; /* Ocupar todo el ancho disponible (100% de la pantalla) */
+  padding: 8px 12px 8px 40px; /* Dejar espacio a la izquierda para el ícono */
+  height: 40px; /* Altura del input */
+  font-size: 14px; /* Tamaño de la letra */
+  background-color: var(--ColorFondo2); /* Color de fondo oscuro */
+  color: var(--LetrasColor2); /* Color del texto */
+  border: 1px solid var(--LetrasColor2); /* Borde gris oscuro */
+  border-radius: 8px; /* Bordes redondeados */
+  outline: none; /* Quitar el borde azul por defecto en algunos navegadores */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--LetrasColor2); /* Color del placeholder */
+}
+
+/* Efecto al enfocar el input */
+.search-input:focus {
+  border-color: var(--BorderColor2); /* Color del borde al enfocar */
+  box-shadow: 0 0 0 2px var(--BorderColor3);
+
+}
+
+
+@media (max-width: 800px) {
+  .StockTotalCabesera{
+    display: flex;
+    flex-direction: column;
+    align-items: self-start;
+    justify-content: space-between;
+    width: calc(100% - 4rem);
+    padding: 0 1rem ;
+  }
+  .search-bar-container {
+    position: relative;
+    width: calc(100% - 1rem);
+    margin: 0rem;
+  } 
+}
+
+@media (max-width: 600px) {
+  .StockTotalCabesera{
+    padding: 0;
+  }
+.StockTotalTitulo{
+  font-size: 1.5rem;
+  margin: 0;
+}
+.search-bar-container {
+  position: relative;
+  width: 100%;
+}
+}
+@media (max-width: 350px) {
+  .StockTotalTitulo{
+    font-size: 1.3rem;
+  }
+  }
