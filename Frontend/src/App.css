@@ -11,9 +11,16 @@
   --BorderColor1: #374151;
   
 }
-
-body {
-  color: var(--LetrasColor2);
-  background-color: var(--ColorFondo1);
-
+html {
+  scroll-behavior: smooth;
 }
+body {
+  background-color: var(--ColorFondo5);
+  
+}
+
+
+
+
+
+

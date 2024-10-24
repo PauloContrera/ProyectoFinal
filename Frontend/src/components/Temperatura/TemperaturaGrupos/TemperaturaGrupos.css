@@ -22,6 +22,8 @@ width: 100%;
 }
 .TempGruposItemsDescripcion{
     padding: 1em;
+    color: var(--LetrasColor1);
+
 }
 .TempGruposItemsGrilla{
     display: grid;
@@ -31,3 +33,43 @@ width: 100%;
     width: 100%;
     /* max-width: 700px; */
 }
+@media (max-width: 370px) {
+    .TempGruposItemsGrilla{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(clamp(100px, 100%, 400px), 1fr));
+        gap: 2rem; /* Ajusta según tu preferencia */
+        justify-content: space-around;
+        width: 100%;
+        /* max-width: 700px; */
+    }
+}
+
+
+@media (max-width: 600px) {
+
+  .TempGruposTitulo{
+    font-size: 0.9rem;
+  }
+  .TempGruposItemsDescripcion{
+    font-size: 0.9rem;
+
+}
+  }
+  @media (max-width: 400px) {
+    .TempGruposTitulo{
+        font-size: 0.8rem;
+      }
+      .TempGruposItemsDescripcion{
+        font-size: 0.8rem;
+    
+    }
+    }
+    @media (max-width: 350px) {
+        .TempGruposTitulo{
+            font-size: 0.7rem;
+          }
+          .TempGruposItemsDescripcion{
+            font-size: 0.7rem;
+        
+        }
+        }

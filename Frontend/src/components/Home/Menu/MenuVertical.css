@@ -11,26 +11,42 @@
     background: transparent;
     transition: transform 0.5s ease;
   }
-  
+  .tituloaux{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+  }
+ 
+
   .menuLogoSoloTotal {
     display: flex;
     align-items: center;
-    height: 40px;
+    height: 42px;
   }
   
   .menuLogoSolo {
-    height: 2rem;
-  }
-  
-  .menuTextoSolo {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-    font-weight: 700;
-    margin-left: 0.5rem;
-    font-family: "Inter", sans-serif;
+    height: 42px;
     display: flex;
     align-items: center;
-    color: var(--LetrasColor1);
+  }
+  @font-face {
+    font-family: 'Garde'; /* El nombre que le des a la fuente */
+    src: url('src\assets\fonts\FontsFree-Net-Garde.ttf') format('truetype');
+    font-weight: normal; /* Puedes ajustar el peso si es necesario */
+    font-style: normal; /* O 'italic' si es cursiva */
+}
+  .menuTextoSolo {
+    font-size: 1.3rem;
+    margin: 0;
+
+    line-height: 1.3rem;
+    font-weight: 400;
+    margin-left: 0.5rem;
+    font-family: "Garde", sans-serif;
+    display: flex;
+    align-items: center;
+    color: var(--ColorLogo);
   }
   
   .menuConfiguracionesTotal {
@@ -62,5 +78,52 @@
   .Rotacion-negativa {
     transform: rotate(0deg);
   }
+
   
- 
+
+  .Menu-Logo-Total {
+    display: flex;
+    height: 40px;
+    cursor: pointer;
+  }
+
+  .Menu-Logo-Solo {
+    display: flex;
+    align-items: center;
+  
+    text-decoration: none;
+  }
+  
+  .Menu-Logo-Solo>img {
+    height: 100%;
+  }
+  
+  .Menu-Logo-Solo-text {
+    height: 100%;
+    margin-left: 0.5rem;
+  }
+  
+  .Menu-Logo-Solo-text>span {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 1.4rem;
+    margin: 0;
+    height: 16px;
+    text-decoration: none;
+    font-weight: 400;
+    font-family: "Garde", sans-serif;
+    display: flex;
+    /* color: var(--ColorLogo); */
+
+  }
+  .Menu-Logo-Solo-text-span{
+    color: var(--ColorLogo);
+  }
+
+@media (max-width: 340px) {
+  .Menu-Logo-Solo-text {
+    display: none;
+  }
+
+}

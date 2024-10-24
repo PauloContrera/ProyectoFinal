@@ -9,9 +9,9 @@
 }
 .Graficooooo{
   margin: 1rem;
-  /* padding: 1rem; */
+
   height: 200px;
-  width: 100%;
+  width: calc(100% - 2rem);
   
 }
 
@@ -87,7 +87,7 @@
 
 /* Estilos de tarjeta */
 .Documentacion-card {
-  background-color: #ffffff; /* Fondo blanco */
+  background-color: var(--ColorFondo2); /* Fondo blanco */
   border: 1px solid var(--BorderColor1); /* Borde gris claro */
   border-radius: 0.5rem; /* Esquinas redondeadas */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Sombra suave */
@@ -135,4 +135,33 @@
 
 .Soporte-link:hover {
   color: var(--ColorLinkHover); /* Color más oscuro al pasar el ratón */
+}
+body {
+  /* color: var(--LetrasColor2);
+  background-color: var(--ColorFondo5); */
+
+}
+@media (max-width: 1000px) {
+  .Controladoressolos {
+      width: calc(100% - 1rem);
+  }
+}
+
+@media (max-width: 600px) {
+  .Documentacion-container { 
+      /* width: 100%; */
+      padding: 0;
+      margin: 0 ;
+      box-shadow: none;
+  }
+
+  .DocumentacionTotal {
+    padding: 0rem;
+    width: calc(100% - 2rem);
+    padding:  1rem  1rem 0 1rem;
+}
+.Documentacion-title {
+margin:  1.5rem 0 ;
+padding: 0;
+}
 }

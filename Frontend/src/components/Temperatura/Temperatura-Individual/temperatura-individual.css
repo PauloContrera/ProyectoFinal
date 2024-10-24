@@ -113,22 +113,90 @@
   width: 100%;
 }
 .ControladoresIndicadoresTotal{
-  margin:  1rem 0 0 0;
+  margin:  1rem 0 2rem 0;
   width: 100%;
   display: flex;
   align-items: center;
 }
+.ControladoresIndicadoresSolos{
+  width: 400px;
+}
 .Controladoressolos{
-  width: calc(400px - 2rem);
-  margin-bottom: 1rem;
+  margin:  0rem 0 2rem 0;
+
+  max-width: calc(400px - 2rem);
+  width: 100%;
 }
 }
 
+@media (max-width: 460px) {
+  .GraficoTotal{
+    height: 100%;
+    max-height: 500px;
 
-@media (max-width: 500px) {
-  .ControladoresIndicadoresTotal{
-  width: 350px;
-  background-color: red;
   }
+  
+.TemperaturaIndividualContenido{
+  flex-direction: column;
+}
 
+.GraficoSolo {
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  height: calc(100vh - 136px - 1rem);
+  max-height: 500px;
+  min-height: 200px;
+  width: 100%;
+}
+.ControladoresIndicadoresTotal{
+  margin:  1rem 0 2rem 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.ControladoresIndicadoresSolos{
+  width: 300px;
+}
+.Controladoressolos{
+  margin:  0rem 0 2rem 0;
+
+  max-width: calc(300px - 2rem);
+  width: 100%;
+}
+}
+
+@media (max-width: 400px) {
+  .GraficoTotal{
+    height: 100%;
+    max-height: 500px;
+
+  }
+  
+.TemperaturaIndividualContenido{
+  flex-direction: column;
+}
+
+.GraficoSolo {
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  height: calc(100vh - 136px - 1rem);
+  max-height: 500px;
+  min-height: 200px;
+  width: 100%;
+}
+.ControladoresIndicadoresTotal{
+  margin:  1rem 0 2rem 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.ControladoresIndicadoresSolos{
+  width: 250px;
+}
+.Controladoressolos{
+  margin:  0rem 0 2rem 0;
+
+  max-width: calc(250px - 2rem);
+  width: 100%;
+}
 }

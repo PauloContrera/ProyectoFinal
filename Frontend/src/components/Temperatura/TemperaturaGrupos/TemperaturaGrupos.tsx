@@ -46,7 +46,10 @@ export default function TemperaturaGrupos({
             />
           </svg>
         </motion.div>
-        <h2>{groupData[0]?.group.name || "Grupo"}</h2>
+        {/* <h2>{groupData[0]?.group.name || "Grupo"}</h2> */}
+        <h2>{groupData.length > 0 && groupData[0]?.group?.name ? groupData[0].group.name : "Grupo"}</h2>
+
+
       </button>
       {isVisible && (
         <motion.div
@@ -55,7 +58,10 @@ export default function TemperaturaGrupos({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <p className="TempGruposItemsDescripcion">{groupData[0]?.group.description}</p>
+          {/* <p className="TempGruposItemsDescripcion">{groupData[0]?.group.description}</p> */}
+          <p className="TempGruposItemsDescripcion">
+  {groupData.length > 0 && groupData[0]?.group?.description ? groupData[0].group.description : "Descripción no disponible"}
+</p>
           <div className="TempGruposItemsGrilla">
             {groupData.map((refrigerator) => (
               <TemperaturaGruposItem

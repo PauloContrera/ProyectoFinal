@@ -11,15 +11,11 @@ import {
   ReferenceLine,
 } from "recharts";
 
-type Datos = {
-  id: number;
-  temperature: number;
-  recorded_at: string;
-};
+
 
 type GraficoProps = {
-  datos: Datos[];
-  alto: number;
+  datos: any;
+  alto?: number;
   alertaMinima: number;
   alertaMaxima: number;
   mostrarAlertas?: boolean;

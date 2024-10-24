@@ -8,7 +8,7 @@ import { MenuDesplejable } from "./Menu/MenuDesplejable";
 import MenuVertical from "./Menu/MenuVertical";
 
 
-function Home({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; toggleTheme: () => void; colorSVG: string }) {
+function Home({ isDarkMode, onLanding,toggleModal, toggleTheme, colorSVG }: { isDarkMode: boolean; onLanding: () => void; toggleModal: () => void; toggleTheme: () => void; colorSVG: string }) {
   const [selectedComponent, setSelectedComponent] =
     useState<string>("Temperatura");
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -51,7 +51,7 @@ function Home({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; togg
               <MenuDesplejable isOpen={isMenuOpen} toggleMenu={toggleMenu} />
             </div>
             <div className="menuLogoHorizaontalTotal">
-              <MenuVertical isDarkMode={isDarkMode} toggleTheme={toggleTheme} colorSVG={colorSVG}/>
+              <MenuVertical isDarkMode={isDarkMode} toggleTheme={toggleTheme} onLanding={onLanding} toggleModal={toggleModal} colorSVG={colorSVG}/>
             </div>
           </div>
         </div>

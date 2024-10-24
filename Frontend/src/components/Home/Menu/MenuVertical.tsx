@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import './MenuVertical.css';
 import ThemeSwitcher from './CambioTema/CambioTema';
+import LogoBlanco from 'src/assets/Logos/TBlanca.svg';
+import LogoNegro from 'src/assets/Logos/TNegra.svg';
+import TempSeguraBlanco from 'src/assets/Logos/SeguraBlanca.svg';
+import TempSeguraNegro from 'src/assets/Logos/SeguraNegro.svg';
 
-function MenuVertical({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boolean; toggleTheme: () => void; colorSVG: string }) {
+
+
+function MenuVertical({ isDarkMode, toggleTheme, toggleModal, onLanding , colorSVG }: { isDarkMode: boolean;   toggleTheme: () => void; toggleModal: () => void; onLanding: () => void; colorSVG: string }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const toggleMenu = () => {
@@ -11,13 +17,37 @@ function MenuVertical({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boole
 
 
   const animacionRotacion = menuAbierto ? 'Rotacion-positiva' : 'Rotacion-negativa';
+console.log(toggleModal);
+
+
+  const handleLogoClick = () => {
+    onLanding(); 
+  };
 
   return (
     <>
-      <div className="menuLogoSoloTotal">
-        <img className="menuLogoSolo" src="src/assets/Logo/Logo Verde y Blanco.png" alt="Logo" />
-        <h1 className="menuTextoSolo">MedixSecure</h1>
+   
+      <div className='Menu-Logo-Total' onClick={handleLogoClick}>
+      <a
+          className="Menu-Logo-Solo"
+          aria-label="Ir a la página de inicio"
+        >
+          <img 
+  src={isDarkMode ? LogoBlanco : LogoNegro} 
+  alt="Logo de Temp Segura" 
+/>
+<img 
+  src={isDarkMode ? TempSeguraBlanco : TempSeguraNegro} 
+  className="Menu-Logo-Solo-text"
+  alt="Logo de Temp Segura" 
+/>
+          {/* <div className="Menu-Logo-Solo-text">
+            <span className="Menu-Logo-Solo-text-span">Temp</span>
+            <span className="Menu-Logo-Solo-text-span">Segura</span>
+          </div> */}
+        </a>
       </div>
+      
       <div className="menuConfiguracionesTotal">
         <button
           className={`menuConfiguracionesConfiguraciones ${animacionRotacion}`}
@@ -43,7 +73,7 @@ function MenuVertical({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boole
         {menuAbierto && (
           <ThemeSwitcher isDarkMode={isDarkMode} toggleTheme={toggleTheme} colorSVG={colorSVG}/>
         )}
-                <button className="menuConfiguracionesConfiguraciones">
+                {/* <button className="menuConfiguracionesConfiguraciones" onClick={toggleModal}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -60,7 +90,13 @@ function MenuVertical({ isDarkMode, toggleTheme, colorSVG }: { isDarkMode: boole
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
-        </button>
+
+
+        </button> */}
+        <div>
+
+
+    </div>
       </div>
     </>
   );

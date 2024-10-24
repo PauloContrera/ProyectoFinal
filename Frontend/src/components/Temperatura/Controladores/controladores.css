@@ -65,7 +65,6 @@
   margin: 0;
   font-family: "Inter", sans-serif;
   font-size: 0.875rem;
-  color: #9ca3af;
 }
 
 /* Container for buttons and values */
@@ -88,6 +87,7 @@
   background-color: #fff;
   transition: background-color 0.3s, color 0.3s;
   cursor: pointer;
+  /* color: var(--LetrasColor2); */
 
 }
 .TempControladores-button-minus:disabled,
@@ -122,6 +122,8 @@
   border: 0px;
   cursor: pointer;
   background-color: transparent;
+  color: var(--LetrasColor2);
+
 }
 .TempControladores-value:disabled {
   cursor:auto;

@@ -1,0 +1,33 @@
+.Terminos-Total{
+
+}
+.Terminos-Individual{
+    font-family: "Inter", sans-serif;
+
+}
+.Terminos-Ind-Titulo {
+    
+    margin: 0 0 0.5rem 0;
+    padding: 0;
+    font-weight: 600;
+    color: #d3d5d8;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+.Terminos-Ind-Subtitulo {
+    margin: 0 0 1em 0;
+    padding: 0;
+    color: #d3d5d8;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+.Terminos-Ind-lista {
+    margin: 0 0 1em 0;
+
+}
+.Terminos-Ind-Lista-item {
+    padding: 0;
+    color: #d3d5d8;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}

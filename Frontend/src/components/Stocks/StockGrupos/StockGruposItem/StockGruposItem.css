@@ -34,6 +34,8 @@
 
 .stock-grupos-th {
   padding: 0 1rem;
+  color: var(--LetrasColor3);
+
 }
 
 /* No modificamos tbody ni tr */

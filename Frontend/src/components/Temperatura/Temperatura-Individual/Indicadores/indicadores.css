@@ -44,6 +44,32 @@
 
 .ControladorIndicadoresSolosTexto {
 
+max-width: 100%;
 
-
+}
+@media (max-width: 460px) {
+  .ControladorIndicadoresTotales {
+    padding: 1em 0;
+    width: 300px;
+    
+  }
+  .ControladoresIndicadoresHorizontales {
+    display: grid;
+    grid-template-columns: 1fr ;
+    gap: 10px;
+    
+  }
+}
+@media (max-width: 400px) {
+  .ControladorIndicadoresTotales {
+    padding: 1em 0;
+    width: 250px;
+    
+  }
+  .ControladoresIndicadoresHorizontales {
+    display: grid;
+    grid-template-columns: 1fr ;
+    gap: 10px;
+    
+  }
 }

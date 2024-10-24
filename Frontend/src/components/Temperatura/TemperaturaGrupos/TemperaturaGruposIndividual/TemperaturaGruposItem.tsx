@@ -1,5 +1,4 @@
 import "./TemperaturaGruposItem.css";
-import { Info } from "lucide-react";
 import { Refrigerator } from "../../../../interfaces/Temperatura";
 import Controladores from "../../../Temperatura/Controladores/controladores";
 import { useState } from "react";
@@ -10,12 +9,13 @@ interface TemperaturaGruposItemProps {
 }
 
 export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClick }: TemperaturaGruposItemProps) {
-  const redondearTemperatura = (temperatura: string) => {
-    return parseFloat(temperatura).toFixed(1);
+  const redondearTemperatura = (temperatura: number) => {
+    return temperatura.toFixed(1); // toFixed ya puede aplicarse a números directamente
   };
-
-  const [variableMinima, setVariableMinima] = useState<number>(parseFloat(refrigerator.min_temp));
-  const [variableMaxima, setVariableMaxima] = useState<number>(parseFloat(refrigerator.max_temp));
+  const [variableMinima, setVariableMinima] = useState<number>(refrigerator.min_temp);
+  const [variableMaxima, setVariableMaxima] = useState<number>(refrigerator.max_temp);
+  
+  
 
   const manejarCambioMinimo = (nuevoValorMinimo: number) => {
     setVariableMinima(nuevoValorMinimo);
@@ -24,8 +24,11 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
   const manejarCambioMaximo = (nuevoValorMaximo: number) => {
     setVariableMaxima(nuevoValorMaximo);
   };
+  const manejarCambioMaximo2 = () => {
+  };
 
-  const temperaturaActual = parseFloat(refrigerator.last_temperature.temperature);
+
+  const temperaturaActual = refrigerator.last_temperature.temperature;
   const estaEnRango = temperaturaActual >= variableMinima && temperaturaActual <= variableMaxima;
   const temperaturaClass = estaEnRango ? "TempItemsValorValorEnRango" : "TempItemsValorValorFueraDeRango";
 
@@ -49,6 +52,7 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
         CambiarMinimo={manejarCambioMinimo}
         ValorMaximo={variableMaxima}
         CambiarMaximo={manejarCambioMaximo}
+        onToggle={manejarCambioMaximo2}
       />
       <div className="TempItemsHistorial">
         <button className="TempItemsHistorialBoton" onClick={() => onVerHistorialClick(refrigerator.id)}>

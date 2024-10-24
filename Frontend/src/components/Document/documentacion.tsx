@@ -48,9 +48,9 @@ const Documentacion = () => {
 
 
 
-  const [controladoresActivos, setControladoresActivos] = useState<boolean>(false);
-  const manejarToggleControladores = (estado: boolean) => {
-    setControladoresActivos(estado);
+  // const [controladoresActivos, setControladoresActivos] = useState<boolean>(false);
+  const manejarToggleControladores = () => {
+    // setControladoresActivos(estado);
   };
 
 
@@ -58,7 +58,7 @@ const Documentacion = () => {
     <div className="DocumentacionTotal">
     
       <div className="Documentacion-container">
-        <h2 className="Documentacion-title">Documentación de MedixSecure</h2>
+        <h2 className="Documentacion-title">Documentación de Temp Segura</h2>
         <div className="Documentacion-space">
           <h3 className="Documentacion-subtitle">Contenido:</h3>
           <ul className="Documentacion-list">
@@ -66,14 +66,14 @@ const Documentacion = () => {
             <li><a href="#graficos" className="Documentacion-link">Gráficos de Temperatura</a></li>
             <li><a href="#controladores" className="Documentacion-link">Controladores de Temperatura</a></li>
             <li><a href="#stock" className="Documentacion-link">Control de Stock</a></li>
-            <li><a href="#usuarios" className="Documentacion-link">Gestión de Usuarios</a></li>
-            <li><a href="#tema" className="Documentacion-link">Cambio de Tema</a></li>
+            {/* <li><a href="#usuarios" className="Documentacion-link">Gestión de Usuarios</a></li>
+            <li><a href="#tema" className="Documentacion-link">Cambio de Tema</a></li> */}
           </ul>
         </div>
 
-        <DocumentacionSection id="introduccion" title="Introducción a MedixSecure">
+        <DocumentacionSection id="introduccion" title="Introducción a Temp Segura">
           <p className="Documentacion-paragraph">
-            MedixSecure es un sistema integral para el monitoreo de temperatura
+            Temp Segura es un sistema integral para el monitoreo de temperatura
             en refrigeradores médicos y la gestión de inventario. Esta
             documentación le guiará a través de las principales funcionalidades
             del sistema.
@@ -92,6 +92,7 @@ const Documentacion = () => {
               mostrarAlertas={false}
               alertaMinima={2}
               alertaMaxima={2}
+              
             />
             </div>
           
@@ -167,7 +168,7 @@ const Documentacion = () => {
           </ul>
         </DocumentacionSection>
 
-        <DocumentacionSection id="usuarios" title="Gestión de Usuarios">
+        {/* <DocumentacionSection id="usuarios" title="Gestión de Usuarios">
           <p className="Documentacion-paragraph">
             La gestión de usuarios le permite controlar quién tiene acceso al
             sistema y qué pueden hacer.
@@ -190,7 +191,7 @@ const Documentacion = () => {
 
         <DocumentacionSection id="tema" title="Cambio de Tema">
           <p className="Tema-paragraph">
-            MedixSecure ofrece la opción de cambiar entre un tema claro y oscuro...
+            Temp Segura ofrece la opción de cambiar entre un tema claro y oscuro...
           </p>
           <DocumentacionCard title="Preferencia de Tema">
             <div className="Tema-cardContent">
@@ -206,11 +207,11 @@ const Documentacion = () => {
             <li>En caso de problemas, cierre sesión y vuelva a iniciar sesión.</li>
             <li>Si prefiere un ajuste automático, busque la opción "Tema Automático".</li>
           </ul>
-        </DocumentacionSection>
+        </DocumentacionSection> */}
 
         <DocumentacionSection id="alertas" title="Sistema de Alertas">
           <p className="Alertas-description">
-            MedixSecure cuenta con un sistema de alertas SMS que notifica a los usuarios...
+            Temp Segura cuenta con un sistema de alertas SMS que notifica a los usuarios...
           </p>
           <div className="Nota mt-4 p-4">
             <h4 className="Nota-title flex items-center text-lg font-semibold mb-2">
@@ -231,7 +232,7 @@ const Documentacion = () => {
           <p className="Soporte-description">
             Para obtener ayuda adicional o reportar problemas, por favor contacte a
             nuestro equipo de soporte en 
-            <a href="mailto:support@medixsecure.com" className="Soporte-link">support@medixsecure.com</a>
+            <a href="mailto:support@Temp Segura.com" className="Soporte-link"> tempsegura.contact@gmail.com</a>
           </p>
         </DocumentacionSection>
       </div>

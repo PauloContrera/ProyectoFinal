@@ -1,6 +1,6 @@
 export interface LastTemperature {
     id: number;
-    temperature: number;
+    temperature: string;
     recorded_at: string;
   }
   
@@ -21,11 +21,15 @@ export interface LastTemperature {
     id: number;
     name: string;
     location: string;
-    min_temp: number;
-    max_temp: number;
-    group: Group;
-    last_temperature: LastTemperature;
-    last_alert: LastAlert | null;
+    min_temp: number;  // Cambiar a number
+    max_temp: number;  // Cambiar a number
+    last_temperature: {
+      id: number;
+      temperature: number; // Asegúrate de que sea number
+      recorded_at: string;
+    };
+    group?: { name: string; description: string }; // Agregar el grupo si es parte del refrigerador
+
   }
   
   export type GroupData = Refrigerator[];

@@ -1,0 +1,60 @@
+.ModalFondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .ModalTotal {
+    background-color: var(--ColorFondo2);
+    padding: 1rem;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 90%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 85vh;
+
+  }
+  .Modal-Cabecera{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .Modal-Cabecera-Texto{
+
+    font-family: "Inter", sans-serif;
+  }
+.Modal-Cabecera-Titulo{
+    margin: 0;
+    padding: 0;
+    letter-spacing: -0.025em;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--LetrasColor3);
+
+}
+.Modal-Cabecera-Subtitulo{
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--LetrasColor6);
+
+}
+.Modal-Cabecera-Cerrar{
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--LetrasColor6);
+}
+.Modal-Contenido{
+    overflow-y: auto; 
+    height: calc(100% - 48px);
+  }

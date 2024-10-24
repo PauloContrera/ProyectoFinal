@@ -1,10 +1,10 @@
 import "./indicadores.css";
 
 interface IndicadoresProps {
-  ultimoValor: number;
+  ultimoValor: string;
   ubicacion: string;
-  minValor: number;
-  maxValor: number;
+  minValor: string;
+  maxValor: string;
 }
 
 function Indicadores( {ultimoValor, ubicacion, minValor, maxValor}:IndicadoresProps) {
