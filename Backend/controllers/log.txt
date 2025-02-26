@@ -1,0 +1,722 @@
+Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: { "fridge_id": 6, "data": [{ "temperature": 3.20, "timestamps": "2023-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 5.00, "timestamps": "2023-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }] }
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2023-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 5
+                    [timestamps] => 2023-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+
+RAW INPUT: {
+    "fridge_id": 6, 
+    "data": [{ "temperature": 3.20, "timestamps": "2022-12-12 11:42:37" }, { "temperature": 4.10, "timestamps": "2023-12-12 12:42:37" }, { "temperature": 9.00, "timestamps": "2022-12-12 13:42:37" }, { "temperature": 4.50, "timestamps": "2023-12-12 14:42:37" }, { "temperature": 3.80, "timestamps": "2023-12-12 15:42:37" }]
+}
+
+DECODED: Array
+(
+    [fridge_id] => 6
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [temperature] => 3.2
+                    [timestamps] => 2022-12-12 11:42:37
+                )
+
+            [1] => Array
+                (
+                    [temperature] => 4.1
+                    [timestamps] => 2023-12-12 12:42:37
+                )
+
+            [2] => Array
+                (
+                    [temperature] => 9
+                    [timestamps] => 2022-12-12 13:42:37
+                )
+
+            [3] => Array
+                (
+                    [temperature] => 4.5
+                    [timestamps] => 2023-12-12 14:42:37
+                )
+
+            [4] => Array
+                (
+                    [temperature] => 3.8
+                    [timestamps] => 2023-12-12 15:42:37
+                )
+
+        )
+
+)
+

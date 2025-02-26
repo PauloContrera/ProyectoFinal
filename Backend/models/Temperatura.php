@@ -50,12 +50,19 @@
 
 
         
-        public static function insert($fridge_id, $temperature) {
+        public static function insert($fridge_id, $temperature, $recorded_at) {
             $db = new Connection();
+
+            /*
             date_default_timezone_set('America/Buenos_Aires');
             $recorded_at = date("Y-m-d H:i:s");
             $alert_generated = false;
-            
+            */
+
+            // Asegurar que el timestamp sea válido
+            $recorded_at = filter_var($recorded_at, FILTER_SANITIZE_STRING);
+            $alert_generated = false;
+
             // Obtener el rango de temperatura de la heladera
             $query = "SELECT min_temp, max_temp FROM fridges WHERE id=?";
             $stmt = $db->prepare($query);
@@ -68,7 +75,7 @@
                 $min_temp = $row['min_temp'];
                 $max_temp = $row['max_temp'];
                 
-                // Insertar el registro de temperatura
+                // Insertar el registro de temperatura con el timestamp recibido
                 $query = "INSERT INTO temperature_records(fridge_id, temperature, recorded_at) VALUES (?,?,?)";
                 $stmt = $db->prepare($query);
                 $stmt->bind_param("ids", $fridge_id, $temperature, $recorded_at);
