@@ -1,0 +1,37 @@
+{
+    "fridge_id": 6,
+    "data": [
+        {
+
+            "stock":[
+                "67239234843278231": 6,            
+                "vacunnas": 3,            
+            ]
+        }
+ 
+    ],
+    "neceisto_info": true
+    
+}
+{
+    "success": true,
+    "message": "5 registros insertados correctamente",
+    "error": '',
+    "Cambio": true,
+    "Cambio-data":[
+        {
+            "temp-max": 10,
+            "temp-min": 1,
+            "Grupo": "Hospital",
+            "Area": "Vacuna",
+            "Telefono": ["2630203044", "2630203040" ,"2630203042"]
+
+        }
+    ],
+}
+{   
+    "success": false,
+    "error": "Cuenta",
+    "estadocuenta": false,
+    "palabra_clave": "pasteldepapa4321" 
+}
