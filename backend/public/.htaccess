@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /ProyectoFinal/backend/public/
+
+# Redirige todo a index.php excepto archivos reales
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]

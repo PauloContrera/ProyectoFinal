@@ -1,5 +1,19 @@
 {
-    "require": {
-        "firebase/php-jwt": "^6.10"
+  "name": "paulonot/proyecto-final",
+  "description": "Backend para monitoreo de heladeras",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "Config\\": "config/",
+      "Controllers\\": "controllers/",
+      "Models\\": "models/",
+      "Middleware\\": "middleware/",
+      "Helpers\\": "helpers/",
+      "Routes\\": "routes/"
     }
+  },
+  "require": {
+    "vlucas/phpdotenv": "^5.6",
+    "firebase/php-jwt": "^6.10"
+  }
 }
