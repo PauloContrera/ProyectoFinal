@@ -37,6 +37,7 @@ class User
             'phone' => $phone
         ]);
     }
+
     public function findByUsernameOrEmail($identifier)
     {
         $stmt = $this->conn->prepare('SELECT * FROM users WHERE username = :identifier OR email = :identifier LIMIT 1');
@@ -61,6 +62,7 @@ class User
         $stmt = $this->conn->query('SELECT id, name, username, email, phone, role FROM users');
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     public function getUserById($id)
     {
         $stmt = $this->conn->prepare('SELECT id, name, username, email, phone, role FROM users WHERE id = ?');
@@ -93,19 +95,46 @@ class User
         return ['success' => $success, 'reason' => 'ok'];
     }
 
-    public function deleteUser($id)
-    {
+public function deleteUser($id)
+{
+    try {
         // Primero verificamos si el usuario existe
-        $stmt = $this->conn->prepare("SELECT id FROM users WHERE id = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$id]);
-        $user = $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
             return 'not_found';
         }
 
-        // Si existe, lo eliminamos
-        $stmt = $this->conn->prepare("DELETE FROM users WHERE id = ?");
-        return $stmt->execute([$id]);
+        // Registrar el log ANTES de eliminar
+        $changedBy = $_SERVER['user']['id'];
+        $logSuccess = $this->logChange($id, $changedBy, 'deleted', json_encode($user), null);
+
+        // Si el log falla, no borramos
+        if (!$logSuccess) {
+            return 'log_failed';
+        }
+
+        // Eliminar el usuario
+        // $stmt = $this->conn->prepare("DELETE FROM users WHERE id = ?");
+        // $success = $stmt->execute([$id]);
+
+        return $success;
+    } catch (Exception $e) {
+        return false;
     }
+}
+
+public function logChange($userId, $changedBy, $fieldChanged, $oldValue, $newValue)
+{
+    try {
+        $stmt = $this->conn->prepare("INSERT INTO user_change_log (user_id, field_changed, old_value, new_value, changed_by) VALUES (?, ?, ?, ?, ?)");
+        return $stmt->execute([$userId, $fieldChanged, $oldValue, $newValue, $changedBy]);
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+
 }

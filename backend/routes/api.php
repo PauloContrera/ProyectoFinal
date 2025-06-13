@@ -49,3 +49,9 @@ function routeGetUsers()
     $controller = new UserController((new Database())->getConnection());
     $controller->getAll();
 }
+function Test()
+{
+    AuthMiddleware::verifyToken();
+    $controller = new UserController((new Database())->getConnection());
+    $controller->testLog();
+}

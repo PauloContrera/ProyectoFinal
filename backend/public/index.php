@@ -29,6 +29,7 @@ if ($relativeUri === '/api/login' && $requestMethod === 'POST') {
     exit;
 }
 
+
 if ($relativeUri === '/api/users' && $requestMethod === 'GET') {
     routeGetUsers();
     exit;
@@ -52,7 +53,10 @@ if (preg_match('#^/api/users/(\d+)$#', $relativeUri, $matches)) {
         exit;
     }
 }
-
+if ($relativeUri === '/api/test' && $requestMethod === 'GET') {
+    Test();
+    exit;
+}
 
 // Si no matchea ninguna ruta, responder 404
 http_response_code(404);

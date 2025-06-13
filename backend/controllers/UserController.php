@@ -103,4 +103,14 @@ class UserController
         }
         return Response::json(200, 'Usuario eliminado correctamente.');
     }
+// En el UserController, solo para testear
+public function testLog()
+{
+    $userId = 13; // ID existente
+    $changedBy = $_SERVER['user']['id'];
+    $this->userModel->logChange($userId, $changedBy, 'test_log', 'valor antiguo', 'valor nuevo');
+
+    Response::json(200, 'Log de prueba creado');
+}
+
 }
