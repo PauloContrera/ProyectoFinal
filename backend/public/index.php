@@ -53,6 +53,17 @@ if (preg_match('#^/api/users/(\d+)$#', $relativeUri, $matches)) {
         exit;
     }
 }
+if (preg_match('#^/api/users/(\d+)/change-password$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
+    $userId = $matches[1];
+    routeChangePassword($userId);
+    exit;
+}
+
+if (preg_match('#^/api/users/(\d+)/change-username$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
+    $userId = $matches[1];
+    routeChangeUsername($userId);
+    exit;
+}
 if ($relativeUri === '/api/test' && $requestMethod === 'GET') {
     Test();
     exit;

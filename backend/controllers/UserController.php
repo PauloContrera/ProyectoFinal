@@ -48,42 +48,47 @@ class UserController
     }
 
     public function update($id)
-    {
-        $currentUser = $_SERVER['user'];
+{
+    $currentUser = $_SERVER['user'];
 
-        if ($currentUser['role'] !== 'admin' && $currentUser['id'] != $id) {
-            return Response::json(403, 'Acceso denegado.');
-        }
-
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (!$data) {
-            return Response::json(400, 'Datos no válidos.');
-        }
-
-        // Sanitización
-        $name = trim($data['name'] ?? '');
-        $email = trim($data['email'] ?? '');
-        $phone = trim($data['phone'] ?? '');
-
-        if (!Validator::validateName($name)) {
-            return Response::json(400, 'Nombre inválido.');
-        }
-        if (!Validator::validateEmail($email)) {
-            return Response::json(400, 'Email inválido.');
-        }
-
-        $result = $this->userModel->updateUser($id, $name, $email, $phone);
-        if ($result['success'] === false) {
-            if ($result['reason'] === 'not_found') {
-                return Response::json(404, 'Usuario no encontrado');
-            }
-            if ($result['reason'] === 'duplicate_email') {
-                return Response::json(400, 'El email ya está en uso por otro usuario');
-            }
-        } else {
-            return Response::json(200, 'Usuario actualizado correctamente.');
-        }
+    if ($currentUser['role'] !== 'admin' && $currentUser['id'] != $id) {
+        return Response::json(403, 'Acceso denegado.');
     }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data) {
+        return Response::json(400, 'Datos no válidos.');
+    }
+
+    $name = trim($data['name'] ?? '');
+    $email = trim($data['email'] ?? '');
+    $phone = trim($data['phone'] ?? '');
+
+    if (!Validator::validateName($name)) {
+        return Response::json(400, 'Nombre inválido.');
+    }
+    if (!Validator::validateEmail($email)) {
+        return Response::json(400, 'Email inválido.');
+    }
+
+    $result = $this->userModel->updateUser($id, $name, $email, $phone, $currentUser['id']);
+
+    if ($result['success'] === false) {
+        if ($result['reason'] === 'not_found') {
+            return Response::json(404, 'Usuario no encontrado.');
+        }
+        if ($result['reason'] === 'duplicate_email') {
+            return Response::json(400, 'El email ya está en uso por otro usuario.');
+        }
+        if ($result['reason'] === 'no_changes') {
+            return Response::json(200, 'No hay cambios para actualizar.');
+        }
+        return Response::json(500, 'Error al actualizar el usuario.');
+    }
+
+    return Response::json(200, 'Usuario actualizado correctamente.');
+}
+
 
     public function delete($id)
     {
@@ -103,6 +108,78 @@ class UserController
         }
         return Response::json(200, 'Usuario eliminado correctamente.');
     }
+
+
+
+    public function changeUsername($id)
+{
+    $currentUser = $_SERVER['user'];
+
+    if ($currentUser['role'] !== 'admin' && $currentUser['id'] != $id) {
+        return Response::json(403, 'Acceso denegado.');
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data) {
+        return Response::json(400, 'Datos no válidos.');
+    }
+
+    $newUsername = trim($data['new_username'] ?? '');
+
+    if (!Validator::validateUsername($newUsername)) {
+        return Response::json(400, 'Username inválido.');
+    }
+
+    $result = $this->userModel->changeUsername($id, $newUsername, $currentUser['id']);
+
+    if ($result['success'] === false) {
+        if ($result['reason'] === 'not_found') {
+            return Response::json(404, 'Usuario no encontrado.');
+        }
+        if ($result['reason'] === 'duplicate_username') {
+            return Response::json(400, 'El username ya está en uso por otro usuario.');
+        }
+        return Response::json(500, 'Error al cambiar el username.');
+    }
+
+    return Response::json(200, 'Username actualizado correctamente.');
+}
+public function changePassword($id)
+{
+    $currentUser = $_SERVER['user'];
+
+    if ($currentUser['role'] !== 'admin' && $currentUser['id'] != $id) {
+        return Response::json(403, 'Acceso denegado.');
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data) {
+        return Response::json(400, 'Datos no válidos.');
+    }
+
+    $currentPassword = trim($data['current_password'] ?? '');
+    $newPassword = trim($data['new_password'] ?? '');
+
+    if (!Validator::validatePassword($newPassword)) {
+        return Response::json(400, 'La nueva contraseña debe tener al menos 6 caracteres.');
+    }
+
+    $result = $this->userModel->changePassword($id, $currentPassword, $newPassword, $currentUser['id']);
+
+    if ($result['success'] === false) {
+        if ($result['reason'] === 'not_found') {
+            return Response::json(404, 'Usuario no encontrado.');
+        }
+        if ($result['reason'] === 'invalid_password') {
+            return Response::json(400, 'Contraseña actual incorrecta.');
+        }
+        return Response::json(500, 'Error al cambiar la contraseña.');
+    }
+
+    return Response::json(200, 'Contraseña actualizada correctamente.');
+}
+
+
 // En el UserController, solo para testear
 public function testLog()
 {

@@ -70,71 +70,157 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function updateUser($id, $name, $email, $phone)
-    {
-        // Verificar si el usuario existe
-        $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-        $existingUser = $stmt->fetch();
+public function updateUser($id, $name, $email, $phone, $changedBy)
+{
+    // Verificar si el usuario existe
+    $stmt = $this->conn->prepare("SELECT name, email, phone FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+    $existingUser = $stmt->fetch();
 
-        if (!$existingUser) {
-            return ['success' => false, 'reason' => 'not_found'];
-        }
-
-        // Verificar si el email ya existe en otro usuario
-        $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = ? AND id != ?");
-        $stmt->execute([$email, $id]);
-        if ($stmt->fetch()) {
-            return ['success' => false, 'reason' => 'duplicate_email'];
-        }
-
-        // Ejecutar la actualización
-        $stmt = $this->conn->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
-        $success = $stmt->execute([$name, $email, $phone, $id]);
-
-        return ['success' => $success, 'reason' => 'ok'];
+    if (!$existingUser) {
+        return ['success' => false, 'reason' => 'not_found'];
     }
+
+    // Verificar si el email ya existe en otro usuario
+    $stmt = $this->conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+    $stmt->execute([$email, $id]);
+    if ($stmt->fetch()) {
+        return ['success' => false, 'reason' => 'duplicate_email'];
+    }
+
+    // Comparar campos y registrar cambios
+    $fieldsToUpdate = [];
+    $params = [];
+
+    if ($name !== $existingUser['name']) {
+        $fieldsToUpdate[] = "name = ?";
+        $params[] = $name;
+        $this->logChange($id, $changedBy, 'name', $existingUser['name'], $name);
+    }
+
+    if ($email !== $existingUser['email']) {
+        $fieldsToUpdate[] = "email = ?";
+        $params[] = $email;
+        $this->logChange($id, $changedBy, 'email', $existingUser['email'], $email);
+    }
+
+    if ($phone !== $existingUser['phone']) {
+        $fieldsToUpdate[] = "phone = ?";
+        $params[] = $phone;
+        $this->logChange($id, $changedBy, 'phone', $existingUser['phone'], $phone);
+    }
+
+    if (empty($fieldsToUpdate)) {
+        return ['success' => false, 'reason' => 'no_changes'];
+    }
+
+    // Ejecutar la actualización
+    $sql = "UPDATE users SET " . implode(', ', $fieldsToUpdate) . ", updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+    $params[] = $id;
+
+    $stmt = $this->conn->prepare($sql);
+    $success = $stmt->execute($params);
+
+    return $success ? ['success' => true] : ['success' => false, 'reason' => 'db_error'];
+}
+
+
 
 public function deleteUser($id)
 {
-    try {
-        // Primero verificamos si el usuario existe
-        $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ?");
-        $stmt->execute([$id]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Verificamos si el usuario existe
+    $stmt = $this->conn->prepare("SELECT id, name, username, email, phone, role FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+    $user = $stmt->fetch();
 
-        if (!$user) {
-            return 'not_found';
-        }
+    if (!$user) {
+        return 'not_found';
+    }
 
-        // Registrar el log ANTES de eliminar
-        $changedBy = $_SERVER['user']['id'];
-        $logSuccess = $this->logChange($id, $changedBy, 'deleted', json_encode($user), null);
+    // Registrar el log ANTES de eliminar
+    $changedBy = $_SERVER['user']['id'];
+    $this->logChange($id, $changedBy, 'deleted', json_encode($user), null);
 
-        // Si el log falla, no borramos
-        if (!$logSuccess) {
-            return 'log_failed';
-        }
+    // Eliminar el usuario
+    $stmt = $this->conn->prepare("DELETE FROM users WHERE id = ?");
+    $success = $stmt->execute([$id]);
 
-        // Eliminar el usuario
-        // $stmt = $this->conn->prepare("DELETE FROM users WHERE id = ?");
-        // $success = $stmt->execute([$id]);
+    return $success;
+}
 
-        return $success;
-    } catch (Exception $e) {
-        return false;
+public function changePassword($id, $currentPassword, $newPassword, $changedBy)
+{
+    // Obtener usuario
+    $stmt = $this->conn->prepare("SELECT password FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        return ['success' => false, 'reason' => 'not_found'];
+    }
+
+    // Validar contraseña actual
+    if (!password_verify($currentPassword, $user['password'])) {
+        return ['success' => false, 'reason' => 'invalid_password'];
+    }
+
+    // Hashear nueva contraseña
+    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
+    // Actualizar contraseña
+    $stmt = $this->conn->prepare("UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+    $success = $stmt->execute([$hashedPassword, $id]);
+
+    if ($success) {
+        $this->logChange($id, $changedBy, 'password', '***', '***');
+        return ['success' => true];
+    } else {
+        return ['success' => false, 'reason' => 'db_error'];
     }
 }
+public function changeUsername($id, $newUsername, $changedBy)
+{
+    // Verificar si el nuevo username está en uso
+    $stmt = $this->conn->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+    $stmt->execute([$newUsername, $id]);
+    if ($stmt->fetch()) {
+        return ['success' => false, 'reason' => 'duplicate_username'];
+    }
+
+    // Obtener el username actual
+    $stmt = $this->conn->prepare("SELECT username FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        return ['success' => false, 'reason' => 'not_found'];
+    }
+
+    // Actualizar username
+    $stmt = $this->conn->prepare("UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+    $success = $stmt->execute([$newUsername, $id]);
+
+    if ($success) {
+        $this->logChange($id, $changedBy, 'username', $user['username'], $newUsername);
+        return ['success' => true];
+    } else {
+        return ['success' => false, 'reason' => 'db_error'];
+    }
+}
+
+
+
+
+
+
+
 
 public function logChange($userId, $changedBy, $fieldChanged, $oldValue, $newValue)
 {
-    try {
-        $stmt = $this->conn->prepare("INSERT INTO user_change_log (user_id, field_changed, old_value, new_value, changed_by) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([$userId, $fieldChanged, $oldValue, $newValue, $changedBy]);
-    } catch (Exception $e) {
-        return false;
-    }
+    $stmt = $this->conn->prepare("INSERT INTO user_change_log (user_id, field_changed, old_value, new_value, changed_by) VALUES (?, ?, ?, ?, ?)");
+    return $stmt->execute([$userId, $fieldChanged, $oldValue, $newValue, $changedBy]);
 }
+
 
 
 }

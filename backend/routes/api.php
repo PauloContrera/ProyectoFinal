@@ -55,3 +55,16 @@ function Test()
     $controller = new UserController((new Database())->getConnection());
     $controller->testLog();
 }
+function routeChangePassword($id)
+{
+    AuthMiddleware::verifyToken();
+    $controller = new UserController((new Database())->getConnection());
+    $controller->changePassword($id);
+}
+
+function routeChangeUsername($id)
+{
+    AuthMiddleware::verifyToken();
+    $controller = new UserController((new Database())->getConnection());
+    $controller->changeUsername($id);
+}
