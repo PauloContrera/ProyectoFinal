@@ -8,7 +8,7 @@ use Helpers\Response;
 
 class AuthMiddleware
 {
-public static function verifyToken()
+    public static function verifyToken()
     {
         $headers = getallheaders();
         if (!isset($headers['Authorization'])) {
@@ -29,7 +29,8 @@ public static function verifyToken()
             // Guardamos los datos en el server para que el controlador pueda accederlos
             $_SERVER['user'] = [
                 'id' => $decoded->sub,
-                'role' => $decoded->role
+                'role' => $decoded->role,
+                'lang' => $decoded->lang ?? 'es'
             ];
         } catch (\Firebase\JWT\ExpiredException $e) {
             Response::json(401, 'Token expirado.');

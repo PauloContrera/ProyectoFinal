@@ -12,9 +12,11 @@ require_once __DIR__ . '/../routes/api.php';
 define('BASE_PATH', str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])));
 
 $requestUri = $_SERVER['REQUEST_URI'];
+// sacamos solo la parte path sin query string
+$uriPath = parse_url($requestUri, PHP_URL_PATH);
 
-// Sacamos la parte base para obtener la ruta relativa
-$relativeUri = substr($requestUri, strlen(BASE_PATH));
+$relativeUri = substr($uriPath, strlen(BASE_PATH));
+
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
@@ -68,9 +70,33 @@ if ($relativeUri === '/api/test' && $requestMethod === 'GET') {
     Test();
     exit;
 }
+if ($relativeUri === '/api/verify-email' && $requestMethod === 'GET') {
+    routeVerifyEmail();
+    exit;
+}
+if ($relativeUri === '/api/resend-email-verification' && $requestMethod === 'POST') {
+    routeResendVerificationEmail();
+    exit;
+}
+
+if ($relativeUri === '/api/request-password-reset' && $requestMethod === 'POST') {
+    routeRequestPasswordReset();
+    exit;
+}
+if ($relativeUri === '/api/reset-password/verify' && $requestMethod === 'GET') {
+    routeVerifyPasswordResetToken();
+    exit;
+}
+if ($relativeUri === '/api/reset-password' && $requestMethod === 'POST') {
+    routeResetPassword();
+    exit;
+}
 
 // Si no matchea ninguna ruta, responder 404
 http_response_code(404);
 header('Content-Type: application/json');
 echo json_encode(['message' => 'Ruta no encontrada']);
+echo json_encode([$relativeUri]);
+echo json_encode([$uriPath]);
+echo json_encode([$requestMethod]);
 exit;

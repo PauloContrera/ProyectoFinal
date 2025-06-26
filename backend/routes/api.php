@@ -11,6 +11,7 @@ function routeRegister()
     $authController->register();
 }
 
+
 function routeLogin()
 {
     $authController = new AuthController();
@@ -67,4 +68,31 @@ function routeChangeUsername($id)
     AuthMiddleware::verifyToken();
     $controller = new UserController((new Database())->getConnection());
     $controller->changeUsername($id);
+}
+function routeVerifyEmail()
+{
+    $authController = new AuthController();
+    $authController->verifyEmail();
+
+}
+function routeResendVerificationEmail()
+{
+    $authController = new AuthController();
+    $authController->resendEmailVerification();
+}
+
+function routeRequestPasswordReset()
+{
+    $authController = new AuthController();
+    $authController->requestPasswordReset();
+}
+function routeVerifyPasswordResetToken()
+{
+    $controller = new AuthController();
+    $controller->verifyPasswordResetToken();
+}
+function routeResetPassword()
+{
+    $controller = new AuthController();
+    $controller->resetPassword();
 }

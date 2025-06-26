@@ -26,11 +26,13 @@ class ComposerStaticInitd6469db0ba4d9401117223cb22ca71f4
         'P' => 
         array (
             'PhpOption\\' => 10,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'M' => 
         array (
             'Models\\' => 7,
             'Middleware\\' => 11,
+            'MailTemplates\\' => 14,
         ),
         'H' => 
         array (
@@ -76,6 +78,10 @@ class ComposerStaticInitd6469db0ba4d9401117223cb22ca71f4
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
         ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
         'Models\\' => 
         array (
             0 => __DIR__ . '/../..' . '/models',
@@ -83,6 +89,10 @@ class ComposerStaticInitd6469db0ba4d9401117223cb22ca71f4
         'Middleware\\' => 
         array (
             0 => __DIR__ . '/../..' . '/middleware',
+        ),
+        'MailTemplates\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/MailTemplates',
         ),
         'Helpers\\' => 
         array (
