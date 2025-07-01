@@ -15,6 +15,7 @@ return [
     'INVALID_CREDENTIALS' => 'Usuario o contraseña incorrectos.',
     'ACCOUNT_LOCKED' => 'Demasiados intentos fallidos. Cuenta bloqueada.',
     'LOGIN_SUCCESS' => 'Login exitoso.',
+    'IP_BLOCKED' => 'La dirección IP está temporalmente bloqueada. Intente más tarde.',
 
     // *Mensajes Usuarios
     'ACCESS_DENIED' => 'Acceso denegado.',

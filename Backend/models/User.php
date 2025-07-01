@@ -259,6 +259,22 @@ class User
         $stmt->execute(['token' => $token]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function findValidPasswordResetTokeforLog($token)
+    {
+        $sql = "SELECT * FROM password_resets
+            WHERE token = :token AND expires_at > NOW()";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    public function invalidatePreviousPasswordResetTokens($userId)
+    {
+        $sql = "UPDATE password_resets
+            SET used = 1
+            WHERE user_id = :user_id AND used = 0";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+    }
 
     public function resetPasswordWithToken($token, $newHashedPassword)
     {
