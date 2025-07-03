@@ -68,4 +68,12 @@ class AuthMiddleware
             return Response::json(401, 'Token inválido.');
         }
     }
+    public static function getCurrentUser()
+{
+    if (isset($_SERVER['user'])) {
+        return $_SERVER['user'];
+    }
+    return null;
+}
+
 }
