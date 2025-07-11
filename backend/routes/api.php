@@ -11,10 +11,9 @@ global $relativeUri, $requestMethod;
 
 // Incluir routers de cada módulo
 require_once __DIR__ . '/user_routes.php';
-require_once __DIR__ . '/fridge_routes.php';
-// Aquí luego agregarás otros routers:
-// require_once __DIR__ . '/group_routes.php';
-// require_once __DIR__ . '/alerts_routes.php';
+require_once __DIR__ . '/device_routes.php';
+require_once __DIR__ . '/device_group_routes.php';
+
 
 // Si ningún router hizo exit, responder 404
 http_response_code(404);

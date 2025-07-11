@@ -1,189 +1,152 @@
 <?php
+
 namespace Controllers;
 
 use Models\Device;
-use Middleware\AuthMiddleware;
-use Config\Database;
 use Helpers\Response;
+use Middleware\AuthMiddleware;
 
-class DeviceController
-{
-    private $db;
+class DeviceController {
     private $deviceModel;
 
-    public function __construct()
-    {
-        $database = new Database();
-        $this->db = $database->getConnection();
-        $this->deviceModel = new Device($this->db);
+    public function __construct($db) {
+        $this->deviceModel = new Device($db);
     }
 
-    public function create()
-    {
+    public function create() {
         AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
-        $data = json_decode(file_get_contents('php://input'), true);
+        $user = $_SERVER['user'];
 
-        if (empty($data['name'])) {
-            return Response::json(400, 'MISSING_NAME');
+        $input = json_decode(file_get_contents("php://input"), true);
+        if (empty($input['name'])) return Response::json(400, 'MISSING_NAME');
+
+        $data = [
+            'name' => $input['name'],
+            'location' => $input['location'] ?? null,
+            'min_temp' => $input['min_temp'] ?? 0,
+            'max_temp' => $input['max_temp'] ?? 10,
+            'firmware_version' => $input['firmware_version'] ?? null,
+            'group_id' => $input['group_id'] ?? null,
+            'user_id' => $user['id']
+        ];
+
+        if ($data['group_id']) {
+            global $db;
+            $stmt = $db->prepare("SELECT id FROM device_groups WHERE id = ?");
+            $stmt->execute([$data['group_id']]);
+            if (!$stmt->fetch()) return Response::json(400, 'MISSING_GROUP');
         }
 
-        $deviceId = $this->deviceModel->create([
-            'name' => $data['name'],
-            'location' => $data['location'] ?? null,
-            'user_id' => $currentUser['id'],
-            'group_id' => $data['group_id'] ?? null,
-            'min_temp' => $data['min_temp'] ?? 0,
-            'max_temp' => $data['max_temp'] ?? 10,
-            'firmware_version' => $data['firmware_version'] ?? null
-        ]);
-
-        return Response::json(201, 'FRIDGE_CREATED', ['device_id' => $deviceId]);
+        $deviceId = $this->deviceModel->create($data);
+        return $deviceId
+            ? Response::json(201, 'FRIDGE_CREATED', ['device_id' => $deviceId])
+            : Response::json(500, 'CREATE_FAILED');
     }
 
-    public function getAll()
-    {
+    public function getAll() {
         AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
+        $user = $_SERVER['user'];
 
-        if ($currentUser['role'] === 'admin') {
-            $stmt = $this->db->query("SELECT * FROM devices");
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            global $db;
+            $stmt = $db->query("SELECT * FROM devices");
             $devices = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } elseif ($currentUser['role'] === 'client') {
-            $devices = $this->deviceModel->getAllByUser($currentUser['id']);
+        } elseif ($user['role'] === 'client') {
+            $devices = $this->deviceModel->getAllByUser($user['id']);
         } else {
-            $devices = $this->deviceModel->getAccessibleDevices($currentUser['id']);
+            $devices = $this->deviceModel->getAccessibleDevices($user['id']);
         }
 
-        return Response::json(200, 'SUCCESS', $devices);
+        return Response::json(200, 'FRIDGE_LIST', $devices);
     }
 
-    public function getById($id)
-    {
+    public function getOne($id) {
         AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
+        $user = $_SERVER['user'];
         $device = $this->deviceModel->getById($id);
+        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
 
-        if (!$device) {
-            return Response::json(404, 'NOT_FOUND');
-        }
-
-        if ($currentUser['role'] !== 'admin') {
-            $isOwner = $device['user_id'] == $currentUser['id'];
-            $hasAccess = $this->deviceModel->getAccess($id, $currentUser['id']);
-
-            if ($currentUser['role'] === 'client' && !$isOwner) {
-                return Response::json(403, 'ACCESS_DENIED');
-            }
-
-            if ($currentUser['role'] === 'visitor' && !$hasAccess) {
-                return Response::json(403, 'ACCESS_DENIED');
-            }
-        }
-
-        return Response::json(200, 'SUCCESS', $device);
-    }
-
-    public function update($id)
-    {
-        AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
-        $device = $this->deviceModel->getById($id);
-
-        if (!$device) {
-            return Response::json(404, 'NOT_FOUND');
-        }
-
-        if ($currentUser['role'] !== 'admin') {
-            $isOwner = $device['user_id'] == $currentUser['id'];
-            $access = $this->deviceModel->getAccess($id, $currentUser['id']);
-
-            if ($currentUser['role'] === 'client' && !$isOwner) {
-                return Response::json(403, 'ACCESS_DENIED');
-            }
-
-            if ($currentUser['role'] === 'visitor' && (!$access || !$access['can_modify'])) {
-                return Response::json(403, 'ACCESS_DENIED');
-            }
-        }
-
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        $changes = 0;
-        foreach (['name', 'location', 'group_id', 'min_temp', 'max_temp', 'firmware_version'] as $field) {
-            if (isset($data[$field]) && $data[$field] != $device[$field]) {
-                $this->deviceModel->logChange($id, $field, $device[$field], $data[$field], $currentUser['id']);
-                $changes++;
-            }
-        }
-
-        if ($changes === 0) {
-            return Response::json(200, 'NO_CHANGES');
-        }
-
-        $this->deviceModel->update($id, [
-            'name' => $data['name'],
-            'location' => $data['location'],
-            'group_id' => $data['group_id'],
-            'min_temp' => $data['min_temp'],
-            'max_temp' => $data['max_temp'],
-            'firmware_version' => $data['firmware_version']
-        ]);
-
-        return Response::json(200, 'FRIDGE_UPDATED');
-    }
-
-    public function delete($id)
-    {
-        AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
-        $device = $this->deviceModel->getById($id);
-
-        if (!$device) {
-            return Response::json(404, 'NOT_FOUND');
-        }
-
-        if ($currentUser['role'] !== 'admin' && $device['user_id'] != $currentUser['id']) {
+        if ($device['user_id'] !== $user['id'] && $user['role'] === 'client') {
             return Response::json(403, 'ACCESS_DENIED');
         }
 
-        $this->deviceModel->delete($id);
+        if ($user['role'] === 'visitor') {
+            $access = $this->deviceModel->getAccess($id, $user['id']);
+            if (!$access) return Response::json(403, 'ACCESS_DENIED');
+        }
+
+        return Response::json(200, null, $device);
+    }
+
+    public function update($id) {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
+        $device = $this->deviceModel->getById($id);
+        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
+
+        $isOwner = $device['user_id'] === $user['id'];
+        $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
+        $hasAccess = $this->deviceModel->getAccess($id, $user['id']);
+
+        if (!$isOwner && !$isAdmin && (!$hasAccess || !$hasAccess['can_modify'])) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+
+        $input = json_decode(file_get_contents("php://input"), true);
+        if (empty($input['name'])) return Response::json(400, 'MISSING_NAME');
+
+        $data = [
+            'name' => $input['name'],
+            'location' => $input['location'] ?? null,
+            'min_temp' => $input['min_temp'] ?? 0,
+            'max_temp' => $input['max_temp'] ?? 10,
+            'firmware_version' => $input['firmware_version'] ?? null
+        ];
+
+        $updated = $this->deviceModel->update($id, $data, $user['id']);
+        return $updated ? Response::json(200, 'FRIDGE_UPDATED') : Response::json(200, 'NO_CHANGES');
+    }
+
+    public function delete($id) {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
+        $device = $this->deviceModel->getById($id);
+        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
+
+        $isOwner = $device['user_id'] === $user['id'];
+        $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
+        if (!$isOwner && !$isAdmin) return Response::json(403, 'ACCESS_DENIED');
+
+        $this->deviceModel->delete($id, $user['id']);
         return Response::json(200, 'FRIDGE_DELETED');
     }
 
-    public function grantAccess($id)
-    {
+    public function grantAccess($id) {
         AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
+        $user = $_SERVER['user'];
+        $input = json_decode(file_get_contents("php://input"), true);
 
-        if ($currentUser['role'] !== 'admin') {
-            return Response::json(403, 'ACCESS_DENIED');
-        }
+        if (empty($input['user_id'])) return Response::json(400, 'MISSING_USER_ID');
 
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (empty($data['user_id'])) {
-            return Response::json(400, 'MISSING_USER_ID');
-        }
+        $device = $this->deviceModel->getById($id);
+        if (!$device || $device['user_id'] !== $user['id']) return Response::json(403, 'ACCESS_DENIED');
 
-        $this->deviceModel->grantAccess($id, $data['user_id'], !empty($data['can_modify']));
+        $canModify = $input['can_modify'] ?? false;
+        $this->deviceModel->grantAccess($id, $input['user_id'], $canModify);
         return Response::json(200, 'ACCESS_GRANTED');
     }
 
-    public function revokeAccess($id)
-    {
+    public function revokeAccess($id) {
         AuthMiddleware::verifyToken();
-        $currentUser = AuthMiddleware::getCurrentUser();
+        $user = $_SERVER['user'];
+        $input = json_decode(file_get_contents("php://input"), true);
 
-        if ($currentUser['role'] !== 'admin') {
-            return Response::json(403, 'ACCESS_DENIED');
-        }
+        if (empty($input['user_id'])) return Response::json(400, 'MISSING_USER_ID');
 
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (empty($data['user_id'])) {
-            return Response::json(400, 'MISSING_USER_ID');
-        }
+        $device = $this->deviceModel->getById($id);
+        if (!$device || $device['user_id'] !== $user['id']) return Response::json(403, 'ACCESS_DENIED');
 
-        $this->deviceModel->revokeAccess($id, $data['user_id']);
+        $this->deviceModel->revokeAccess($id, $input['user_id']);
         return Response::json(200, 'ACCESS_REVOKED');
     }
 }

@@ -1,48 +1,42 @@
 <?php
+
 use Controllers\DeviceController;
-use Middleware\AuthMiddleware;
-use Config\Database;
 
-global $relativeUri, $requestMethod;
+global $relativeUri, $requestMethod, $db;
 
-// Asegurate de proteger todos los endpoints
-AuthMiddleware::verifyToken();
+$controller = new DeviceController($db);
 
-$controller = new DeviceController((new Database())->getConnection());
+// Crear heladera
 if ($relativeUri === '/api/devices' && $requestMethod === 'POST') {
-    (new DeviceController())->create();
-    exit;
+    $controller->create(); exit;
 }
 
+// Obtener todas las accesibles al usuario
 if ($relativeUri === '/api/devices' && $requestMethod === 'GET') {
-    (new DeviceController())->getAll();
-    exit;
+    $controller->getAll(); exit;
 }
 
-if (preg_match('#^/api/devices/(\d+)$#', $relativeUri, $matches)) {
-    $id = $matches[1];
-    if ($requestMethod === 'GET') {
-        (new DeviceController())->getById($id);
-        exit;
-    }
-    if ($requestMethod === 'PUT') {
-        (new DeviceController())->update($id);
-        exit;
-    }
-    if ($requestMethod === 'DELETE') {
-        (new DeviceController())->delete($id);
-        exit;
-    }
+// Obtener una heladera por ID
+if (preg_match('#^/api/devices/(\d+)$#', $relativeUri, $matches) && $requestMethod === 'GET') {
+    $controller->getOne($matches[1]); exit;
 }
 
+// Actualizar heladera
+if (preg_match('#^/api/devices/(\d+)$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
+    $controller->update($matches[1]); exit;
+}
+
+// Eliminar heladera
+if (preg_match('#^/api/devices/(\d+)$#', $relativeUri, $matches) && $requestMethod === 'DELETE') {
+    $controller->delete($matches[1]); exit;
+}
+
+// Otorgar acceso
 if (preg_match('#^/api/devices/(\d+)/grant-access$#', $relativeUri, $matches) && $requestMethod === 'POST') {
-    $id = $matches[1];
-    (new DeviceController())->grantAccess($id);
-    exit;
+    $controller->grantAccess($matches[1]); exit;
 }
 
+// Revocar acceso
 if (preg_match('#^/api/devices/(\d+)/revoke-access$#', $relativeUri, $matches) && $requestMethod === 'POST') {
-    $id = $matches[1];
-    (new DeviceController())->revokeAccess($id);
-    exit;
+    $controller->revokeAccess($matches[1]); exit;
 }

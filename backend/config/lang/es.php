@@ -1,7 +1,7 @@
 <?php
 
 return [
-    // *Mensajes Login
+    // * Login
     'INVALID_DATA' => 'Datos no válidos.',
     'INVALID_NAME' => 'Nombre inválido.',
     'INVALID_USERNAME' => 'Username inválido.',
@@ -17,29 +17,29 @@ return [
     'LOGIN_SUCCESS' => 'Login exitoso.',
     'IP_BLOCKED' => 'La dirección IP está temporalmente bloqueada. Intente más tarde.',
 
-    // *Mensajes Usuarios
+    // * Usuarios
     'ACCESS_DENIED' => 'Acceso denegado.',
     'USER_NOT_FOUND' => 'Usuario no encontrado.',
     'USER_LIST' => 'Lista de usuarios.',
     'USER_FOUND' => 'Usuario encontrado.',
     'EMAIL_IN_USE' => 'El email ya está en uso por otro usuario.',
-    'NO_CHANGES' => 'No hay cambios para actualizar.',
-    'UPDATE_SUCCESS' => 'Usuario actualizado correctamente.',
-    'DELETE_SUCCESS' => 'Usuario eliminado correctamente.',
-    'DELETE_NOT_FOUND' => 'El usuario que intenta eliminar no existe.',
-    'DELETE_ERROR' => 'Error al eliminar el usuario. Inténtelo más tarde.',
     'USERNAME_IN_USE' => 'El username ya está en uso por otro usuario.',
     'USERNAME_SAME' => 'El nuevo username debe ser diferente al actual.',
     'USERNAME_UPDATE_SUCCESS' => 'Username actualizado correctamente.',
     'CURRENT_PASSWORD_WRONG' => 'Contraseña actual incorrecta.',
     'PASSWORD_SAME' => 'La nueva contraseña debe ser diferente a la actual.',
     'PASSWORD_UPDATE_SUCCESS' => 'Contraseña actualizada correctamente.',
+    'USER_UPDATE_ERROR' => 'Error al actualizar el usuario.',
+    'UPDATE_SUCCESS' => 'Usuario actualizado correctamente.',
+    'DELETE_SUCCESS' => 'Usuario eliminado correctamente.',
+    'DELETE_NOT_FOUND' => 'El usuario que intenta eliminar no existe.',
+    'DELETE_ERROR' => 'Error al eliminar el usuario. Inténtelo más tarde.',
     'PASSWORD_CHANGE_ERROR' => 'Error al cambiar la contraseña.',
     'USERNAME_CHANGE_ERROR' => 'Error al cambiar el username.',
-    'USER_UPDATE_ERROR' => 'Error al actualizar el usuario.',
     'TEST_LOG_SUCCESS' => 'Log de prueba creado.',
+    'NO_CHANGES' => 'No hubo cambios que aplicar.',
 
-    // *Nuevos mensajes agregados para registro y verificación de correo
+    // * Verificación de correo
     'REGISTER_SUCCESS_CHECK_EMAIL' => 'Registro exitoso. Por favor revisa tu correo para verificar la cuenta.',
     'EMAIL_SEND_FAILED' => 'No se pudo enviar el correo de verificación.',
     'TOKEN_NOT_PROVIDED' => 'Token no proporcionado.',
@@ -50,11 +50,10 @@ return [
     'TOKEN_REQUIRED' => 'Token requerido.',
     'INVALID_TOKEN' => 'Token inválido.',
     'EMAIL_VERIFIED_SUCCESS' => 'Correo verificado correctamente.',
-    'USER_UPDATE_ERROR' => 'Error al actualizar el usuario.',
     'VERIFICATION_EMAIL_RESENT' => 'Se ha reenviado el correo de verificación.',
     'TOKEN_EXPIRED' => 'El token ha expirado.',
 
-    // *Recuperación de contraseña
+    // * Recuperación de contraseña
     'EMAIL_REQUIRED' => 'El email es requerido.',
     'RESET_EMAIL_SENT' => 'Si el email está registrado, se ha enviado un enlace para restablecer la contraseña.',
     'EMAIL_NOT_VERIFIED' => 'El correo no está verificado. Por favor, verifíquelo antes de restablecer la contraseña.',
@@ -64,33 +63,28 @@ return [
     'TOKEN_VALID' => 'Token válido.',
     'INTERNAL_ERROR' => 'Ocurrió un error interno, por favor intente más tarde.',
 
-
-    'INVALID_DATA' => 'Datos inválidos.',
-    'INVALID_NAME' => 'El nombre de la heladera no es válido.',
-    'INVALID_TEMPERATURE' => 'Las temperaturas deben ser números.',
-    'TEMPERATURE_RANGE_INVALID' => 'La temperatura mínima debe ser menor que la máxima.',
-    'DUPLICATE_FRIDGE_NAME' => 'Ya existe una heladera con ese nombre.',
-    'GROUP_NOT_FOUND' => 'El grupo especificado no existe.',
-    'GROUP_NOT_OWNED' => 'No tienes permiso sobre este grupo.',
-    'CREATE_FAILED' => 'No se pudo crear la heladera.',
+    // * Devices (Heladeras)
     'FRIDGE_CREATED' => 'Heladera creada correctamente.',
+    'FRIDGE_UPDATED' => 'Heladera actualizada correctamente.',
+    'FRIDGE_DELETED' => 'Heladera eliminada.',
     'FRIDGE_LIST' => 'Listado de heladeras.',
     'FRIDGE_NOT_FOUND' => 'Heladera no encontrada.',
+    'DUPLICATE_FRIDGE_NAME' => 'Ya existe una heladera con ese nombre.',
+    'MISSING_NAME' => 'El nombre es obligatorio.',
+    'MISSING_USER_ID' => 'El user_id es obligatorio.',
+    'MISSING_GROUP' => 'El grupo especificado no existe.',
+    'CREATE_FAILED' => 'No se pudo crear la heladera.',
     'UPDATE_FAILED' => 'No se pudo actualizar la heladera.',
-    'FRIDGE_UPDATED' => 'Heladera actualizada.',
     'DELETE_FAILED' => 'No se pudo eliminar la heladera.',
-    'FRIDGE_DELETED' => 'Heladera eliminada.',
-    'NO_CHANGES' => 'No hubo cambios que aplicar.',
+    'ACCESS_GRANTED' => 'Acceso otorgado correctamente.',
+    'ACCESS_REVOKED' => 'Acceso revocado correctamente.',
     'NOT_FOUND' => 'Recurso no encontrado.',
-    'FRIDGE_CREATED'   => 'Heladera creada.',
-    'FRIDGE_UPDATED'   => 'Heladera actualizada.',
-    'FRIDGE_DELETED'   => 'Heladera eliminada.',
-    'ACCESS_GRANTED'   => 'Acceso otorgado.',
-    'ACCESS_REVOKED'   => 'Acceso revocado.',
-    'ACCESS_DENIED'    => 'Acceso denegado.',
-    'NO_CHANGES'       => 'No hubo cambios que aplicar.',
-    'NOT_FOUND'        => 'Recurso no encontrado.',
-    'MISSING_NAME'     => 'El nombre es obligatorio.',
-    'MISSING_USER_ID'  => 'El user_id es obligatorio.',
-    'SUCCESS'          => 'Operación exitosa.'
+
+    // * Device Groups
+    'GROUP_CREATED' => 'Grupo creado correctamente.',
+    'GROUP_UPDATED' => 'Grupo actualizado correctamente.',
+    'GROUP_DELETED' => 'Grupo eliminado correctamente.',
+
+    // * General
+    'SUCCESS' => 'Operación exitosa.',
 ];
