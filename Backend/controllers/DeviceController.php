@@ -63,8 +63,16 @@ class DeviceController {
     public function getOne($id) {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
+
         $device = $this->deviceModel->getById($id);
-        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
+        if (!$device) {
+        // Solo mostrar NOT_FOUND a administradores
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(404, 'FRIDGE_NOT_FOUND');
+        } else {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+    }
 
         if ($device['user_id'] !== $user['id'] && $user['role'] === 'client') {
             return Response::json(403, 'ACCESS_DENIED');
@@ -82,7 +90,14 @@ class DeviceController {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
         $device = $this->deviceModel->getById($id);
-        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
+        if (!$device) {
+        // Solo mostrar NOT_FOUND a administradores
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(404, 'FRIDGE_NOT_FOUND');
+        } else {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+    }
 
         $isOwner = $device['user_id'] === $user['id'];
         $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
@@ -111,7 +126,14 @@ class DeviceController {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
         $device = $this->deviceModel->getById($id);
-        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
+        if (!$device) {
+        // Solo mostrar NOT_FOUND a administradores
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(404, 'FRIDGE_NOT_FOUND');
+        } else {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+    }
 
         $isOwner = $device['user_id'] === $user['id'];
         $isAdmin = in_array($user['role'], ['admin', 'superadmin']);

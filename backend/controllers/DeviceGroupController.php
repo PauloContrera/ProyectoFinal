@@ -50,7 +50,15 @@ class DeviceGroupController {
         $user = $_SERVER['user'];
 
         $group = $this->groupModel->getById($id);
-        if (!$group) return Response::json(404, 'NOT_FOUND');
+            if (!$group) {
+        // Solo mostrar NOT_FOUND a administradores
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(404, 'NOT_FOUND');
+        } else {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+    }
+
 
         if ($group['user_id'] != $user['id'] && !in_array($user['role'], ['admin', 'superadmin'])) {
             return Response::json(403, 'ACCESS_DENIED');
@@ -59,35 +67,61 @@ class DeviceGroupController {
         return Response::json(200, null, $group);
     }
 
-    public function update($id) {
-        AuthMiddleware::verifyToken();
-        $user = $_SERVER['user'];
+public function update($id) {
+    AuthMiddleware::verifyToken();
+    $user = $_SERVER['user'];
 
-        $group = $this->groupModel->getById($id);
-        if (!$group) return Response::json(404, 'NOT_FOUND');
-        if ($group['user_id'] != $user['id']) return Response::json(403, 'ACCESS_DENIED');
-
-        $input = json_decode(file_get_contents("php://input"), true);
-        if (empty($input['name'])) return Response::json(400, 'MISSING_NAME');
-
-        $data = [
-            'name' => $input['name'],
-            'description' => $input['description'] ?? null
-        ];
-
-        $updated = $this->groupModel->update($id, $data, $user['id']);
-        return $updated ? Response::json(200, 'GROUP_UPDATED') : Response::json(200, 'NO_CHANGES');
+    $group = $this->groupModel->getById($id);
+    if (!$group) {
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(404, 'NOT_FOUND');
+        } else {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
     }
 
-    public function delete($id) {
-        AuthMiddleware::verifyToken();
-        $user = $_SERVER['user'];
-
-        $group = $this->groupModel->getById($id);
-        if (!$group) return Response::json(404, 'NOT_FOUND');
-        if ($group['user_id'] != $user['id']) return Response::json(403, 'ACCESS_DENIED');
-
-        $this->groupModel->delete($id, $user['id']);
-        return Response::json(200, 'GROUP_DELETED');
+    // ✅ Solo puede editar si es dueño o admin/superadmin
+    if ($group['user_id'] != $user['id'] && !in_array($user['role'], ['admin', 'superadmin'])) {
+        return Response::json(403, 'ACCESS_DENIED');
     }
+
+    $input = json_decode(file_get_contents("php://input"), true);
+    if (empty($input['name'])) return Response::json(400, 'MISSING_NAME');
+
+    $data = [
+        'name' => $input['name'],
+        'description' => $input['description'] ?? null
+    ];
+
+    $updated = $this->groupModel->update($id, $data, $user['id']);
+    return $updated ? Response::json(200, 'GROUP_UPDATED') : Response::json(200, 'NO_CHANGES');
+}
+
+
+public function delete($id) {
+    AuthMiddleware::verifyToken();
+    $user = $_SERVER['user'];
+
+    $group = $this->groupModel->getById($id);
+    if (!$group) {
+        if (in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(404, 'NOT_FOUND');
+        } else {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+    }
+
+    if ($group['user_id'] != $user['id'] && !in_array($user['role'], ['admin', 'superadmin'])) {
+        return Response::json(403, 'ACCESS_DENIED');
+    }
+
+    if ($this->groupModel->hasDevices($id)) {
+        return Response::json(400, 'GROUP_HAS_DEVICES');
+    }
+
+    $this->groupModel->delete($id, $user['id']);
+    return Response::json(200, 'GROUP_DELETED');
+}
+
+
 }

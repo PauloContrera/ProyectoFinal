@@ -84,6 +84,7 @@ return [
     'GROUP_CREATED' => 'Grupo creado correctamente.',
     'GROUP_UPDATED' => 'Grupo actualizado correctamente.',
     'GROUP_DELETED' => 'Grupo eliminado correctamente.',
+    'GROUP_HAS_DEVICES' => 'No se puede eliminar el grupo porque contiene dispositivos asignados.',
 
     // * General
     'SUCCESS' => 'Operación exitosa.',

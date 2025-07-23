@@ -26,7 +26,7 @@ class Device {
             ':firmware_version' => $data['firmware_version']
         ]);
         $id = $this->conn->lastInsertId();
-        $this->logChange($id, $data['user_id'], 'create', json_encode($data));
+        $this->logFullChange($id, $data['user_id'], 'create', $data);
         return $id;
     }
 
@@ -53,10 +53,16 @@ class Device {
     }
 
     public function update($id, $data, $userId) {
+        $current = $this->getById($id);
+        if (!$current) return 0;
+
         $stmt = $this->conn->prepare("
             UPDATE {$this->table}
-            SET name = :name, location = :location, min_temp = :min_temp,
-                max_temp = :max_temp, firmware_version = :firmware_version
+            SET name = :name,
+                location = :location,
+                min_temp = :min_temp,
+                max_temp = :max_temp,
+                firmware_version = :firmware_version
             WHERE id = :id
         ");
         $stmt->execute([
@@ -67,17 +73,59 @@ class Device {
             ':firmware_version' => $data['firmware_version'],
             ':id' => $id
         ]);
-        $this->logChange($id, $userId, 'update', json_encode($data));
+
+        $this->logDifferences($id, $userId, $current, $data);
         return $stmt->rowCount();
     }
 
     public function delete($id, $userId) {
-        $this->logChange($id, $userId, 'delete', null);
+        $current = $this->getById($id);
+        $this->logFullChange($id, $userId, 'delete', $current);
+
         $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE id = ?");
         $stmt->execute([$id]);
+        $this->logFullChange($id, $userId, 'delete', $current);
         return $stmt->rowCount();
     }
 
+    private function logDifferences($deviceId, $userId, $old, $new) {
+        $campos = ['name', 'location', 'min_temp', 'max_temp', 'firmware_version'];
+        foreach ($campos as $campo) {
+            $oldValue = $old[$campo];
+            $newValue = $new[$campo] ?? null;
+            if ($oldValue != $newValue) {
+                $this->insertLog($deviceId, $userId, 'update', $campo, $oldValue, $newValue);
+            }
+        }
+    }
+
+    private function logFullChange($deviceId, $userId, $action, $data) {
+        foreach (['name', 'location', 'min_temp', 'max_temp', 'firmware_version', 'group_id'] as $campo) {
+            $value = $data[$campo] ?? null;
+            if ($action === 'create') {
+                $this->insertLog($deviceId, $userId, $action, $campo, null, $value);
+            } elseif ($action === 'delete') {
+                $this->insertLog($deviceId, $userId, $action, $campo, $value, null);
+            }
+        }
+    }
+
+    private function insertLog($deviceId, $userId, $action, $field, $oldValue, $newValue) {
+        $stmt = $this->conn->prepare("
+            INSERT INTO device_change_log (device_id, user_id, action, field_changed, old_value, new_value)
+            VALUES (:device_id, :user_id, :action, :field_changed, :old_value, :new_value)
+        ");
+        $stmt->execute([
+            ':device_id' => $deviceId,
+            ':user_id' => $userId,
+            ':action' => $action,
+            ':field_changed' => $field,
+            ':old_value' => $oldValue,
+            ':new_value' => $newValue
+        ]);
+    }
+
+    // Accesos
     public function grantAccess($deviceId, $userId, $canModify) {
         $stmt = $this->conn->prepare("
             INSERT INTO device_access (device_id, user_id, can_modify)
@@ -96,18 +144,5 @@ class Device {
         $stmt = $this->conn->prepare("SELECT * FROM device_access WHERE device_id = ? AND user_id = ?");
         $stmt->execute([$deviceId, $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    private function logChange($deviceId, $userId, $action, $changes = null) {
-        $stmt = $this->conn->prepare("
-            INSERT INTO device_change_log (device_id, user_id, action, changes)
-            VALUES (:device_id, :user_id, :action, :changes)
-        ");
-        $stmt->execute([
-            ':device_id' => $deviceId,
-            ':user_id' => $userId,
-            ':action' => $action,
-            ':changes' => $changes
-        ]);
     }
 }
