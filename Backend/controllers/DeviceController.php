@@ -6,14 +6,17 @@ use Models\Device;
 use Helpers\Response;
 use Middleware\AuthMiddleware;
 
-class DeviceController {
+class DeviceController
+{
     private $deviceModel;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->deviceModel = new Device($db);
     }
 
-    public function create() {
+    public function create()
+    {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
 
@@ -43,7 +46,8 @@ class DeviceController {
             : Response::json(500, 'CREATE_FAILED');
     }
 
-    public function getAll() {
+    public function getAll()
+    {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
 
@@ -60,19 +64,20 @@ class DeviceController {
         return Response::json(200, 'FRIDGE_LIST', $devices);
     }
 
-    public function getOne($id) {
+    public function getOne($id)
+    {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
 
         $device = $this->deviceModel->getById($id);
         if (!$device) {
-        // Solo mostrar NOT_FOUND a administradores
-        if (in_array($user['role'], ['admin', 'superadmin'])) {
-            return Response::json(404, 'FRIDGE_NOT_FOUND');
-        } else {
-            return Response::json(403, 'ACCESS_DENIED');
+            // Solo mostrar NOT_FOUND a administradores
+            if (in_array($user['role'], ['admin', 'superadmin'])) {
+                return Response::json(404, 'FRIDGE_NOT_FOUND');
+            } else {
+                return Response::json(403, 'ACCESS_DENIED');
+            }
         }
-    }
 
         if ($device['user_id'] !== $user['id'] && $user['role'] === 'client') {
             return Response::json(403, 'ACCESS_DENIED');
@@ -86,18 +91,19 @@ class DeviceController {
         return Response::json(200, null, $device);
     }
 
-    public function update($id) {
+    public function update($id)
+    {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
         $device = $this->deviceModel->getById($id);
         if (!$device) {
-        // Solo mostrar NOT_FOUND a administradores
-        if (in_array($user['role'], ['admin', 'superadmin'])) {
-            return Response::json(404, 'FRIDGE_NOT_FOUND');
-        } else {
-            return Response::json(403, 'ACCESS_DENIED');
+            // Solo mostrar NOT_FOUND a administradores
+            if (in_array($user['role'], ['admin', 'superadmin'])) {
+                return Response::json(404, 'FRIDGE_NOT_FOUND');
+            } else {
+                return Response::json(403, 'ACCESS_DENIED');
+            }
         }
-    }
 
         $isOwner = $device['user_id'] === $user['id'];
         $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
@@ -122,18 +128,19 @@ class DeviceController {
         return $updated ? Response::json(200, 'FRIDGE_UPDATED') : Response::json(200, 'NO_CHANGES');
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
         $device = $this->deviceModel->getById($id);
         if (!$device) {
-        // Solo mostrar NOT_FOUND a administradores
-        if (in_array($user['role'], ['admin', 'superadmin'])) {
-            return Response::json(404, 'FRIDGE_NOT_FOUND');
-        } else {
-            return Response::json(403, 'ACCESS_DENIED');
+            // Solo mostrar NOT_FOUND a administradores
+            if (in_array($user['role'], ['admin', 'superadmin'])) {
+                return Response::json(404, 'FRIDGE_NOT_FOUND');
+            } else {
+                return Response::json(403, 'ACCESS_DENIED');
+            }
         }
-    }
 
         $isOwner = $device['user_id'] === $user['id'];
         $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
@@ -143,7 +150,8 @@ class DeviceController {
         return Response::json(200, 'FRIDGE_DELETED');
     }
 
-    public function grantAccess($id) {
+    public function grantAccess($id)
+    {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
         $input = json_decode(file_get_contents("php://input"), true);
@@ -151,24 +159,63 @@ class DeviceController {
         if (empty($input['user_id'])) return Response::json(400, 'MISSING_USER_ID');
 
         $device = $this->deviceModel->getById($id);
-        if (!$device || $device['user_id'] !== $user['id']) return Response::json(403, 'ACCESS_DENIED');
+        $isOwner = $device['user_id'] === $user['id'];
+        $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
+
+        if (!$device || (!$isOwner && !$isAdmin)) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+
+        // ✅ Verificar si el usuario existe
+        global $db;
+        $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+        $stmt->execute([$input['user_id']]);
+        if (!$stmt->fetch()) {
+            return Response::json(404, 'USER_NOT_FOUND');
+        }
 
         $canModify = $input['can_modify'] ?? false;
         $this->deviceModel->grantAccess($id, $input['user_id'], $canModify);
+
+        $this->deviceModel->logAccessChange($id, $user['id'], $input['user_id'], 'grant', $canModify);
         return Response::json(200, 'ACCESS_GRANTED');
     }
 
-    public function revokeAccess($id) {
-        AuthMiddleware::verifyToken();
-        $user = $_SERVER['user'];
-        $input = json_decode(file_get_contents("php://input"), true);
 
-        if (empty($input['user_id'])) return Response::json(400, 'MISSING_USER_ID');
+ public function revokeAccess($id)
+{
+    AuthMiddleware::verifyToken();
+    $user = $_SERVER['user'];
+    $input = json_decode(file_get_contents("php://input"), true);
 
-        $device = $this->deviceModel->getById($id);
-        if (!$device || $device['user_id'] !== $user['id']) return Response::json(403, 'ACCESS_DENIED');
-
-        $this->deviceModel->revokeAccess($id, $input['user_id']);
-        return Response::json(200, 'ACCESS_REVOKED');
+    if (empty($input['user_id'])) {
+        return Response::json(400, 'MISSING_USER_ID');
     }
+
+    $device = $this->deviceModel->getById($id);
+    if (!$device || $device['user_id'] !== $user['id']) {
+        return Response::json(403, 'ACCESS_DENIED');
+    }
+
+    // ✅ Validar que el usuario exista
+    global $db;
+    $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+    $stmt->execute([$input['user_id']]);
+    if (!$stmt->fetch()) {
+        return Response::json(404, 'USER_NOT_FOUND');
+    }
+
+    // ✅ Verificar si el usuario tenía acceso
+    $access = $this->deviceModel->getAccess($id, $input['user_id']);
+    if (!$access) {
+        return Response::json(404, 'ACCESS_NOT_FOUND');
+    }
+
+    // ✅ Revocar y loguear
+    $this->deviceModel->revokeAccess($id, $input['user_id']);
+    $this->deviceModel->logAccessChange($id, $user['id'], $input['user_id'], 'revoke');
+    
+    return Response::json(200, 'ACCESS_REVOKED');
+}
+
 }

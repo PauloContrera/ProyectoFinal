@@ -84,7 +84,6 @@ class Device {
 
         $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE id = ?");
         $stmt->execute([$id]);
-        $this->logFullChange($id, $userId, 'delete', $current);
         return $stmt->rowCount();
     }
 
@@ -145,4 +144,19 @@ class Device {
         $stmt->execute([$deviceId, $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function logAccessChange($deviceId, $changedBy, $targetUserId, $action, $canModify = null) {
+    $stmt = $this->conn->prepare("
+        INSERT INTO device_access_log (device_id, target_user, changed_by, action, can_modify)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    $stmt->execute([
+        $deviceId,
+        $targetUserId,
+        $changedBy,
+        $action,
+        $canModify
+    ]);
+}
+
+    
 }

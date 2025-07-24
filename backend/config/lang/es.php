@@ -80,11 +80,13 @@ return [
     'ACCESS_REVOKED' => 'Acceso revocado correctamente.',
     'NOT_FOUND' => 'Recurso no encontrado.',
 
+
     // * Device Groups
     'GROUP_CREATED' => 'Grupo creado correctamente.',
     'GROUP_UPDATED' => 'Grupo actualizado correctamente.',
     'GROUP_DELETED' => 'Grupo eliminado correctamente.',
     'GROUP_HAS_DEVICES' => 'No se puede eliminar el grupo porque contiene dispositivos asignados.',
+    'ACCESS_NOT_FOUND' => 'El usuario no tenía acceso asignado a este dispositivo.',
 
     // * General
     'SUCCESS' => 'Operación exitosa.',
