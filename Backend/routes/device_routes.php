@@ -40,3 +40,13 @@ if (preg_match('#^/api/devices/(\d+)/grant-access$#', $relativeUri, $matches) &&
 if (preg_match('#^/api/devices/(\d+)/revoke-access$#', $relativeUri, $matches) && $requestMethod === 'POST') {
     $controller->revokeAccess($matches[1]); exit;
 }
+if ($relativeUri === '/api/devices/assign-to-user' && $requestMethod === 'POST') {
+    $controller->assignToUser(); exit;
+}
+if ($relativeUri === '/api/devices/unassigned' && $requestMethod === 'GET') {
+    $controller->getUnassigned(); exit;
+}
+if (preg_match('#^/api/devices/(\d+)/assign-group$#', $relativeUri, $matches) && $requestMethod === 'POST') {
+    $controller->assignGroup($matches[1]); exit;
+}
+

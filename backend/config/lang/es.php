@@ -79,6 +79,14 @@ return [
     'ACCESS_GRANTED' => 'Acceso otorgado correctamente.',
     'ACCESS_REVOKED' => 'Acceso revocado correctamente.',
     'NOT_FOUND' => 'Recurso no encontrado.',
+    'DEVICE_ASSIGNED' => 'Dispositivo asignado correctamente.',
+    'DEVICE_NOT_FOUND' => 'Dispositivo no encontrado.',
+    'ALREADY_ASSIGNED' => 'El dispositivo ya está asignado a un usuario.',
+    'MISSING_DATA' => 'Faltan datos obligatorios.',
+    'MISSING_DEVICE_CODE' => 'El código del dispositivo es obligatorio.',
+    'DEVICE_CODE_EXISTS' => 'Ya existe un dispositivo con ese código.',
+    'UNASSIGNED_LIST' => 'Listado de dispositivos sin asignar.',
+
 
 
     // * Device Groups
@@ -87,6 +95,9 @@ return [
     'GROUP_DELETED' => 'Grupo eliminado correctamente.',
     'GROUP_HAS_DEVICES' => 'No se puede eliminar el grupo porque contiene dispositivos asignados.',
     'ACCESS_NOT_FOUND' => 'El usuario no tenía acceso asignado a este dispositivo.',
+    'GROUP_ASSIGNED' => 'Grupo asignado correctamente.',
+    'MISSING_GROUP' => 'Debe indicar un grupo válido.',
+
 
     // * General
     'SUCCESS' => 'Operación exitosa.',

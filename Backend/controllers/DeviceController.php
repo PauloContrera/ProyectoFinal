@@ -18,33 +18,68 @@ class DeviceController
     public function create()
     {
         AuthMiddleware::verifyToken();
-        $user = $_SERVER['user'];
+        $currentUser = $_SERVER['user'];
+
+        // Solo admin o superadmin pueden crear dispositivos
+        if (!in_array($currentUser['role'], ['admin', 'superadmin'])) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
 
         $input = json_decode(file_get_contents("php://input"), true);
         if (empty($input['name'])) return Response::json(400, 'MISSING_NAME');
+        if (empty($input['device_code'])) return Response::json(400, 'MISSING_DEVICE_CODE');
+
+        // Validar que no se repita el device_code
+        global $db;
+        $stmt = $db->prepare("SELECT id FROM devices WHERE device_code = ?");
+        $stmt->execute([$input['device_code']]);
+        if ($stmt->fetch()) return Response::json(400, 'DEVICE_CODE_EXISTS');
+
+        // Validar si el usuario a asignar existe (opcional)
+        if (!empty($input['user_id'])) {
+            $userCheck = $db->prepare("SELECT id FROM users WHERE id = ?");
+            $userCheck->execute([$input['user_id']]);
+            if (!$userCheck->fetch()) return Response::json(400, 'USER_NOT_FOUND');
+        }
+
+        // Validar si el grupo existe (opcional)
+        if (!empty($input['group_id'])) {
+            $groupCheck = $db->prepare("SELECT id FROM device_groups WHERE id = ?");
+            $groupCheck->execute([$input['group_id']]);
+            if (!$groupCheck->fetch()) return Response::json(400, 'MISSING_GROUP');
+        }
 
         $data = [
+            'device_code' => $input['device_code'],
             'name' => $input['name'],
             'location' => $input['location'] ?? null,
             'min_temp' => $input['min_temp'] ?? 0,
             'max_temp' => $input['max_temp'] ?? 10,
             'firmware_version' => $input['firmware_version'] ?? null,
             'group_id' => $input['group_id'] ?? null,
-            'user_id' => $user['id']
+            'user_id' => $input['user_id'] ?? null,
         ];
 
-        if ($data['group_id']) {
-            global $db;
-            $stmt = $db->prepare("SELECT id FROM device_groups WHERE id = ?");
-            $stmt->execute([$data['group_id']]);
-            if (!$stmt->fetch()) return Response::json(400, 'MISSING_GROUP');
-        }
-
         $deviceId = $this->deviceModel->create($data);
+
         return $deviceId
             ? Response::json(201, 'FRIDGE_CREATED', ['device_id' => $deviceId])
             : Response::json(500, 'CREATE_FAILED');
     }
+
+    public function getUnassigned()
+    {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
+
+        if (!in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+
+        $devices = $this->deviceModel->getUnassigned();
+        return Response::json(200, 'UNASSIGNED_LIST', $devices);
+    }
+
 
     public function getAll()
     {
@@ -182,40 +217,91 @@ class DeviceController
     }
 
 
- public function revokeAccess($id)
-{
-    AuthMiddleware::verifyToken();
-    $user = $_SERVER['user'];
-    $input = json_decode(file_get_contents("php://input"), true);
+    public function revokeAccess($id)
+    {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
+        $input = json_decode(file_get_contents("php://input"), true);
 
-    if (empty($input['user_id'])) {
-        return Response::json(400, 'MISSING_USER_ID');
+        if (empty($input['user_id'])) {
+            return Response::json(400, 'MISSING_USER_ID');
+        }
+
+        $device = $this->deviceModel->getById($id);
+        if (!$device || $device['user_id'] !== $user['id']) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+
+        // ✅ Validar que el usuario exista
+        global $db;
+        $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+        $stmt->execute([$input['user_id']]);
+        if (!$stmt->fetch()) {
+            return Response::json(404, 'USER_NOT_FOUND');
+        }
+
+        // ✅ Verificar si el usuario tenía acceso
+        $access = $this->deviceModel->getAccess($id, $input['user_id']);
+        if (!$access) {
+            return Response::json(404, 'ACCESS_NOT_FOUND');
+        }
+
+        // ✅ Revocar y loguear
+        $this->deviceModel->revokeAccess($id, $input['user_id']);
+        $this->deviceModel->logAccessChange($id, $user['id'], $input['user_id'], 'revoke');
+
+        return Response::json(200, 'ACCESS_REVOKED');
     }
+    public function assignToUser()
+    {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
 
-    $device = $this->deviceModel->getById($id);
-    if (!$device || $device['user_id'] !== $user['id']) {
-        return Response::json(403, 'ACCESS_DENIED');
+        if (!in_array($user['role'], ['admin', 'superadmin'])) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+
+        $input = json_decode(file_get_contents("php://input"), true);
+        if (empty($input['device_code']) || empty($input['user_id'])) {
+            return Response::json(400, 'MISSING_DATA');
+        }
+
+        $result = $this->deviceModel->assignToUser($input['device_code'], $input['user_id']);
+        if (isset($result['error'])) {
+            return Response::json(400, $result['error']);
+        }
+
+        return Response::json(200, 'DEVICE_ASSIGNED');
     }
+    public function assignGroup($id)
+    {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
+        $input = json_decode(file_get_contents("php://input"), true);
 
-    // ✅ Validar que el usuario exista
-    global $db;
-    $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
-    $stmt->execute([$input['user_id']]);
-    if (!$stmt->fetch()) {
-        return Response::json(404, 'USER_NOT_FOUND');
+        if (empty($input['group_id'])) return Response::json(400, 'MISSING_GROUP');
+
+        $device = $this->deviceModel->getById($id);
+        if (!$device) {
+            return in_array($user['role'], ['admin', 'superadmin'])
+                ? Response::json(404, 'FRIDGE_NOT_FOUND')
+                : Response::json(403, 'ACCESS_DENIED');
+        }
+
+        $isOwner = $device['user_id'] === $user['id'];
+        $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
+        if (!$isOwner && !$isAdmin) return Response::json(403, 'ACCESS_DENIED');
+
+        $groupId = $input['group_id'];
+        global $db;
+        $stmt = $db->prepare("SELECT id FROM device_groups WHERE id = ?");
+        $stmt->execute([$groupId]);
+        if (!$stmt->fetch()) return Response::json(400, 'MISSING_GROUP');
+
+        if (!$this->deviceModel->groupBelongsToUser($groupId, $device['user_id'])) {
+            return Response::json(403, 'ACCESS_DENIED');
+        }
+        $updated = $this->deviceModel->assignGroup($id, $groupId, $user['id']);
+        return $updated ? Response::json(200, 'GROUP_ASSIGNED') : Response::json(200, 'NO_CHANGES');
     }
-
-    // ✅ Verificar si el usuario tenía acceso
-    $access = $this->deviceModel->getAccess($id, $input['user_id']);
-    if (!$access) {
-        return Response::json(404, 'ACCESS_NOT_FOUND');
-    }
-
-    // ✅ Revocar y loguear
-    $this->deviceModel->revokeAccess($id, $input['user_id']);
-    $this->deviceModel->logAccessChange($id, $user['id'], $input['user_id'], 'revoke');
-    
-    return Response::json(200, 'ACCESS_REVOKED');
-}
-
 }
