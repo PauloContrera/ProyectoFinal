@@ -86,6 +86,8 @@ return [
     'MISSING_DEVICE_CODE' => 'El código del dispositivo es obligatorio.',
     'DEVICE_CODE_EXISTS' => 'Ya existe un dispositivo con ese código.',
     'UNASSIGNED_LIST' => 'Listado de dispositivos sin asignar.',
+    'DEVICE_ALREADY_ASSIGNED' => 'Dispositivo ya asignado a un usuario.',
+    'CANNOT_ASSIGN_TO_VISITOR' => 'No se permite esta acción para un usuario visitante.',
 
 
 
@@ -97,6 +99,7 @@ return [
     'ACCESS_NOT_FOUND' => 'El usuario no tenía acceso asignado a este dispositivo.',
     'GROUP_ASSIGNED' => 'Grupo asignado correctamente.',
     'MISSING_GROUP' => 'Debe indicar un grupo válido.',
+    'GROUP_NOT_OWNED' => 'El grupo no pertenece al usuario asignado.',
 
 
     // * General

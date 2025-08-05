@@ -17,6 +17,9 @@ class DeviceGroupController {
         AuthMiddleware::verifyToken();
         $user = $_SERVER['user'];
 
+        if ($user['role'] === 'visitor') {
+        return Response::json(403, 'CANNOT_ASSIGN_TO_VISITOR');
+    }
         $input = json_decode(file_get_contents("php://input"), true);
         if (empty($input['name'])) return Response::json(400, 'MISSING_NAME');
 

@@ -175,15 +175,20 @@ class Device
     }
     public function assignToUser($deviceCode, $userId)
     {
-        $stmt = $this->conn->prepare("SELECT id, user_id FROM devices WHERE device_code = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM devices WHERE device_code = ?");
         $stmt->execute([$deviceCode]);
         $device = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$device) return ['error' => 'DEVICE_NOT_FOUND'];
-        if (!empty($device['user_id'])) return ['error' => 'ALREADY_ASSIGNED'];
+        if ($device['user_id']) return ['error' => 'DEVICE_ALREADY_ASSIGNED'];
 
-        $stmt = $this->conn->prepare("UPDATE devices SET user_id = ? WHERE device_code = ?");
-        $stmt->execute([$userId, $deviceCode]);
+        $stmt = $this->conn->prepare("UPDATE devices SET user_id = :user_id WHERE device_code = :device_code");
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':device_code' => $deviceCode
+        ]);
+
+        // log del cambio de asignación de usuario
         $this->insertLog(
             $device['id'],
             $userId,
@@ -192,8 +197,14 @@ class Device
             null,
             $userId
         );
+
         return ['success' => true];
     }
+
+
+
+
+
     public function getUnassigned()
     {
         $stmt = $this->conn->prepare("SELECT * FROM devices WHERE user_id IS NULL");
@@ -227,6 +238,13 @@ class Device
 
         return $stmt->rowCount();
     }
+    public function getByCode($code)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM devices WHERE device_code = ?");
+        $stmt->execute([$code]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     private function insertLog($deviceId, $userId, $action, $field, $oldValue, $newValue)
     {
         $stmt = $this->conn->prepare("

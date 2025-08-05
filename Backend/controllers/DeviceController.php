@@ -36,11 +36,16 @@ class DeviceController
         if ($stmt->fetch()) return Response::json(400, 'DEVICE_CODE_EXISTS');
 
         // Validar si el usuario a asignar existe (opcional)
+        // Validar si el usuario a asignar existe y que no sea visitor (opcional)
         if (!empty($input['user_id'])) {
-            $userCheck = $db->prepare("SELECT id FROM users WHERE id = ?");
+            $userCheck = $db->prepare("SELECT id, role FROM users WHERE id = ?");
             $userCheck->execute([$input['user_id']]);
-            if (!$userCheck->fetch()) return Response::json(400, 'USER_NOT_FOUND');
+            $user = $userCheck->fetch();
+
+            if (!$user) return Response::json(400, 'USER_NOT_FOUND');
+            if ($user['role'] === 'visitor') return Response::json(403, 'CANNOT_ASSIGN_TO_VISITOR');
         }
+
 
         // Validar si el grupo existe (opcional)
         if (!empty($input['group_id'])) {
@@ -48,6 +53,14 @@ class DeviceController
             $groupCheck->execute([$input['group_id']]);
             if (!$groupCheck->fetch()) return Response::json(400, 'MISSING_GROUP');
         }
+
+        // Validar que el grupo pertenezca al usuario asignado
+        if (!empty($input['group_id']) && !empty($input['user_id'])) {
+            $checkOwnership = $db->prepare("SELECT id FROM device_groups WHERE id = ? AND user_id = ?");
+            $checkOwnership->execute([$input['group_id'], $input['user_id']]);
+            if (!$checkOwnership->fetch()) return Response::json(403, 'GROUP_NOT_OWNED');
+        }
+
 
         $data = [
             'device_code' => $input['device_code'],
@@ -194,12 +207,16 @@ class DeviceController
         if (empty($input['user_id'])) return Response::json(400, 'MISSING_USER_ID');
 
         $device = $this->deviceModel->getById($id);
-        $isOwner = $device['user_id'] === $user['id'];
-        $isAdmin = in_array($user['role'], ['admin', 'superadmin']);
+        if (!$device) {
+            return in_array($user['role'], ['admin', 'superadmin'])
+                ? Response::json(404, 'FRIDGE_NOT_FOUND')
+                : Response::json(403, 'ACCESS_DENIED');
+        }
 
-        if (!$device || (!$isOwner && !$isAdmin)) {
+        if ($device['user_id'] !== $user['id']) {
             return Response::json(403, 'ACCESS_DENIED');
         }
+
 
         // ✅ Verificar si el usuario existe
         global $db;
