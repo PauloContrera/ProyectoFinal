@@ -213,9 +213,10 @@ class DeviceController
                 : Response::json(403, 'ACCESS_DENIED');
         }
 
-        if ($device['user_id'] !== $user['id']) {
+        if ($device['user_id'] !== $user['id'] && !in_array($user['role'], ['admin', 'superadmin'])) {
             return Response::json(403, 'ACCESS_DENIED');
         }
+
 
 
         // ✅ Verificar si el usuario existe
@@ -237,6 +238,8 @@ class DeviceController
     public function revokeAccess($id)
     {
         AuthMiddleware::verifyToken();
+
+
         $user = $_SERVER['user'];
         $input = json_decode(file_get_contents("php://input"), true);
 
@@ -245,9 +248,10 @@ class DeviceController
         }
 
         $device = $this->deviceModel->getById($id);
-        if (!$device || $device['user_id'] !== $user['id']) {
+        if (!$device || ($device['user_id'] !== $user['id'] && !in_array($user['role'], ['admin', 'superadmin']))) {
             return Response::json(403, 'ACCESS_DENIED');
         }
+
 
         // ✅ Validar que el usuario exista
         global $db;
@@ -282,6 +286,22 @@ class DeviceController
         if (empty($input['device_code']) || empty($input['user_id'])) {
             return Response::json(400, 'MISSING_DATA');
         }
+        // Validar que el usuario a asignar exista
+        global $db;
+
+        // Validar que el usuario a asignar exista y no sea visitor
+        $userCheck = $db->prepare("SELECT id, role FROM users WHERE id = ?");
+        $userCheck->execute([$input['user_id']]);
+        $targetUser = $userCheck->fetch();
+
+        if (!$targetUser) {
+            return Response::json(400, 'USER_NOT_FOUND');
+        }
+
+        if ($targetUser['role'] === 'visitor') {
+            return Response::json(403, 'CANNOT_ASSIGN_TO_VISITOR');
+        }
+
 
         $result = $this->deviceModel->assignToUser($input['device_code'], $input['user_id']);
         if (isset($result['error'])) {
