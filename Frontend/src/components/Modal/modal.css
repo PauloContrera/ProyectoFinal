@@ -1,0 +1,90 @@
+.ModalFondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.68);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .ModalTotal {
+    background-color: var(--ColorFondo2);
+    padding: 0;
+    border-radius: 8px;
+    width: min(560px, calc(100vw - 32px));
+    max-width: 92%;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+    max-height: 86vh;
+    overflow: hidden;
+    border: 1px solid var(--BorderColor1);
+
+  }
+  .Modal-Cabecera{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--BorderColor1);
+  }
+  .Modal-Cabecera-Texto{
+
+    font-family: "Inter", sans-serif;
+  }
+.Modal-Cabecera-Titulo{
+    margin: 0;
+    padding: 0;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    color: var(--LetrasColor3);
+
+}
+.Modal-Cabecera-Subtitulo{
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--LetrasColor6);
+
+}
+.Modal-Cabecera-Cerrar{
+    background-color: var(--ColorFondo4);
+    border: 1px solid var(--BorderColor1);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--LetrasColor6);
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.Modal-Cabecera-Cerrar:hover{
+    background-color: var(--ColorFondo3);
+    color: #fff;
+}
+.Modal-Contenido{
+    overflow-y: auto; 
+    max-height: calc(86vh - 73px);
+    padding: 22px;
+  }
+
+@media (max-width: 600px) {
+  .ModalFondo {
+    align-items: flex-end;
+  }
+
+  .ModalTotal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 8px 8px 0 0;
+    max-height: 92vh;
+  }
+}

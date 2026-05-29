@@ -1,0 +1,423 @@
+.StockTotal {
+  margin: 1rem;
+  background-color: var(--ColorFondo5);
+}
+
+.StockTotalCabesera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: calc(100% - 2rem);
+  padding: 0 1rem;
+}
+
+.StockTotalTitulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", sans-serif;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  color: var(--LetrasColor1);
+  width: max-content;
+  height: 58px;
+}
+
+.search-bar-container {
+  position: relative;
+  width: min(520px, 50%);
+  margin: 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--LetrasColor2);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px 8px 40px;
+  height: 40px;
+  font-size: 14px;
+  background-color: var(--ColorFondo2);
+  color: var(--LetrasColor2);
+  border: 1px solid var(--LetrasColor2);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--LetrasColor2);
+}
+
+.search-input:focus {
+  border-color: var(--BorderColor2);
+  box-shadow: 0 0 0 2px var(--BorderColor3);
+}
+
+.StockReal {
+  padding: 0 1rem 1rem;
+}
+
+.StockRealToolbar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.StockRealResumen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  flex: 1;
+}
+
+.StockRealResumen div {
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.StockRealResumen span {
+  display: block;
+  color: var(--LetrasColor1);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.StockRealResumen p {
+  margin: 4px 0 0;
+  color: var(--LetrasColor2);
+  font-size: 0.9rem;
+}
+
+.StockTotalEstado,
+.StockTotalError,
+.StockTotalOk {
+  margin: 1rem 0;
+  color: var(--LetrasColor2);
+  font-family: "Inter", sans-serif;
+}
+
+.StockTotalError {
+  color: #dc2626;
+}
+
+.StockTotalOk {
+  color: #15803d;
+}
+
+.StockActionButton,
+.StockIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  color: var(--LetrasColor1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.StockActionButton {
+  min-width: 108px;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.StockIconButton {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+
+.StockActionButton:hover,
+.StockIconButton:hover {
+  border-color: var(--BorderColor2);
+  transform: translateY(-1px);
+}
+
+.StockActionButtonPrimary {
+  border-color: var(--BorderColor2);
+}
+
+.StockIconButtonDanger {
+  color: #dc2626;
+}
+
+.StockInlineForm,
+.StockDeviceForm,
+.StockDeviceEdit {
+  display: grid;
+  gap: 10px;
+  align-items: center;
+}
+
+.StockInlineForm {
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.4fr) 36px 36px;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  background: var(--ColorFondo2);
+}
+
+.StockDeviceForm {
+  grid-template-columns: 1.2fr 1fr 1fr 1fr 80px 80px 36px 36px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  background: var(--ColorFondo2);
+}
+
+.StockDeviceEdit {
+  grid-template-columns: 1.2fr 1fr 1fr 72px 72px;
+  width: min(100%, 780px);
+}
+
+.StockField {
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  outline: none;
+  font-family: "Inter", sans-serif;
+}
+
+.StockField:focus {
+  border-color: var(--BorderColor2);
+  box-shadow: 0 0 0 2px var(--BorderColor3);
+}
+
+.StockField:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.StockRealGrupo {
+  border-top: 1px solid var(--BorderColor1);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+
+.StockRealGrupoHeader,
+.StockDeviceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.StockGroupToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--LetrasColor1);
+  cursor: pointer;
+  text-align: left;
+}
+
+.StockGroupToggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.StockGroupToggle strong {
+  font-size: 1.1rem;
+}
+
+.StockGroupToggle small,
+.StockDeviceHeader p {
+  color: var(--LetrasColor2);
+}
+
+.StockRealActions,
+.StockTableActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.StockRealActions span {
+  color: var(--LetrasColor4);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.StockCountPill,
+.StockReadonlyBadge,
+.StockReadonlyNotice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  color: var(--LetrasColor2);
+  background: var(--ColorFondo2);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.StockReadonlyNotice {
+  min-height: 42px;
+  align-self: stretch;
+  color: var(--LetrasColor1);
+}
+
+.StockRealContent {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.StockDeviceBlock {
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.StockDeviceHeader {
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.StockDeviceHeader h4 {
+  margin: 0;
+  color: var(--LetrasColor1);
+}
+
+.StockDeviceHeader p {
+  margin: 5px 0 0;
+}
+
+.StockTableWrap {
+  overflow-x: auto;
+}
+
+.StockRealTable {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  color: var(--LetrasColor1);
+}
+
+.StockRealTable th,
+.StockRealTable td {
+  border-top: 1px solid var(--BorderColor1);
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.StockRealTable th {
+  color: var(--LetrasColor6);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.StockRealTable td:nth-child(2),
+.StockRealTable th:nth-child(2) {
+  width: 120px;
+}
+
+.StockRealTable td:nth-child(3),
+.StockRealTable th:nth-child(3) {
+  width: 180px;
+}
+
+.StockRealTable td:nth-child(4),
+.StockRealTable th:nth-child(4) {
+  width: 120px;
+}
+
+.StockEmptyCell {
+  color: var(--LetrasColor2);
+  text-align: center;
+}
+
+.StockCreateRow td {
+  background: var(--ColorFondo5);
+}
+
+@media (max-width: 900px) {
+  .StockTotalCabesera,
+  .StockRealToolbar,
+  .StockRealGrupoHeader,
+  .StockDeviceHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar-container {
+    width: calc(100% - 1rem);
+    margin: 0;
+  }
+
+  .StockDeviceForm,
+  .StockDeviceEdit,
+  .StockInlineForm {
+    grid-template-columns: 1fr;
+  }
+
+  .StockActionButton {
+    min-height: 40px;
+  }
+
+  .StockRealActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .StockTotalCabesera {
+    padding: 0;
+    width: 100%;
+  }
+
+  .StockTotalTitulo {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  .StockReal {
+    padding: 0 0 1rem;
+  }
+
+  .StockRealResumen {
+    grid-template-columns: 1fr;
+  }
+
+  .StockDeviceBlock {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 350px) {
+  .StockTotalTitulo {
+    font-size: 1.3rem;
+  }
+}

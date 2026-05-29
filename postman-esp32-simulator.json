@@ -1,0 +1,462 @@
+{
+  "info": {
+    "_postman_id": "fd69e54d-2d2f-4d78-93f8-esp32-simulator",
+    "name": "Temp Segura - Simulador ESP32 HTTP/SMS",
+    "description": "Coleccion para simular el protocolo ESP32 definido en docs/protocolo-http-sms.md. Calcula timestamp y HMAC-SHA256 automaticamente en Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "esp_mac",
+      "value": "A1:B2:C3:D4:E5:01",
+      "type": "string"
+    },
+    {
+      "key": "esp_secret",
+      "value": "local-dev-esp-secret",
+      "type": "string"
+    },
+    {
+      "key": "activation_keyword",
+      "value": "clavesecreta4321",
+      "type": "string"
+    },
+    {
+      "key": "device_model",
+      "value": "ESP32-GSM-V3",
+      "type": "string"
+    },
+    {
+      "key": "firmware_version",
+      "value": "1.0.2",
+      "type": "string"
+    },
+    {
+      "key": "protocol_version",
+      "value": "2.0",
+      "type": "string"
+    },
+    {
+      "key": "sim_imei",
+      "value": "354829071122334",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "function normalizeMac(mac) {",
+          "  const compact = String(mac || '').replace(/[^a-fA-F0-9]/g, '').toUpperCase();",
+          "  return compact.match(/.{1,2}/g).join(':');",
+          "}",
+          "",
+          "function normalizeForJson(value) {",
+          "  if (Array.isArray(value)) return value.map(normalizeForJson);",
+          "  if (value && typeof value === 'object') {",
+          "    return Object.keys(value).sort().reduce((acc, key) => {",
+          "      acc[key] = normalizeForJson(value[key]);",
+          "      return acc;",
+          "    }, {});",
+          "  }",
+          "  return value;",
+          "}",
+          "",
+          "function signedPayload(payload) {",
+          "  const mac = normalizeMac(payload.mac);",
+          "  payload.mac = mac;",
+          "  const clone = JSON.parse(JSON.stringify(payload));",
+          "  delete clone.mac;",
+          "  delete clone.timestamp;",
+          "  delete clone.signature;",
+          "  const jsonData = JSON.stringify(normalizeForJson(clone));",
+          "  const secret = pm.collectionVariables.get('esp_secret') || 'local-dev-esp-secret';",
+          "  payload.signature = CryptoJS.HmacSHA256(mac + payload.timestamp + jsonData, secret).toString(CryptoJS.enc.Hex);",
+          "  return payload;",
+          "}",
+          "",
+          "function nextPacketId(prefix) {",
+          "  return prefix + '-' + Date.now() + '-' + Math.floor(Math.random() * 10000);",
+          "}",
+          "",
+          "function writeBody(payload) {",
+          "  pm.request.body.update(JSON.stringify(payload, null, 2));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "0 - Consultar hora del servidor",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Devuelve server_time', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "  pm.expect(json.server_time).to.be.a('number');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/esp/time",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "esp",
+            "time"
+          ]
+        },
+        "description": "Fallback para sincronizar epoch UTC si el ESP todavia no logro usar SNTP/NTP."
+      }
+    },
+    {
+      "name": "1 - Registro inicial ESP",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const now = Math.floor(Date.now() / 1000);",
+              "const payload = {",
+              "  accion: 'registro',",
+              "  mac: normalizeMac(pm.collectionVariables.get('esp_mac')),",
+              "  modelo: pm.collectionVariables.get('device_model'),",
+              "  firmware_version: pm.collectionVariables.get('firmware_version'),",
+              "  protocol_version: pm.collectionVariables.get('protocol_version'),",
+              "  sim_imei: pm.collectionVariables.get('sim_imei'),",
+              "  timestamp: now,",
+              "  palabra_clave: pm.collectionVariables.get('activation_keyword')",
+              "};",
+              "writeBody(payload);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Registro exitoso con config', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "  pm.expect(json.config).to.be.an('object');",
+              "  pm.expect(json.server_time).to.be.a('number');",
+              "  pm.expect(json.estado_cuenta).to.eql(true);",
+              "  if (json.provisioning && json.provisioning.shared_secret) {",
+              "    pm.collectionVariables.set('esp_secret', json.provisioning.shared_secret);",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/esp/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "esp",
+            "register"
+          ]
+        },
+        "description": "Simula el primer contacto del ESP. Si la MAC ya existe, devuelve la configuracion actual."
+      }
+    },
+    {
+      "name": "2 - Enviar temperaturas, alertas locales y diagnostico",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const now = Math.floor(Date.now() / 1000);",
+              "const payload = signedPayload({",
+              "  mac: pm.collectionVariables.get('esp_mac'),",
+              "  timestamp: now,",
+              "  packet_id: nextPacketId('sync'),",
+              "  seq: now,",
+              "  data: [",
+              "    { temp: 4.3, time: now - 120 },",
+              "    { temp: 4.6, time: now - 60 }",
+              "  ],",
+              "  local_alerts: [",
+              "    { type: 'power_outage', time: now - 45 },",
+              "    { type: 'temp_high', temp: 10.1, time: now - 30 }",
+              "  ],",
+              "  optional: {",
+              "    uptime: 86400,",
+              "    signal_strength: -67,",
+              "    battery_level: 89",
+              "  }",
+              "});",
+              "writeBody(payload);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Sync aceptado', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "  pm.expect(json.estado_cuenta).to.eql(true);",
+              "  pm.expect(json.ack).to.be.an('object');",
+              "  pm.expect(json).to.have.property('cambio');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/esp/sync",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "esp",
+            "sync"
+          ]
+        },
+        "description": "Simula el envio normal del ESP. La firma se calcula en el pre-request script."
+      }
+    },
+    {
+      "name": "3 - Confirmar respuesta de comando",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const now = Math.floor(Date.now() / 1000);",
+              "const payload = signedPayload({",
+              "  mac: pm.collectionVariables.get('esp_mac'),",
+              "  timestamp: now,",
+              "  packet_id: nextPacketId('cmd'),",
+              "  seq: now,",
+              "  respuesta_comando: {",
+              "    tipo: 'cambio_config',",
+              "    estado: 'ok',",
+              "    detalle: 'Parametros aplicados correctamente'",
+              "  }",
+              "});",
+              "writeBody(payload);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Comando confirmado', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "  pm.expect(json.message).to.include('Respuesta de comando');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/esp/command-response",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "esp",
+            "command-response"
+          ]
+        },
+        "description": "Simula la confirmacion del ESP al aplicar un cambio o comando."
+      }
+    },
+    {
+      "name": "4 - Error esperado: firma invalida",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const now = Math.floor(Date.now() / 1000);",
+              "writeBody({",
+              "  mac: normalizeMac(pm.collectionVariables.get('esp_mac')),",
+              "  timestamp: now,",
+              "  packet_id: nextPacketId('bad'),",
+              "  data: [",
+              "    { temp: 5.1, time: now - 30 }",
+              "  ],",
+              "  local_alerts: [],",
+              "  signature: 'firma-invalida'",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('Devuelve ERR_FIRMA', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(false);",
+              "  pm.expect(json.error.code).to.eql('ERR_FIRMA');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/esp/sync",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "esp",
+            "sync"
+          ]
+        },
+        "description": "Caso negativo para verificar que el backend rechaza firmas incorrectas."
+      }
+    },
+    {
+      "name": "5 - Entrada unica /api/esp con sync firmado",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const now = Math.floor(Date.now() / 1000);",
+              "const payload = signedPayload({",
+              "  mac: pm.collectionVariables.get('esp_mac'),",
+              "  timestamp: now,",
+              "  packet_id: nextPacketId('single'),",
+              "  seq: now,",
+              "  data: [",
+              "    { temp: 4.9, time: now - 20 }",
+              "  ],",
+              "  local_alerts: []",
+              "});",
+              "writeBody(payload);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('/api/esp despacha sync', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.success).to.eql(true);",
+              "  pm.expect(json.estado_cuenta).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/esp",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "esp"
+          ]
+        },
+        "description": "Prueba el endpoint unico, que detecta automaticamente si es registro, sync o respuesta de comando."
+      }
+    }
+  ]
+}

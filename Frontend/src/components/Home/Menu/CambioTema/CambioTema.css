@@ -1,0 +1,99 @@
+.MenuDesplegable {
+  position: absolute;
+  /* left: 0px; */
+  top: 70px;
+  right: 20px;
+  padding: 8px;
+  z-index: 1; /* Asegura que el menú esté por encima de otros elementos */
+}
+
+.MenuDesplegable ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.MenuDesplegable li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.DarkMode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ContenedoresSVG {
+  width: 20px;
+  height: 20px;
+}
+
+/* Estilos del label que simula el interruptor */
+.labelDarkmode {
+  width: 50px;
+  height: 20px;
+  position: relative;
+  display: block;
+  background: #ebebeb;
+  border-radius: 50px;
+  box-shadow: inset 0px 5px 15px rgba(0, 0, 0, 0.4), inset 0px -5px 15px rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+}
+
+.labelDarkmode:after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  background: linear-gradient(180deg, #ffcc89, #d8860b);
+  border-radius: 18px;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.inputDarkmode {
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}
+
+.inputDarkmode:checked + .labelDarkmode {
+  background: #242424;
+}
+
+.inputDarkmode:checked + .labelDarkmode:after {
+  left: 50px;
+  transform: translateX(-100%);
+  background: linear-gradient(180deg, #777, #3a3a3a);
+}
+
+.labelDarkmode, .labelDarkmode:after {
+  transition: 0.3s;
+}
+
+/* Colores de los SVG para modo oscuro y claro */
+.WhiteModeSVG, .DarkModeSVG {
+  height: min-content;
+  width: min-content;
+}
+
+.DarkModeSVG > .sunSVG, .WhiteModeSVG > .moonSVG {
+  stroke: #3a3a3a;
+  fill: #292929;
+}
+
+.WhiteModeSVG > .sunSVG {
+  stroke: #d8860b;
+  fill: #fff;
+}
+
+.DarkModeSVG > .moonSVG {
+  stroke: #CCD0CF;
+  fill: #7e7e7e;
+}
+
+.sunSVG, .moonSVG {
+  transition: 0.3s;
+}

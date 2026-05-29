@@ -1,0 +1,79 @@
+const animales = ['el lobo', 'el toro', …]; // 100 animales
+
+map LlamarA = {}
+
+print('Sal de ahí chivita chivita, sal de ahí de ese lugar')
+actualmente = 'la chiva'
+
+
+Realizar N veces {
+    prox = elemento_random(animales)
+    LlamarA[actualmente] = prox
+    print('Hay que llamar a ' + prox + ' para que saque a ' + actualmente)
+    actualmente = prox
+    const remover = []
+    inspeccionar = 'la chiva'
+    repetir hasta que inspeccionar no esté en LlamarA {
+        remover.insertar_primero(LlamarA[inspeccionar] + ' no quiere sacar a ' + inspeccionar)
+        inspeccionar = LlamarA[inspeccionar]
+    }
+    for i in remover {
+        print(i)
+    }
+    print('La chiva no quiere salir de ahí. Sal de ahí chivita chivita, sal de ahí de ese lugar')
+}
+
+
+
+
+
+
+
+Resultados:
+N=1: 8 ms
+N=10: 215 ms
+N=50: 4075 ms
+N=200: 61.3 s
+
+Explicacion:
+Al principio vemos que gasta 1ms en imprimir 
+print(“Sal de ahí chivita chivita, sal de ahí de ese lugar”)
+actualmente = “la chiva”) (Solo se ejecuta una ves)
+
+Ahora van vamos a dentro de la serie que se va a repertir N veces
+
+prox = elemento_random(animales)
+    LlamarA[actualmente] = prox
+    print('Hay que llamar a ' + prox + ' para que saque a ' + actualmente)
+    actualmente = prox
+
+cada uno de estos elementos van a ocupar 1 ms, entonces ocupan un total de 4ms
+
+Ahora toca determinar el bucle 
+repetir hasta que inspeccionar no esté en LlamarA 
+Este bucle se va a repetir N veces ,dado que vamos a tener N animales en el bucle
+y dentro tenemos 2 intrucciones demorando otros 2 milisegundos en cada instancia
+        remover.insertar_primero(LlamarA[inspeccionar] + ' no quiere sacar a ' + inspeccionar)
+        inspeccionar = LlamarA[inspeccionar]
+Este bucle lo podemos expresar como una sumatoria de k=1 hasta N de 2k
+
+A su vez, existe un bucle for que consume 1ms por cada elemento de remover 
+pudiendo meter dentro de la sumatoria siendo k=1 hasta N de 3k
+
+Por ultimo una imprecion por pantalla 
+print(“La chiva no quiere salir de ahí. Sal de ahí chivita chivita, sal de ahí de ese lugar”)
+Que ocupa otro 1ms mas
+
+Pasando en limpio:
+Tenemos 5 ms que se van a repetir N veces
+Y 3 ms que se van a repetir N veces dentro de cada repeticion de 4N
+
+Podemos expresar la serie como 
+
+Ttotal=5N+3*[(k=1)∑N ->(k)]
+
+N=1: 8 ms
+N=10: 215 ms
+N=50: 4075 ms
+N=200: 61.3 s
+

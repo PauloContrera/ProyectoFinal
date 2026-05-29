@@ -1,0 +1,75 @@
+.TempGruposTotal{
+    padding: 0 1rem 1rem 1rem ;
+}
+.TempGruposTitulo{
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border: 0px;
+    color: var(--LetrasColor1);
+    cursor: pointer;
+    padding-right: 0.5rem;
+
+}
+
+.TempGruposTituloBoton{
+    margin-right: 0.5rem;
+}
+
+
+.TempGruposItems{
+width: 100%;
+}
+.TempGruposItemsDescripcion{
+    padding: 1em;
+    color: var(--LetrasColor1);
+
+}
+.TempGruposItemsGrilla{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(300px, 100%, 400px), 1fr));
+    gap: 2rem; /* Ajusta según tu preferencia */
+    justify-content: space-around;
+    width: 100%;
+    /* max-width: 700px; */
+}
+@media (max-width: 370px) {
+    .TempGruposItemsGrilla{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(clamp(100px, 100%, 400px), 1fr));
+        gap: 2rem; /* Ajusta según tu preferencia */
+        justify-content: space-around;
+        width: 100%;
+        /* max-width: 700px; */
+    }
+}
+
+
+@media (max-width: 600px) {
+
+  .TempGruposTitulo{
+    font-size: 0.9rem;
+  }
+  .TempGruposItemsDescripcion{
+    font-size: 0.9rem;
+
+}
+  }
+  @media (max-width: 400px) {
+    .TempGruposTitulo{
+        font-size: 0.8rem;
+      }
+      .TempGruposItemsDescripcion{
+        font-size: 0.8rem;
+    
+    }
+    }
+    @media (max-width: 350px) {
+        .TempGruposTitulo{
+            font-size: 0.7rem;
+          }
+          .TempGruposItemsDescripcion{
+            font-size: 0.7rem;
+        
+        }
+        }

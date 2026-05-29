@@ -1,0 +1,75 @@
+.ControladorIndicadoresTotales {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+  padding: 1em 0;
+  width: 400px;
+  /* height: 250px; */
+  
+}
+.ControladorIndicadoresSolosTexto{
+
+  font-family: "Inter", sans-serif;
+  color: var(--LetrasColor2);
+  font-size: 1rem;
+}
+.ControladorIndicadoresSolosTexto > span{
+
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.75rem;
+  color: var(--LetrasColor1);
+}
+
+.ControladorIndicadoresSolos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* border-bottom: 1px solid #ccc; */
+
+  box-shadow: 0px 2px 0px #cccccc4d;
+
+
+}
+
+.ControladoresIndicadoresHorizontales {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  
+}
+
+.ControladorIndicadoresSolosTexto {
+
+max-width: 100%;
+
+}
+@media (max-width: 460px) {
+  .ControladorIndicadoresTotales {
+    padding: 1em 0;
+    width: 300px;
+    
+  }
+  .ControladoresIndicadoresHorizontales {
+    display: grid;
+    grid-template-columns: 1fr ;
+    gap: 10px;
+    
+  }
+}
+@media (max-width: 400px) {
+  .ControladorIndicadoresTotales {
+    padding: 1em 0;
+    width: 250px;
+    
+  }
+  .ControladoresIndicadoresHorizontales {
+    display: grid;
+    grid-template-columns: 1fr ;
+    gap: 10px;
+    
+  }
+}

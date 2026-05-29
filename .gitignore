@@ -1,0 +1,12 @@
+Backend/.env
+Backend/logs/*.log
+Backend/vendor/
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.firebase/
+Database/sistemas_heladeras*.sql
+Database/heladeras_proyectofinal*.sql
+*.7z
+*.zip
+*.tmp
+Document/**/.*.docx.*
