@@ -2,7 +2,7 @@
  * Cliente API centralizado con interceptores
  */
 
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, AxiosRequestConfig, isAxiosError } from 'axios';
 import { ApiResponse, ApiError } from '../types';
 
 class ApiClient {
@@ -54,7 +54,7 @@ class ApiClient {
   /**
    * GET request
    */
-  async get<T = any>(url: string, config = {}): Promise<ApiResponse<T>> {
+  async get<T = unknown>(url: string, config: AxiosRequestConfig = {}): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.get<ApiResponse<T>>(url, config);
       return response.data;
@@ -66,7 +66,7 @@ class ApiClient {
   /**
    * POST request
    */
-  async post<T = any>(url: string, data: any, config = {}): Promise<ApiResponse<T>> {
+  async post<T = unknown>(url: string, data: unknown, config: AxiosRequestConfig = {}): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.post<ApiResponse<T>>(url, data, config);
       return response.data;
@@ -78,7 +78,7 @@ class ApiClient {
   /**
    * PUT request
    */
-  async put<T = any>(url: string, data: any, config = {}): Promise<ApiResponse<T>> {
+  async put<T = unknown>(url: string, data: unknown, config: AxiosRequestConfig = {}): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.put<ApiResponse<T>>(url, data, config);
       return response.data;
@@ -90,7 +90,7 @@ class ApiClient {
   /**
    * DELETE request
    */
-  async delete<T = any>(url: string, config = {}): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(url: string, config: AxiosRequestConfig = {}): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.delete<ApiResponse<T>>(url, config);
       return response.data;
@@ -102,11 +102,11 @@ class ApiClient {
   /**
    * Maneja errores de API
    */
-  private handleError(error: any): ApiError {
-    if (error.response) {
+  private handleError(error: unknown): ApiError {
+    if (isAxiosError<ApiError>(error) && error.response) {
       // Error de respuesta del servidor
-      return error.response.data as ApiError;
-    } else if (error.request) {
+      return error.response.data;
+    } else if (isAxiosError(error) && error.request) {
       // No hay respuesta del servidor
       return {
         success: false,
@@ -119,7 +119,7 @@ class ApiClient {
       return {
         success: false,
         status: 0,
-        message: error.message || 'Error desconocido',
+        message: error instanceof Error ? error.message : 'Error desconocido',
         timestamp: new Date().toISOString(),
       };
     }

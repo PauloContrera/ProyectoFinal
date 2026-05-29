@@ -5,6 +5,9 @@
 import { api } from './api';
 import { User, LoginRequest, RegisterRequest } from '../types';
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 class AuthService {
   /**
    * Inicia sesión con email y contraseña
@@ -23,8 +26,8 @@ class AuthService {
       }
 
       throw new Error(response.message || 'Error en login');
-    } catch (error: any) {
-      throw new Error(error.message || 'Error al iniciar sesión');
+    } catch (error: unknown) {
+      throw new Error(errorMessage(error, 'Error al iniciar sesión'));
     }
   }
 
@@ -43,8 +46,8 @@ class AuthService {
       }
 
       throw new Error(response.message || 'Error en registro');
-    } catch (error: any) {
-      throw new Error(error.message || 'Error al registrarse');
+    } catch (error: unknown) {
+      throw new Error(errorMessage(error, 'Error al registrarse'));
     }
   }
 
@@ -58,8 +61,8 @@ class AuthService {
       if (!response.success) {
         throw new Error(response.message || 'Error en verificación');
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Error al verificar email');
+    } catch (error: unknown) {
+      throw new Error(errorMessage(error, 'Error al verificar email'));
     }
   }
 
@@ -73,8 +76,8 @@ class AuthService {
       if (!response.success) {
         throw new Error(response.message || 'Error en solicitud');
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Error al solicitar recuperación');
+    } catch (error: unknown) {
+      throw new Error(errorMessage(error, 'Error al solicitar recuperación'));
     }
   }
 
@@ -91,8 +94,8 @@ class AuthService {
       if (!response.success) {
         throw new Error(response.message || 'Error en reset');
       }
-    } catch (error: any) {
-      throw new Error(error.message || 'Error al resetear contraseña');
+    } catch (error: unknown) {
+      throw new Error(errorMessage(error, 'Error al resetear contraseña'));
     }
   }
 

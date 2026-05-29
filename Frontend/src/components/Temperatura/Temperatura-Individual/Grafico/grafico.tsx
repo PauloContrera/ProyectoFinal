@@ -14,14 +14,22 @@ import {
 
 
 type GraficoProps = {
-  datos: any;
+  datos: Array<{
+    temperature: number | string;
+    recorded_at: string;
+  }>;
   alto?: number;
   alertaMinima: number;
   alertaMaxima: number;
   mostrarAlertas?: boolean;
 };
 
-const CustomTooltip = ({ payload, label }: any) => {
+type TooltipPayload = {
+  value?: number | string;
+  name?: string;
+};
+
+const CustomTooltip = ({ payload, label }: { payload?: TooltipPayload[]; label?: string | number }) => {
   if (!payload || payload.length === 0) return null;
 
   const { value, name } = payload[0];

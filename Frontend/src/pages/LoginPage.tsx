@@ -11,6 +11,9 @@ import './LoginPage.css';
 
 type FormMode = 'login' | 'register';
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 export default function LoginPage() {
   const [mode, setMode] = useState<FormMode>('login');
   const { login, register, isLoading, error } = useAuth();
@@ -144,8 +147,8 @@ export default function LoginPage() {
         setSubmitError('Registro creado. Revisa tu email para verificar la cuenta antes de iniciar sesion.');
         setMode('login');
       }
-    } catch (err: any) {
-      setSubmitError(err.message || 'Error al procesar solicitud');
+    } catch (err: unknown) {
+      setSubmitError(errorMessage(err, 'Error al procesar solicitud'));
     }
   };
 

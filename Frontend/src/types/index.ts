@@ -118,7 +118,7 @@ export interface Alert {
 }
 
 // ============ RESPUESTA API ============
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   status: number;
   message: string;
@@ -154,7 +154,7 @@ export interface FormError {
 }
 
 export interface FormState {
-  values: Record<string, any>;
+  values: Record<string, unknown>;
   errors: FormError[];
   isSubmitting: boolean;
   touched: Record<string, boolean>;

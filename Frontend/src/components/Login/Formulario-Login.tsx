@@ -13,6 +13,9 @@ interface FormularioLoginProps {
   onSuccess?: () => void;
 }
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 const FormularioLogin = ({ onSuccess }: FormularioLoginProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -124,8 +127,8 @@ const FormularioLogin = ({ onSuccess }: FormularioLoginProps) => {
       await register(data);
       setSubmitError("Registro creado. Revisa tu email para verificar la cuenta antes de iniciar sesion.");
       setIsLogin(true);
-    } catch (err: any) {
-      setSubmitError(err.message || "Error al procesar solicitud");
+    } catch (err: unknown) {
+      setSubmitError(errorMessage(err, "Error al procesar solicitud"));
     }
   };
 

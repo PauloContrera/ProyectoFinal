@@ -2,9 +2,10 @@
  * Contexto Global de Autenticación
  */
 
-import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
+import React, { useReducer, useCallback, ReactNode } from 'react';
 import { User, LoginRequest, RegisterRequest, AuthContextType } from '../types';
 import { authService } from '../services/auth';
+import { AuthContext } from './auth-context';
 
 interface AuthState {
   user: User | null;
@@ -25,8 +26,6 @@ type AuthAction =
   | { type: 'LOGOUT' }
   | { type: 'CLEAR_ERROR' }
   | { type: 'RESTORE_SESSION'; payload: { user: User; token: string } };
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const initialState: AuthState = {
   user: null,
@@ -114,6 +113,9 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
@@ -139,10 +141,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         type: 'LOGIN_SUCCESS',
         payload: { user, token },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'LOGIN_ERROR',
-        payload: error.message,
+        payload: errorMessage(error, 'Error al iniciar sesion'),
       });
       throw error;
     }
@@ -154,10 +156,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       await authService.register(data);
       dispatch({ type: 'REGISTER_COMPLETE' });
-    } catch (error: any) {
+    } catch (error: unknown) {
       dispatch({
         type: 'REGISTER_ERROR',
-        payload: error.message,
+        payload: errorMessage(error, 'Error al registrarse'),
       });
       throw error;
     }

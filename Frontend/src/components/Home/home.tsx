@@ -4,7 +4,7 @@ import TemperaturaTotal from "../Temperatura/Temperatura-Total";
 import Documentacion from "../Document/documentacion";
 import StockTotal from "../Stocks/StockTotal";
 import BackendData from "../BackendData/BackendData";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { MenuDesplejable } from "./Menu/MenuDesplejable";
 import MenuVertical from "./Menu/MenuVertical";
 
@@ -26,7 +26,7 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const componentsMap: any = {
+  const componentsMap: Record<string, ReactNode> = {
     Temperatura: <TemperaturaTotal useDemoData={isDemoMode} />,
     Stocks: <StockTotal useDemoData={isDemoMode} />,
     Backend: <BackendData />,

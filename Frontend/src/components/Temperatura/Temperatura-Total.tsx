@@ -12,6 +12,9 @@ interface TemperaturaTotalProps {
   useDemoData: boolean;
 }
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 export default function TemperaturaTotal({ useDemoData }: TemperaturaTotalProps) {
   const { user } = useAuth();
   const [selectedRefrigeratorId, setSelectedRefrigeratorId] = useState<
@@ -86,10 +89,10 @@ export default function TemperaturaTotal({ useDemoData }: TemperaturaTotalProps)
         });
 
         setBackendGroups(Array.from(mappedGroups.values()));
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!isMounted) return;
         setBackendGroups([]);
-        setError(err.message || "No se pudieron cargar tus heladeras");
+        setError(errorMessage(err, "No se pudieron cargar tus heladeras"));
       } finally {
         if (isMounted) {
           setIsLoading(false);

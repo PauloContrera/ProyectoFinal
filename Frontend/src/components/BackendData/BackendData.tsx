@@ -4,6 +4,9 @@ import { Device, DeviceGroup } from "../../types";
 import { useAuth } from "../../hooks/useAuth";
 import "./BackendData.css";
 
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 export default function BackendData() {
   const { isAuthenticated, user } = useAuth();
   const [devices, setDevices] = useState<Device[]>([]);
@@ -34,9 +37,9 @@ export default function BackendData() {
 
         setDevices(Array.isArray(devicesResponse.data) ? devicesResponse.data : []);
         setGroups(Array.isArray(groupsResponse.data) ? groupsResponse.data : []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!isMounted) return;
-        setError(err.message || "No se pudieron cargar los datos del backend");
+        setError(errorMessage(err, "No se pudieron cargar los datos del backend"));
       } finally {
         if (isMounted) {
           setIsLoading(false);

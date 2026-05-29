@@ -12,7 +12,7 @@
     useDemoData: boolean;
     onSaveRange?: (refrigeratorId: number, minTemp: number, maxTemp: number) => Promise<void>;
     readOnly?: boolean;
-    onVolver: any;
+    onVolver: () => void;
   }
 
   function TemperaturaIndividual({

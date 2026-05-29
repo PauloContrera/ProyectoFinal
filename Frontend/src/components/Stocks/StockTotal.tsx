@@ -52,8 +52,8 @@ const friendlyErrors: Record<string, string> = {
   ACCESS_DENIED: "No tenes permisos para hacer ese cambio.",
 };
 
-const readError = (err: any, fallback: string) => {
-  const message = err?.message;
+const readError = (err: unknown, fallback: string) => {
+  const message = err instanceof Error ? err.message : undefined;
   return message && friendlyErrors[message] ? friendlyErrors[message] : message || fallback;
 };
 
@@ -147,7 +147,7 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
       setDevices(nextDevices);
       setGroups(nextGroups);
       setStockByDevice(Object.fromEntries(stockEntries));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(readError(err, "No se pudo cargar el inventario real"));
     } finally {
       setIsLoading(false);
@@ -255,7 +255,7 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
       await action();
       setActionMessage(successMessage);
       await refreshInventory();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(readError(err, "No se pudo guardar el cambio"));
     }
   };
