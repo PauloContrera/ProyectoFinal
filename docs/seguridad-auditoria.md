@@ -9,7 +9,14 @@
 
 ## Credenciales
 
-Los cambios de `username` y `password` quedan restringidos al propio usuario. Un administrador no puede cambiar credenciales de otra cuenta desde los endpoints de usuario; para recuperación debe usarse el flujo de reset de password.
+Los cambios propios de `username` y `password` siguen disponibles para cada usuario desde los endpoints de perfil. Ademas, la vista administrativa usa `PUT /api/users/{id}/admin` para que `admin` y `superadmin` puedan gestionar datos y credenciales de terceros con estas reglas:
+
+- `superadmin` puede gestionar `admin`, `client` y `visitor`, pero no puede cambiarse su propio rol o password por ese endpoint administrativo.
+- `admin` puede gestionar `client` y `visitor`.
+- `admin` no puede crear ni modificar usuarios `admin` o `superadmin`.
+- `visitor` no puede editar credenciales ni datos operativos.
+
+El flujo de reset de password queda como recuperacion de cuenta cuando el usuario no puede iniciar sesion.
 
 ## Auditoria en base de datos
 

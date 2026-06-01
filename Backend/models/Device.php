@@ -61,11 +61,7 @@ class Device
 
     public function getById($id)
     {
-        $stmt = $this->conn->prepare("
-            SELECT {$this->publicDeviceColumns('d')}
-            FROM {$this->table} d
-            WHERE d.id = ?
-        ");
+        $stmt = $this->conn->prepare($this->selectWithLatestTemperature() . " WHERE d.id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
