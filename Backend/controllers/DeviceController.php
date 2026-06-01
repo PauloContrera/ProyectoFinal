@@ -3,6 +3,7 @@
 namespace Controllers;
 
 use Models\Device;
+use Helpers\AuditLogger;
 use Helpers\Response;
 use Helpers\Validator;
 use Middleware\AuthMiddleware;
@@ -82,8 +83,50 @@ class DeviceController
             return Response::json(400, 'INVALID_DATA');
         }
 
+        $macAddress = null;
+        $sharedSecret = null;
+        $activationKeyword = $_ENV['ESP_ACTIVATION_KEYWORD'] ?? 'clavesecreta4321';
+        $sendInterval = 900;
+        $protocolVersion = empty($input['protocol_version']) ? null : trim((string)$input['protocol_version']);
+
+        if (!empty($input['mac_address'])) {
+            $macAddress = $this->normalizeMac((string)$input['mac_address']);
+            if (!$macAddress) {
+                return Response::json(400, 'INVALID_DATA');
+            }
+
+            $macCheck = $db->prepare("SELECT id FROM devices WHERE mac_address = ?");
+            $macCheck->execute([$macAddress]);
+            if ($macCheck->fetch()) {
+                return Response::json(400, 'MAC_ADDRESS_EXISTS');
+            }
+
+            $sharedSecret = bin2hex(random_bytes(32));
+        }
+
+        if (!empty($input['activation_keyword'])) {
+            $activationKeyword = trim((string)$input['activation_keyword']);
+        }
+        if (strlen($activationKeyword) < 6 || strlen($activationKeyword) > 80) {
+            return Response::json(400, 'INVALID_DATA');
+        }
+
+        if (isset($input['send_interval_seconds'])) {
+            $sendInterval = max(60, min(86400, (int)$input['send_interval_seconds']));
+        }
+
+        if ($protocolVersion !== null && strlen($protocolVersion) > 20) {
+            return Response::json(400, 'INVALID_DATA');
+        }
+
         $data = [
             'device_code' => $deviceCode,
+            'mac_address' => $macAddress,
+            'shared_secret' => $sharedSecret,
+            'activation_keyword' => $activationKeyword,
+            'send_interval_seconds' => $sendInterval,
+            'protocol_version' => $protocolVersion,
+            'account_enabled' => true,
             'name' => $name,
             'location' => $location,
             'min_temp' => $minTemp,
@@ -95,9 +138,30 @@ class DeviceController
 
         $deviceId = $this->deviceModel->create($data);
 
-        return $deviceId
-            ? Response::json(201, 'FRIDGE_CREATED', ['device_id' => $deviceId])
-            : Response::json(500, 'CREATE_FAILED');
+        if (!$deviceId) {
+            return Response::json(500, 'CREATE_FAILED');
+        }
+
+        $responseData = ['device_id' => (int)$deviceId];
+        if ($macAddress && $sharedSecret) {
+            $responseData['provisioning'] = [
+                'device_id' => (int)$deviceId,
+                'device_code' => $deviceCode,
+                'mac_address' => $macAddress,
+                'shared_secret' => $sharedSecret,
+                'activation_keyword' => $activationKeyword,
+                'register_endpoint' => '/api/esp/register',
+                'sync_endpoint' => '/api/esp/sync',
+                'signature' => 'HMAC_SHA256(mac + timestamp + json_data)',
+            ];
+            AuditLogger::event('esp_device_provisioned_by_admin', 'Dispositivo ESP preprovisionado desde administracion', 'info', [
+                'device_id' => (int)$deviceId,
+                'device_code' => $deviceCode,
+                'mac_address' => $macAddress,
+            ], (int)$currentUser['id'], 'device', (string)$deviceId, 'provision');
+        }
+
+        return Response::json(201, 'FRIDGE_CREATED', $responseData);
     }
 
     public function getUnassigned()
@@ -397,5 +461,15 @@ class DeviceController
         }
         $updated = $this->deviceModel->assignGroup($id, $groupId, $user['id']);
         return $updated ? Response::json(200, 'GROUP_ASSIGNED') : Response::json(200, 'NO_CHANGES');
+    }
+
+    private function normalizeMac(string $mac): ?string
+    {
+        $compact = strtoupper(preg_replace('/[^A-Fa-f0-9]/', '', $mac));
+        if (strlen($compact) !== 12) {
+            return null;
+        }
+
+        return implode(':', str_split($compact, 2));
     }
 }

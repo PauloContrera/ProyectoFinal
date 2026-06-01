@@ -406,6 +406,7 @@ Aplicar:
 ```bat
 cmd /c "mysql -u root temp_segura < Database\protocol_http_sms.sql"
 cmd /c "mysql -u root temp_segura < Database\security_audit.sql"
+cmd /c "mysql -u root temp_segura < Database\audit_observability.sql"
 ```
 
 El script `iniciar-temp-segura.bat` ya aplica estas migraciones antes de levantar los servidores.

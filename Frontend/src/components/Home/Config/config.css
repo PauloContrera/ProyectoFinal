@@ -1,88 +1,99 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.ConfigPanel {
+  width: min(100%, 760px);
+  color: var(--LetrasColor1);
 }
 
-.modal-content {
-  background-color: var(--ColorFondo2);
-  padding: 20px;
+.ConfigHeader h2 {
+  margin: 0;
+  color: var(--LetrasColor1);
+}
+
+.ConfigHeader p,
+.ConfigMuted {
+  margin: 6px 0 0;
+  color: var(--LetrasColor2);
+}
+
+.ConfigForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.ConfigForm label {
+  display: grid;
+  gap: 6px;
+  color: var(--LetrasColor2);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.ConfigForm input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+  border: 1px solid var(--BorderColor1);
   border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  outline: none;
 }
 
-h2 {
-  margin-bottom: 16px;
+.ConfigForm input:focus {
+  border-color: var(--BorderColor2);
+  box-shadow: 0 0 0 2px var(--BorderColor3);
 }
 
-.user-avatar {
-  display: flex;
+.ConfigDivider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: var(--BorderColor1);
+}
+
+.ConfigOk,
+.ConfigError {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: 700;
+}
+
+.ConfigOk {
+  color: #15803d;
+}
+
+.ConfigError {
+  color: #dc2626;
+}
+
+.ConfigSave {
+  grid-column: 1 / -1;
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.avatar-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #ddd;
-  margin-right: 16px;
-}
-
-.avatar-button {
-  padding: 8px 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  justify-content: center;
+  gap: 8px;
+  width: max-content;
+  min-height: 40px;
+  padding: 0 16px;
+  color: #fff;
+  background: var(--ColorFondo3);
+  border: 1px solid var(--BorderColor2);
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 800;
 }
 
-.avatar-button:hover {
-  background-color: #0056b3;
+.ConfigSave:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
-.user-settings-form {
-  display: flex;
-  flex-direction: column;
-}
+@media (max-width: 640px) {
+  .ConfigForm {
+    grid-template-columns: 1fr;
+  }
 
-.form-group {
-  margin-bottom: 16px;
-}
-
-label {
-  font-size: 14px;
-  margin-bottom: 4px;
-  display: block;
-}
-
-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.save-button {
-  padding: 10px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.save-button:hover {
-  background-color: #218838;
+  .ConfigSave {
+    width: 100%;
+  }
 }

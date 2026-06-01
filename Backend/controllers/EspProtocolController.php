@@ -3,6 +3,7 @@
 namespace Controllers;
 
 use Middleware\RateLimiter;
+use Helpers\AuditLogger;
 use Models\EspProtocol;
 use PDO;
 
@@ -16,7 +17,7 @@ class EspProtocolController
     {
         $this->db = $db;
         $this->protocolModel = new EspProtocol($db);
-        $this->requestId = bin2hex(random_bytes(8));
+        $this->requestId = AuditLogger::requestId();
     }
 
     public function handle()
@@ -61,6 +62,12 @@ class EspProtocolController
         $provisionedSecret = bin2hex(random_bytes(32));
         $device = $this->protocolModel->registerDevice($payload, $provisionedSecret);
         $this->protocolModel->markConfigSent((int)$device['id'], (int)$device['config_version']);
+        AuditLogger::event('esp_device_registered', 'ESP registrado por protocolo HTTP', 'info', [
+            'mac' => $mac,
+            'device_code' => $device['device_code'] ?? null,
+            'protocol_version' => $payload['protocol_version'] ?? null,
+            'firmware_version' => $payload['firmware_version'] ?? null,
+        ], null, 'device', (string)$device['id'], 'register');
 
         $response = $this->successEnvelope($device, [
             'mensaje' => 'Dispositivo registrado exitosamente',
@@ -125,6 +132,11 @@ class EspProtocolController
         }
 
         if ($batch['state'] === 'duplicate') {
+            AuditLogger::event('esp_sync_duplicate', 'Paquete ESP duplicado', 'info', [
+                'packet_id' => $packetId,
+                'device_id' => (int)$device['id'],
+            ], null, 'device', (string)$device['id'], 'sync_duplicate');
+
             return $this->json(200, $this->successEnvelope($device, [
                 'message' => 'Paquete ya recibido anteriormente',
                 'cambio' => false,
@@ -165,6 +177,13 @@ class EspProtocolController
 
         $change = (int)$device['last_config_version_sent'] < (int)$device['config_version'];
         $this->protocolModel->finishMessageBatch((int)$batch['id'], 'accepted', $inserted, $duplicates);
+        AuditLogger::event('esp_sync_accepted', 'Sync ESP aceptado', 'info', [
+            'packet_id' => $packetId,
+            'device_id' => (int)$device['id'],
+            'inserted' => $inserted,
+            'duplicates' => $duplicates,
+            'local_alerts' => count($payload['local_alerts']),
+        ], null, 'device', (string)$device['id'], 'sync');
 
         $response = $this->successEnvelope($device, [
             'message' => $inserted . ' registros insertados correctamente',
@@ -215,6 +234,13 @@ class EspProtocolController
             $this->protocolModel->insertCommandResponse((int)$device['id'], $payload['respuesta_comando'], (int)$payload['timestamp'], $packetId);
             $this->protocolModel->finishMessageBatch((int)$batch['id'], 'accepted', 1, 0);
         }
+        AuditLogger::event('esp_command_response', 'Respuesta de comando ESP recibida', 'info', [
+            'packet_id' => $packetId,
+            'device_id' => (int)$device['id'],
+            'duplicate' => $batch['state'] === 'duplicate',
+            'command_status' => $payload['respuesta_comando']['estado'] ?? null,
+            'command_type' => $payload['respuesta_comando']['tipo'] ?? null,
+        ], null, 'device', (string)$device['id'], 'command_response');
 
         return $this->json(200, $this->successEnvelope($device, [
             'message' => 'Respuesta de comando recibida',
@@ -411,6 +437,13 @@ class EspProtocolController
 
     private function protocolError(int $statusCode, string $code, string $message, string $detail, ?array $device = null)
     {
+        AuditLogger::event('esp_protocol_error', $message, $statusCode >= 500 ? 'error' : 'warning', [
+            'code' => $code,
+            'detail' => $detail,
+            'status_code' => $statusCode,
+            'device_id' => $device['id'] ?? null,
+        ], null, $device ? 'device' : 'esp_protocol', $device ? (string)$device['id'] : null, 'reject');
+
         return $this->json($statusCode, [
             'success' => false,
             'server_time' => time(),

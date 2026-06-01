@@ -1,0 +1,159 @@
+.VisitorView {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+}
+
+.VisitorHeader,
+.VisitorDeviceHeader,
+.VisitorTemp,
+.VisitorStock li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.VisitorHeader,
+.VisitorDeviceHeader,
+.VisitorStock li {
+  justify-content: space-between;
+}
+
+.VisitorHeader {
+  margin-bottom: 18px;
+}
+
+.VisitorHeader h2,
+.VisitorDevice h3,
+.VisitorStock h4 {
+  margin: 0;
+}
+
+.VisitorHeader p,
+.VisitorDevice p,
+.VisitorStock p,
+.VisitorMuted {
+  margin: 6px 0 0;
+  color: var(--LetrasColor2);
+}
+
+.VisitorHeader button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo2);
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.VisitorHeader button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.VisitorMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.VisitorMetrics div,
+.VisitorDevice {
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  border-radius: 8px;
+}
+
+.VisitorMetrics div {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+}
+
+.VisitorMetrics span {
+  color: var(--LetrasColor1);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.VisitorMetrics p {
+  margin: 0;
+  color: var(--LetrasColor2);
+}
+
+.VisitorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.VisitorDevice {
+  padding: 16px;
+}
+
+.VisitorDeviceHeader span,
+.VisitorTemp {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+  white-space: nowrap;
+}
+
+.VisitorTemp {
+  justify-content: flex-start;
+  margin: 14px 0;
+}
+
+.VisitorTemp span {
+  color: var(--LetrasColor2);
+  margin-left: auto;
+}
+
+.VisitorStock ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+.VisitorStock li {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  background: var(--ColorFondo5);
+}
+
+.VisitorError {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .VisitorView {
+    padding: 18px 12px;
+  }
+
+  .VisitorHeader,
+  .VisitorDeviceHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .VisitorMetrics {
+    grid-template-columns: 1fr;
+  }
+}

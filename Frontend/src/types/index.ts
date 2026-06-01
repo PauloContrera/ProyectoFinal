@@ -12,6 +12,9 @@ export interface User {
   role: 'superadmin' | 'admin' | 'client' | 'visitor';
   lang?: string;
   is_verified?: boolean;
+  is_email_verified?: boolean | number;
+  last_login_at?: string | null;
+  registered_at?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -44,6 +47,7 @@ export interface AuthResponse {
 export interface Device {
   id: number;
   device_code: string;
+  mac_address?: string | null;
   name: string;
   location?: string;
   status: 'active' | 'inactive' | 'maintenance';
@@ -52,6 +56,13 @@ export interface Device {
   max_temp: number;
   min_temp: number;
   firmware_version?: string | null;
+  account_enabled?: boolean | number;
+  send_interval_seconds?: number;
+  protocol_version?: string | null;
+  config_version?: number;
+  last_sync_at?: string | null;
+  last_packet_id?: string | null;
+  last_packet_at?: string | null;
   last_temperature_id?: number | null;
   last_temperature?: number | null;
   last_temperature_recorded_at?: string | null;
@@ -123,6 +134,7 @@ export interface ApiResponse<T = unknown> {
   status: number;
   message: string;
   data: T;
+  request_id?: string;
   timestamp: string;
 }
 
@@ -198,4 +210,64 @@ export interface DashboardStats {
   alerts_pending: number;
   temp_average: number;
   system_status: 'operational' | 'warning' | 'critical';
+}
+
+export interface AuditRequestLog {
+  id: number;
+  request_id: string;
+  user_id: number | null;
+  method: string;
+  path: string;
+  status_code: number;
+  success: number | boolean;
+  duration_ms: number;
+  ip_address?: string | null;
+  error_message?: string | null;
+  created_at: string;
+}
+
+export interface AuditEventLog {
+  id: number;
+  request_id: string | null;
+  actor_user_id: number | null;
+  event_type: string;
+  entity_type?: string | null;
+  entity_id?: string | null;
+  action?: string | null;
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  message?: string | null;
+  created_at: string;
+}
+
+export interface AuditChangeLog {
+  entity_type: string;
+  entity_id: string | null;
+  actor_user_id: number | null;
+  action: string;
+  field_changed: string;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+}
+
+export interface AuditSummary {
+  hours: number;
+  requests: {
+    total: number;
+    successful: number;
+    client_errors: number;
+    server_errors: number;
+    avg_duration_ms: number | null;
+    max_duration_ms: number | null;
+  };
+  top_paths: Array<{
+    method: string;
+    path: string;
+    total: number;
+    errors: number;
+  }>;
+  events_by_severity: Array<{
+    severity: string;
+    total: number;
+  }>;
 }

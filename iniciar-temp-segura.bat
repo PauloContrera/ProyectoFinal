@@ -11,6 +11,7 @@ set "DB_DUMP=%ROOT%Database\schema.sql"
 set "DB_PROTOCOL=%ROOT%Database\protocol_http_sms.sql"
 set "DB_SEED=%ROOT%Database\seed_devtest.sql"
 set "DB_AUDIT=%ROOT%Database\security_audit.sql"
+set "DB_OBSERVABILITY=%ROOT%Database\audit_observability.sql"
 
 echo.
 echo ========================================
@@ -156,6 +157,18 @@ if exist "%DB_AUDIT%" (
   )
 ) else (
   echo ADVERTENCIA: No existe "%DB_AUDIT%". Se saltea auditoria de seguridad.
+)
+
+if exist "%DB_OBSERVABILITY%" (
+  echo Aplicando observabilidad y logs transversales...
+  mysql -u root %DB_NAME% < "%DB_OBSERVABILITY%"
+  if errorlevel 1 (
+    echo ERROR: No se pudo aplicar "%DB_OBSERVABILITY%".
+    pause
+    exit /b 1
+  )
+) else (
+  echo ADVERTENCIA: No existe "%DB_OBSERVABILITY%". Se saltea observabilidad.
 )
 echo.
 

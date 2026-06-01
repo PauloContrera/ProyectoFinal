@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Helpers\AuditLogger;
 use PDO;
 
 class DeviceGroup
@@ -119,5 +120,11 @@ class DeviceGroup
             ':old_value' => $oldValue,
             ':new_value' => $newValue
         ]);
+
+        AuditLogger::event('device_group_change', "Cambio de grupo: {$action}", 'info', [
+            'field_changed' => $field,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+        ], $userId ? (int)$userId : null, 'device_group', (string)$groupId, $action);
     }
 }

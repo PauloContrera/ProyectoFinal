@@ -64,7 +64,37 @@ if (preg_match('#^/api/stock/(\d+)$#', $relativeUri, $matches) && $requestMethod
     exit;
 }
 
+if ($relativeUri === '/api/audit/requests' && $requestMethod === 'GET') {
+    (new \Controllers\AuditController($db))->requests();
+    exit;
+}
+
+if ($relativeUri === '/api/audit/events' && $requestMethod === 'GET') {
+    (new \Controllers\AuditController($db))->events();
+    exit;
+}
+
+if ($relativeUri === '/api/audit/auth-events' && $requestMethod === 'GET') {
+    (new \Controllers\AuditController($db))->authEvents();
+    exit;
+}
+
+if ($relativeUri === '/api/audit/changes' && $requestMethod === 'GET') {
+    (new \Controllers\AuditController($db))->changes();
+    exit;
+}
+
+if ($relativeUri === '/api/audit/summary' && $requestMethod === 'GET') {
+    (new \Controllers\AuditController($db))->summary();
+    exit;
+}
+
 http_response_code(404);
 header('Content-Type: application/json');
-echo json_encode(['message' => 'Ruta no encontrada']);
+echo json_encode([
+    'success' => false,
+    'status' => 404,
+    'message' => 'Ruta no encontrada',
+    'request_id' => \Helpers\AuditLogger::requestId(),
+], JSON_UNESCAPED_UNICODE);
 exit;

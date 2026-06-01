@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Helpers\AuditLogger;
 use PDO;
 
 class StockItem
@@ -135,5 +136,12 @@ class StockItem
             ':old_value' => $oldValue,
             ':new_value' => $newValue,
         ]);
+
+        AuditLogger::event('stock_item_change', "Cambio de stock: {$action}", 'info', [
+            'device_id' => $deviceId,
+            'field_changed' => $field,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+        ], $userId, 'stock_item', (string)$stockId, $action);
     }
 }

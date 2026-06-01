@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Helpers\AuditLogger;
 use PDO;
 
 class Device
@@ -18,16 +19,26 @@ class Device
     {
         $stmt = $this->conn->prepare("
         INSERT INTO devices (
-            device_code, name, location, min_temp, max_temp,
+            device_code, mac_address, shared_secret, account_enabled,
+            activation_keyword, send_interval_seconds, protocol_version,
+            name, location, min_temp, max_temp,
             firmware_version, group_id, user_id
         ) VALUES (
-            :device_code, :name, :location, :min_temp, :max_temp,
+            :device_code, :mac_address, :shared_secret, :account_enabled,
+            :activation_keyword, :send_interval_seconds, :protocol_version,
+            :name, :location, :min_temp, :max_temp,
             :firmware_version, :group_id, :user_id
         )
     ");
 
         $stmt->execute([
             ':device_code' => $data['device_code'],
+            ':mac_address' => $data['mac_address'] ?? null,
+            ':shared_secret' => $data['shared_secret'] ?? null,
+            ':account_enabled' => array_key_exists('account_enabled', $data) ? (int)(bool)$data['account_enabled'] : 1,
+            ':activation_keyword' => $data['activation_keyword'] ?? ($_ENV['ESP_ACTIVATION_KEYWORD'] ?? 'clavesecreta4321'),
+            ':send_interval_seconds' => $data['send_interval_seconds'] ?? 900,
+            ':protocol_version' => $data['protocol_version'] ?? null,
             ':name' => $data['name'],
             ':location' => $data['location'],
             ':min_temp' => $data['min_temp'],
@@ -50,7 +61,11 @@ class Device
 
     public function getById($id)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE id = ?");
+        $stmt = $this->conn->prepare("
+            SELECT {$this->publicDeviceColumns('d')}
+            FROM {$this->table} d
+            WHERE d.id = ?
+        ");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -182,6 +197,12 @@ class Device
             $action,
             $canModify
         ]);
+
+        AuditLogger::event('device_access_change', "Acceso de heladera {$action}", 'info', [
+            'device_id' => $deviceId,
+            'target_user_id' => $targetUserId,
+            'can_modify' => $canModify,
+        ], $changedBy ? (int)$changedBy : null, 'device', (string)$deviceId, $action);
     }
     public function assignToUser($deviceCode, $userId)
     {
@@ -217,7 +238,11 @@ class Device
 
     public function getUnassigned()
     {
-        $stmt = $this->conn->prepare("SELECT * FROM devices WHERE user_id IS NULL");
+        $stmt = $this->conn->prepare("
+            SELECT {$this->publicDeviceColumns('d')}
+            FROM devices d
+            WHERE d.user_id IS NULL
+        ");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -250,7 +275,11 @@ class Device
     }
     public function getByCode($code)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM devices WHERE device_code = ?");
+        $stmt = $this->conn->prepare("
+            SELECT {$this->publicDeviceColumns('d')}
+            FROM devices d
+            WHERE d.device_code = ?
+        ");
         $stmt->execute([$code]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -259,7 +288,7 @@ class Device
     {
         return "
             SELECT
-                d.*,
+                {$this->publicDeviceColumns('d')},
                 (
                     SELECT t.id
                     FROM temperatures t
@@ -285,6 +314,42 @@ class Device
         ";
     }
 
+    private function publicDeviceColumns(string $alias): string
+    {
+        $columns = [
+            'id',
+            'device_code',
+            'mac_address',
+            'account_enabled',
+            'send_interval_seconds',
+            'protocol_version',
+            'config_version',
+            'last_config_version_sent',
+            'registered_model',
+            'sim_imei',
+            'last_sync_at',
+            'last_sequence',
+            'last_packet_id',
+            'last_packet_at',
+            'name',
+            'location',
+            'user_id',
+            'group_id',
+            'min_temp',
+            'max_temp',
+            'firmware_version',
+            'last_reported_at',
+            'device_time',
+            'time_discrepancy',
+            'created_at',
+        ];
+
+        return implode(",\n                ", array_map(
+            fn($column) => "{$alias}.`{$column}` AS `{$column}`",
+            $columns
+        ));
+    }
+
     private function insertLog($deviceId, $userId, $action, $field, $oldValue, $newValue)
     {
         $stmt = $this->conn->prepare("
@@ -299,5 +364,11 @@ class Device
             ':old_value' => $oldValue,
             ':new_value' => $newValue
         ]);
+
+        AuditLogger::event('device_change', "Cambio de heladera: {$action}", 'info', [
+            'field_changed' => $field,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+        ], $userId ? (int)$userId : null, 'device', (string)$deviceId, $action);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Middleware;
 
+use Helpers\AuditLogger;
 use Helpers\Logger;
 use Helpers\Response;
 use PDO;
@@ -47,6 +48,12 @@ class RateLimiter
             'limit' => $limit,
             'window_seconds' => $windowSeconds,
         ]);
+        AuditLogger::event('rate_limit_exceeded', 'Rate limit excedido', 'warning', [
+            'bucket' => $bucket,
+            'count' => $count,
+            'limit' => $limit,
+            'window_seconds' => $windowSeconds,
+        ], null, 'rate_limit', $bucket, 'block');
 
         header('Retry-After: ' . $windowSeconds);
         Response::json(429, 'RATE_LIMITED', [

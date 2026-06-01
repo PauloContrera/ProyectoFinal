@@ -24,6 +24,27 @@ La base ya tenia logs para usuarios, accesos y heladeras. Se agrego `stock_item_
 
 La migracion esta en `Database/security_audit.sql` y el script `iniciar-temp-segura.bat` la aplica despues del seed de desarrollo.
 
+## Observabilidad transversal
+
+Se agrego `Database/audit_observability.sql` para registrar toda comunicacion HTTP relevante sin guardar secretos:
+
+- `api_request_logs`: una fila por request API con `request_id`, usuario autenticado si existe, metodo, ruta, estado HTTP, duracion, IP, user-agent, body sanitizado para metodos de escritura y resumen de respuesta.
+- `audit_events`: eventos de auditoria generales como excepciones, errores fatales y consultas de auditoria.
+- Los campos sensibles se redactan automaticamente: `password`, `token`, `secret`, `shared_secret`, `signature`, `palabra_clave`, `authorization`, `api_key`, `mail_pass`, entre otros.
+- Cada respuesta JSON incluye `request_id` y el header `X-Request-ID`, para cruzar navegador, backend, logs de archivo y base de datos.
+
+El script `iniciar-temp-segura.bat` aplica esta migracion automaticamente despues de `security_audit.sql`.
+
+## Endpoints de auditoria
+
+Solo `admin` y `superadmin` pueden consultar estos endpoints:
+
+- `GET /api/audit/requests`: requests HTTP. Filtros: `limit`, `request_id`, `method`, `path`, `status`, `user_id`.
+- `GET /api/audit/events`: eventos transversales. Filtros: `limit`, `event_type`, `entity_type`, `severity`, `action`, `user_id`.
+- `GET /api/audit/auth-events`: eventos historicos de autenticacion en `event_logs`. Filtros: `limit`, `event_type`, `user_id`.
+- `GET /api/audit/changes`: cambios de datos en usuarios, heladeras, grupos y stock. Filtros: `limit`, `entity=all|device|group|stock|user`.
+- `GET /api/audit/summary`: resumen operativo. Filtros: `hours` entre 1 y 168.
+
 ## Hardening aplicado
 
 - `rate_limit_events`: limita login, registro, recuperacion de contrasena y endpoints ESP por IP o identidad.

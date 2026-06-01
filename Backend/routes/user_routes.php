@@ -83,6 +83,20 @@ if ($relativeUri === '/api/users' && $requestMethod === 'GET') {
     exit;
 }
 
+// Crear usuario desde administracion
+if ($relativeUri === '/api/users' && $requestMethod === 'POST') {
+    AuthMiddleware::verifyToken();
+    (new UserController((new Database())->getConnection()))->create();
+    exit;
+}
+
+// Gestionar credenciales y rol desde administracion
+if (preg_match('#^/api/users/(\d+)/admin$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
+    AuthMiddleware::verifyToken();
+    (new UserController((new Database())->getConnection()))->manage((int)$matches[1]);
+    exit;
+}
+
 // Endpoint de prueba
 if ($relativeUri === '/api/test' && $requestMethod === 'GET') {
     AuthMiddleware::verifyToken();

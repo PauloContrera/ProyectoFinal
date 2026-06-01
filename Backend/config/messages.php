@@ -22,6 +22,7 @@ return [
     'USER_NOT_FOUND' => 'Usuario no encontrado.',
     'USER_LIST' => 'Lista de usuarios.',
     'USER_FOUND' => 'Usuario encontrado.',
+    'USER_CREATED' => 'Usuario creado correctamente.',
     'INVALID_NAME' => 'Nombre inválido.',
     'INVALID_EMAIL' => 'Email inválido.',
     'EMAIL_IN_USE' => 'El email ya está en uso por otro usuario.',
@@ -41,5 +42,6 @@ return [
     'PASSWORD_CHANGE_ERROR' => 'Error al cambiar la contraseña.',
     'USERNAME_CHANGE_ERROR' => 'Error al cambiar el username.',
     'USER_UPDATE_ERROR' => 'Error al actualizar el usuario.',
-    'TEST_LOG_SUCCESS' => 'Log de prueba creado.'
+    'TEST_LOG_SUCCESS' => 'Log de prueba creado.',
+    'MAC_ADDRESS_EXISTS' => 'Ya existe un dispositivo con esa MAC.'
 ];

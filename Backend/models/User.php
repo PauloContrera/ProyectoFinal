@@ -2,6 +2,7 @@
 
 namespace Models;
 
+use Helpers\AuditLogger;
 use PDO;
 
 class User
@@ -40,6 +41,42 @@ class User
         return $success ? $this->db->lastInsertId() : false;
     }
 
+    public function createManaged($name, $username, $password, $email, $phone, $role, bool $verified = true)
+    {
+        $sql = "INSERT INTO {$this->table} (
+                name, username, password, email, phone, role, is_email_verified, registered_at
+            ) VALUES (
+                :name, :username, :password, :email, :phone, :role, :verified, NOW()
+            )";
+        $stmt = $this->db->prepare($sql);
+        $success = $stmt->execute([
+            'name' => $name,
+            'username' => $username,
+            'password' => $password,
+            'email' => $email,
+            'phone' => $phone,
+            'role' => $role,
+            'verified' => $verified ? 1 : 0,
+        ]);
+
+        return $success ? $this->db->lastInsertId() : false;
+    }
+
+    public function createVerifiedEmailRecord($userId, $email, $ip): bool
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO email_verifications (user_id, email, token, expires_at, verified, verified_at, ip_address)
+            VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 YEAR), 1, NOW(), ?)
+        ");
+
+        return $stmt->execute([
+            $userId,
+            $email,
+            bin2hex(random_bytes(16)),
+            $ip,
+        ]);
+    }
+
 
     public function findByUsernameOrEmail($identifier)
     {
@@ -62,13 +99,21 @@ class User
 
     public function getAllUsers()
     {
-        $stmt = $this->db->query('SELECT id, name, username, email, phone, role FROM users');
+        $stmt = $this->db->query('
+            SELECT id, name, username, email, phone, role, is_email_verified, last_login_at, registered_at, updated_at
+            FROM users
+            ORDER BY registered_at DESC, id DESC
+        ');
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getUserById($id)
     {
-        $stmt = $this->db->prepare('SELECT id, name, username, email, phone, role FROM users WHERE id = ?');
+        $stmt = $this->db->prepare('
+            SELECT id, name, username, email, phone, role, is_email_verified, last_login_at, registered_at, updated_at
+            FROM users
+            WHERE id = ?
+        ');
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -192,6 +237,65 @@ class User
         }
     }
 
+    public function emailExistsForAnother($email, $id): bool
+    {
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE email = ? AND id != ? LIMIT 1");
+        $stmt->execute([$email, $id]);
+        return (bool)$stmt->fetch();
+    }
+
+    public function usernameExistsForAnother($username, $id): bool
+    {
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE username = ? AND id != ? LIMIT 1");
+        $stmt->execute([$username, $id]);
+        return (bool)$stmt->fetch();
+    }
+
+    public function changeRole($id, $newRole, $changedBy)
+    {
+        $stmt = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return ['success' => false, 'reason' => 'not_found'];
+        }
+
+        if ($user['role'] === $newRole) {
+            return ['success' => false, 'reason' => 'no_changes'];
+        }
+
+        $stmt = $this->db->prepare("UPDATE users SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $success = $stmt->execute([$newRole, $id]);
+
+        if ($success) {
+            $this->logChange($id, $changedBy, 'role', $user['role'], $newRole);
+            return ['success' => true];
+        }
+
+        return ['success' => false, 'reason' => 'db_error'];
+    }
+
+    public function setPasswordByAdmin($id, $newPassword, $changedBy)
+    {
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        if (!$stmt->fetch()) {
+            return ['success' => false, 'reason' => 'not_found'];
+        }
+
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("UPDATE users SET password = ?, failed_login_attempts = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $success = $stmt->execute([$hashedPassword, $id]);
+
+        if ($success) {
+            $this->logChange($id, $changedBy, 'password_admin_reset', '***', '***');
+            return ['success' => true];
+        }
+
+        return ['success' => false, 'reason' => 'db_error'];
+    }
+
     public function changeUsername($id, $newUsername, $changedBy)
     {
         // Verificar si el nuevo username está en uso
@@ -308,7 +412,16 @@ class User
     public function logChange($userId, $changedBy, $fieldChanged, $oldValue, $newValue)
     {
         $stmt = $this->db->prepare("INSERT INTO user_change_log (user_id, field_changed, old_value, new_value, changed_by) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([$userId, $fieldChanged, $oldValue, $newValue, $changedBy]);
+        $result = $stmt->execute([$userId, $fieldChanged, $oldValue, $newValue, $changedBy]);
+
+        AuditLogger::event('user_change', 'Cambio de usuario', 'info', [
+            'target_user_id' => $userId,
+            'field_changed' => $fieldChanged,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+        ], $changedBy ? (int)$changedBy : null, 'user', (string)$userId, 'update');
+
+        return $result;
     }
 
     public function logEvent($userId, $eventType, $message, $ip)
@@ -316,11 +429,21 @@ class User
         $stmt = $this->db->prepare("
         INSERT INTO event_logs (user_id, event_type, event_message, ip_address)
         VALUES (:user_id, :event_type, :message, :ip)");
-        return $stmt->execute([
+        $result = $stmt->execute([
             'user_id' => $userId,
             'event_type' => $eventType,
             'message' => $message,
             'ip' => $ip
         ]);
+
+        $severity = str_contains((string)$eventType, 'failed') || str_contains((string)$eventType, 'fail') || str_contains((string)$eventType, 'blocked')
+            ? 'warning'
+            : 'info';
+        AuditLogger::event('auth_event', $message, $severity, [
+            'event_type' => $eventType,
+            'legacy_ip' => $ip,
+        ], $userId ? (int)$userId : null, 'user', $userId ? (string)$userId : null, $eventType);
+
+        return $result;
     }
 }

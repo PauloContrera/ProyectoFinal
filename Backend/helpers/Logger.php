@@ -27,14 +27,16 @@ class Logger
         $timestamp = date('Y-m-d H:i:s');
         $userId = $_SERVER['user']['id'] ?? 'anonymous';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $requestId = $_SERVER['REQUEST_ID'] ?? null;
 
         $logEntry = [
             'timestamp' => $timestamp,
             'level' => $level,
+            'request_id' => $requestId,
             'user_id' => $userId,
             'ip' => $ip,
             'message' => $message,
-            'context' => $context
+            'context' => self::sanitize($context)
         ];
 
         $logString = json_encode($logEntry, JSON_UNESCAPED_UNICODE) . "\n";
@@ -174,5 +176,51 @@ class Logger
         if (!is_dir(self::LOG_DIR)) {
             mkdir(self::LOG_DIR, 0755, true);
         }
+    }
+
+    public static function sanitize($value)
+    {
+        $sensitiveKeys = [
+            'authorization',
+            'password',
+            'new_password',
+            'current_password',
+            'token',
+            'jwt',
+            'secret',
+            'shared_secret',
+            'signature',
+            'palabra_clave',
+            'activation_keyword',
+            'api_key',
+            'mail_pass',
+        ];
+
+        if (is_array($value)) {
+            $sanitized = [];
+            foreach ($value as $key => $item) {
+                $normalizedKey = strtolower((string)$key);
+                $isSensitive = false;
+                foreach ($sensitiveKeys as $sensitiveKey) {
+                    if (str_contains($normalizedKey, $sensitiveKey)) {
+                        $isSensitive = true;
+                        break;
+                    }
+                }
+
+                $sanitized[$key] = $isSensitive ? '[REDACTED]' : self::sanitize($item);
+            }
+            return $sanitized;
+        }
+
+        if (is_object($value)) {
+            return self::sanitize((array)$value);
+        }
+
+        if (is_string($value) && strlen($value) > 4000) {
+            return substr($value, 0, 4000) . '...[truncated]';
+        }
+
+        return $value;
     }
 }

@@ -18,12 +18,14 @@ class Response
         header('Content-Type: application/json; charset=utf-8');
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: no-store');
+        header('X-Request-ID: ' . AuditLogger::requestId());
 
         $response = [
             'success' => $statusCode >= 200 && $statusCode < 300,
             'status' => $statusCode,
             'message' => Message::get($messageKey),
             'data' => $data,
+            'request_id' => AuditLogger::requestId(),
             'timestamp' => date('Y-m-d H:i:s')
         ];
 

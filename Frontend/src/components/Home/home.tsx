@@ -4,16 +4,22 @@ import TemperaturaTotal from "../Temperatura/Temperatura-Total";
 import Documentacion from "../Document/documentacion";
 import StockTotal from "../Stocks/StockTotal";
 import BackendData from "../BackendData/BackendData";
+import AdminPanel from "../Admin/AdminPanel";
+import VisitorView from "../Visitor/VisitorView";
 import { useState, useEffect, type ReactNode } from "react";
 import { MenuDesplejable } from "./Menu/MenuDesplejable";
 import MenuVertical from "./Menu/MenuVertical";
+import { useAuth } from "../../hooks/useAuth";
 
 
 function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colorSVG }: { isDarkMode: boolean; isDemoMode: boolean; onLanding: () => void; toggleModal: () => void; toggleTheme: () => void; colorSVG: string }) {
+  const { user } = useAuth();
   const [selectedComponent, setSelectedComponent] =
     useState<string>("Temperatura");
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 600);
+  const canUseAdmin = user?.role === "admin" || user?.role === "superadmin";
+  const isVisitor = user?.role === "visitor";
 
   // Escuchar cambios en el tamaño de la ventana
   useEffect(() => {
@@ -26,11 +32,22 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    if (selectedComponent === "Administracion" && !canUseAdmin) {
+      setSelectedComponent("Temperatura");
+    }
+    if (selectedComponent === "Visitante" && !isVisitor) {
+      setSelectedComponent("Temperatura");
+    }
+  }, [canUseAdmin, isVisitor, selectedComponent]);
+
   const componentsMap: Record<string, ReactNode> = {
     Temperatura: <TemperaturaTotal useDemoData={isDemoMode} />,
     Stocks: <StockTotal useDemoData={isDemoMode} />,
     Backend: <BackendData />,
     Documentacion: <Documentacion />,
+    ...(canUseAdmin ? { Administracion: <AdminPanel /> } : {}),
+    ...(isVisitor ? { Visitante: <VisitorView /> } : {}),
   };
 
   const handleComponentClick = (componentName: string): void => {
@@ -116,6 +133,56 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Stock</h3>}
               </div>
               </div>
+              {canUseAdmin && (
+                <div
+                  className={`menuConfiguracionesVerticalSolo ${
+                    selectedComponent === "Administracion" ? "selected" : ""
+                  }`}
+                  onClick={() => handleComponentClick("Administracion")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="menuConfiguracionesVerticalSoloSVG"
+                  >
+                    <path d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4Z"></path>
+                    <path d="M9 12l2 2 4-4"></path>
+                  </svg>
+                  {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Admin</h3>}
+                </div>
+              )}
+              {isVisitor && (
+                <div
+                  className={`menuConfiguracionesVerticalSolo ${
+                    selectedComponent === "Visitante" ? "selected" : ""
+                  }`}
+                  onClick={() => handleComponentClick("Visitante")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="menuConfiguracionesVerticalSoloSVG"
+                  >
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Visitante</h3>}
+                </div>
+              )}
               <div
                 className={`menuConfiguracionesVerticalSolo ${
                   selectedComponent === "Backend" ? "selected" : ""
