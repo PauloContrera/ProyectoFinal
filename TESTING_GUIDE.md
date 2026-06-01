@@ -23,6 +23,23 @@ La suite ejecuta:
 
 Documentacion completa: `docs/pruebas-backend-integral.md`.
 
+## Postman manual
+
+Coleccion recomendada:
+
+```text
+temp-segura-backend-completo.postman_collection.json
+```
+
+Esta coleccion no usa scripts para tokens. Importala en Postman, ejecuta los login de cada rol y copia manualmente `data.token` a estas variables:
+
+- `superadmin_token`
+- `admin_token`
+- `client_token`
+- `visitor_token`
+
+Tambien copia manualmente los IDs devueltos por los POST a `managed_client_id`, `managed_visitor_id`, `group_id`, `device_id` y `stock_id`. Incluye requests positivos, CRUD completo, permisos, sin token, token invalido, token vencido y validaciones negativas.
+
 ## Que cubre
 
 - Login de `superadmin`, `admin`, `client` y `visitor`.

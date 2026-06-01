@@ -1,0 +1,991 @@
+{
+  "info": {
+    "_postman_id": "2f31af72-9a40-4a8e-bc65-temp-segura-backend-completo",
+    "name": "Temp Segura - Backend completo sin scripts",
+    "description": "Coleccion manual para probar el backend completo. No usa scripts para tokens ni para guardar IDs. Paso recomendado: ejecutar los login, copiar data.token en las variables superadmin_token/admin_token/client_token/visitor_token, y copiar los IDs devueltos por los POST a managed_admin_id, managed_client_id, managed_visitor_id, group_id, device_id y stock_id. El token vencido se prueba pegando un JWT expirado real en expired_token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
+    { "key": "superadmin_identifier", "value": "CAMBIAR_SUPERADMIN", "type": "string" },
+    { "key": "admin_identifier", "value": "CAMBIAR_ADMIN", "type": "string" },
+    { "key": "client_identifier", "value": "devtest", "type": "string" },
+    { "key": "visitor_identifier", "value": "devvisitor", "type": "string" },
+    { "key": "common_password", "value": "TempSegura123", "type": "string" },
+    { "key": "superadmin_token", "value": "", "type": "string" },
+    { "key": "admin_token", "value": "", "type": "string" },
+    { "key": "client_token", "value": "", "type": "string" },
+    { "key": "visitor_token", "value": "", "type": "string" },
+    { "key": "invalid_token", "value": "token.invalido.manual", "type": "string" },
+    { "key": "expired_token", "value": "PEGAR_TOKEN_VENCIDO_REAL", "type": "string" },
+    { "key": "managed_admin_id", "value": "0", "type": "string" },
+    { "key": "managed_client_id", "value": "0", "type": "string" },
+    { "key": "managed_visitor_id", "value": "0", "type": "string" },
+    { "key": "target_user_id", "value": "0", "type": "string" },
+    { "key": "group_id", "value": "0", "type": "string" },
+    { "key": "second_group_id", "value": "0", "type": "string" },
+    { "key": "device_id", "value": "0", "type": "string" },
+    { "key": "device_code", "value": "PM-FRIDGE-001", "type": "string" },
+    { "key": "unassigned_device_code", "value": "PM-UNASSIGNED-001", "type": "string" },
+    { "key": "stock_id", "value": "0", "type": "string" },
+    { "key": "missing_id", "value": "999999", "type": "string" },
+    { "key": "verification_token", "value": "PEGAR_TOKEN_EMAIL", "type": "string" },
+    { "key": "reset_token", "value": "PEGAR_TOKEN_RESET", "type": "string" },
+    { "key": "new_user_suffix", "value": "01", "type": "string" },
+    { "key": "esp_mac", "value": "AA:BB:CC:44:55:01", "type": "string" },
+    { "key": "esp_shared_secret", "value": "PEGAR_SHARED_SECRET_DEL_REGISTRO", "type": "string" },
+    { "key": "activation_keyword", "value": "clavesecreta4321", "type": "string" },
+    { "key": "esp_signature", "value": "PEGAR_FIRMA_HMAC_SHA256", "type": "string" },
+    { "key": "esp_timestamp", "value": "1780345017", "type": "string" },
+    { "key": "esp_record_time_1", "value": "1780344957", "type": "string" },
+    { "key": "esp_record_time_2", "value": "1780344987", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "00 - Orden de uso",
+      "item": [
+        {
+          "name": "README - Variables manuales",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/esp/time",
+            "description": "Importante: esta coleccion no usa scripts. 1) Loguear cada rol. 2) Copiar data.token a la variable correspondiente. 3) Crear usuarios/grupos/heladeras/stock. 4) Copiar los IDs de cada respuesta a las variables. 5) Ejecutar negativos sin token, token invalido, token vencido y validaciones."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth y tokens manuales",
+      "item": [
+        {
+          "name": "Login superadmin - copiar token a superadmin_token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{superadmin_identifier}}\",\n  \"password\": \"{{common_password}}\"\n}" },
+            "url": "{{base_url}}/login",
+            "description": "Copia data.token en la variable superadmin_token."
+          },
+          "response": []
+        },
+        {
+          "name": "Login admin - copiar token a admin_token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{admin_identifier}}\",\n  \"password\": \"{{common_password}}\"\n}" },
+            "url": "{{base_url}}/login"
+          },
+          "response": []
+        },
+        {
+          "name": "Login client - copiar token a client_token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{client_identifier}}\",\n  \"password\": \"{{common_password}}\"\n}" },
+            "url": "{{base_url}}/login"
+          },
+          "response": []
+        },
+        {
+          "name": "Login visitor - copiar token a visitor_token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{visitor_identifier}}\",\n  \"password\": \"{{common_password}}\"\n}" },
+            "url": "{{base_url}}/login"
+          },
+          "response": []
+        },
+        {
+          "name": "Registro publico client",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Public Client\",\n  \"username\": \"pm_public_client_{{new_user_suffix}}\",\n  \"email\": \"pm_public_client_{{new_user_suffix}}@tempsegura.local\",\n  \"password\": \"TempSegura123\",\n  \"phone\": \"+541100000100\"\n}" },
+            "url": "{{base_url}}/register",
+            "description": "Puede fallar con EMAIL_SEND_FAILED si SMTP local no esta configurado."
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar email",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/verify-email?token={{verification_token}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Reenviar verificacion email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"pm_public_client_{{new_user_suffix}}@tempsegura.local\"\n}" },
+            "url": "{{base_url}}/resend-email-verification"
+          },
+          "response": []
+        },
+        {
+          "name": "Solicitar reset password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"devtest@tempsegura.local\"\n}" },
+            "url": "{{base_url}}/request-password-reset"
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar token reset",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/reset-password/verify?token={{reset_token}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset password con token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"{{reset_token}}\",\n  \"new_password\": \"TempSegura124\"\n}" },
+            "url": "{{base_url}}/reset-password"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Usuarios CRUD",
+      "item": [
+        {
+          "name": "Listar usuarios - superadmin/admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "url": "{{base_url}}/users"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear admin - solo superadmin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Admin\",\n  \"username\": \"pm_admin_{{new_user_suffix}}\",\n  \"email\": \"pm_admin_{{new_user_suffix}}@tempsegura.local\",\n  \"phone\": \"+541100000201\",\n  \"password\": \"TempSegura123\",\n  \"role\": \"admin\"\n}" },
+            "url": "{{base_url}}/users",
+            "description": "Copiar data.user_id a managed_admin_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear client - admin/superadmin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Client\",\n  \"username\": \"pm_client_{{new_user_suffix}}\",\n  \"email\": \"pm_client_{{new_user_suffix}}@tempsegura.local\",\n  \"phone\": \"+541100000202\",\n  \"password\": \"TempSegura123\",\n  \"role\": \"client\"\n}" },
+            "url": "{{base_url}}/users",
+            "description": "Copiar data.user_id a managed_client_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear visitor - admin/superadmin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Visitor\",\n  \"username\": \"pm_visitor_{{new_user_suffix}}\",\n  \"email\": \"pm_visitor_{{new_user_suffix}}@tempsegura.local\",\n  \"phone\": \"+541100000203\",\n  \"password\": \"TempSegura123\",\n  \"role\": \"visitor\"\n}" },
+            "url": "{{base_url}}/users",
+            "description": "Copiar data.user_id a managed_visitor_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Ver usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/users/{{target_user_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar perfil de usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Client Editado\",\n  \"email\": \"pm_client_editado_{{new_user_suffix}}@tempsegura.local\",\n  \"phone\": \"+541100000204\"\n}" },
+            "url": "{{base_url}}/users/{{managed_client_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin gestiona credenciales/rol",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Client Admin Editado\",\n  \"username\": \"pm_client_edit_{{new_user_suffix}}\",\n  \"email\": \"pm_client_admin_edit_{{new_user_suffix}}@tempsegura.local\",\n  \"phone\": \"+541100000205\",\n  \"password\": \"TempSegura124\",\n  \"role\": \"client\"\n}" },
+            "url": "{{base_url}}/users/{{managed_client_id}}/admin"
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar username propio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"new_username\": \"pm_self_client_{{new_user_suffix}}\"\n}" },
+            "url": "{{base_url}}/users/{{target_user_id}}/change-username",
+            "description": "Usar solo con un usuario temporal propio; si target_user_id no es el usuario del token, espera 403."
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar password propio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"current_password\": \"TempSegura123\",\n  \"new_password\": \"TempSegura124\"\n}" },
+            "url": "{{base_url}}/users/{{target_user_id}}/change-password",
+            "description": "Usar solo con un usuario temporal propio."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar usuario",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "url": "{{base_url}}/users/{{managed_visitor_id}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Grupos CRUD",
+      "item": [
+        {
+          "name": "Listar grupos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/device-groups"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear grupo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Grupo Postman {{new_user_suffix}}\",\n  \"description\": \"Grupo para pruebas manuales CRUD\"\n}" },
+            "url": "{{base_url}}/device-groups",
+            "description": "Copiar data.group_id a group_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Ver grupo",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/device-groups/{{group_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar grupo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Grupo Postman Editado {{new_user_suffix}}\",\n  \"description\": \"Descripcion editada\"\n}" },
+            "url": "{{base_url}}/device-groups/{{group_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar grupo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/device-groups/{{group_id}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Heladeras CRUD y accesos",
+      "item": [
+        {
+          "name": "Listar heladeras - client/admin/visitor",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/devices"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear heladera cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"device_code\": \"{{device_code}}\",\n  \"name\": \"Heladera Postman\",\n  \"location\": \"Camara principal\",\n  \"group_id\": {{group_id}},\n  \"min_temp\": 2,\n  \"max_temp\": 8,\n  \"firmware_version\": \"manual-1.0.0\"\n}" },
+            "url": "{{base_url}}/devices",
+            "description": "Copiar data.device_id a device_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear heladera ESP preprovisionada - admin/superadmin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"device_code\": \"PM-ESP-001\",\n  \"mac_address\": \"{{esp_mac}}\",\n  \"name\": \"ESP Postman\",\n  \"location\": \"Banco de pruebas\",\n  \"user_id\": {{managed_client_id}},\n  \"min_temp\": 2,\n  \"max_temp\": 8,\n  \"firmware_version\": \"esp-postman-1.0.0\",\n  \"protocol_version\": \"2.0\",\n  \"activation_keyword\": \"{{activation_keyword}}\",\n  \"send_interval_seconds\": 900\n}" },
+            "url": "{{base_url}}/devices",
+            "description": "Copiar data.provisioning.shared_secret a esp_shared_secret si se va a probar sync manual firmado."
+          },
+          "response": []
+        },
+        {
+          "name": "Ver heladera",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/devices/{{device_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar heladera",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Heladera Postman Editada\",\n  \"location\": \"Camara editada\",\n  \"min_temp\": 1,\n  \"max_temp\": 7,\n  \"firmware_version\": \"manual-1.0.1\"\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar grupo a heladera",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"group_id\": {{group_id}}\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/assign-group"
+          },
+          "response": []
+        },
+        {
+          "name": "Otorgar acceso visitor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"user_id\": {{managed_visitor_id}},\n  \"can_modify\": false\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/grant-access"
+          },
+          "response": []
+        },
+        {
+          "name": "Revocar acceso visitor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"user_id\": {{managed_visitor_id}}\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/revoke-access"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar heladeras sin asignar - admin/superadmin",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/devices/unassigned"
+          },
+          "response": []
+        },
+        {
+          "name": "Asignar heladera por codigo a usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"device_code\": \"{{unassigned_device_code}}\",\n  \"user_id\": {{managed_client_id}}\n}" },
+            "url": "{{base_url}}/devices/assign-to-user"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar heladera",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/devices/{{device_id}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Temperaturas e historial",
+      "item": [
+        {
+          "name": "Historial temperaturas por heladera",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/devices/{{device_id}}/temperatures?limit=96",
+            "description": "Las temperaturas se crean desde el protocolo ESP, no desde CRUD autenticado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Stock CRUD",
+      "item": [
+        {
+          "name": "Listar stock",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/devices/{{device_id}}/stock"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Leche entera\",\n  \"quantity\": 12,\n  \"expiration_date\": \"2026-12-31\"\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/stock",
+            "description": "Copiar data.stock_id a stock_id."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar stock",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Leche entera\",\n  \"quantity\": 9,\n  \"expiration_date\": \"2027-01-15\"\n}" },
+            "url": "{{base_url}}/stock/{{stock_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar stock",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/stock/{{stock_id}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Auditoria y logs",
+      "item": [
+        {
+          "name": "Audit requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "url": "{{base_url}}/audit/requests?limit=25"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "url": "{{base_url}}/audit/events?limit=25"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit auth events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/audit/auth-events?limit=25"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit changes all",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "url": "{{base_url}}/audit/changes?limit=50&entity=all"
+          },
+          "response": []
+        },
+        {
+          "name": "Audit summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{superadmin_token}}" }
+            ],
+            "url": "{{base_url}}/audit/summary?hours=24"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 - ESP manual sin scripts",
+      "item": [
+        {
+          "name": "ESP time",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/esp/time"
+          },
+          "response": []
+        },
+        {
+          "name": "ESP registro valido",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{esp_mac}}\",\n  \"modelo\": \"ESP32-GSM-V3\",\n  \"firmware_version\": \"2.0.0\",\n  \"protocol_version\": \"2.0\",\n  \"sim_imei\": \"354829071122334\",\n  \"timestamp\": {{esp_timestamp}},\n  \"palabra_clave\": \"{{activation_keyword}}\"\n}" },
+            "url": "{{base_url}}/esp/register",
+            "description": "Copiar provisioning.shared_secret a esp_shared_secret. El timestamp debe estar dentro de tolerancia; ajustar manualmente si hace falta."
+          },
+          "response": []
+        },
+        {
+          "name": "ESP sync firmado manual",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"pm-sync-001\",\n  \"seq\": 1,\n  \"data\": [\n    { \"temp\": 4.3, \"time\": {{esp_record_time_1}} },\n    { \"temp\": 4.6, \"time\": {{esp_record_time_2}} }\n  ],\n  \"local_alerts\": [\n    { \"type\": \"temp_high\", \"temp\": 10.1, \"time\": {{esp_record_time_2}} }\n  ],\n  \"optional\": {\n    \"uptime\": 86000,\n    \"signal_strength\": -67,\n    \"battery_level\": 89\n  },\n  \"signature\": \"{{esp_signature}}\"\n}" },
+            "url": "{{base_url}}/esp/sync",
+            "description": "No hay script HMAC en esta coleccion. Calcular signature fuera de Postman o usar postman-esp32-simulator.json."
+          },
+          "response": []
+        },
+        {
+          "name": "ESP command response firmado manual",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"pm-cmd-001\",\n  \"seq\": 2,\n  \"respuesta_comando\": {\n    \"tipo\": \"cambio_config\",\n    \"estado\": \"ok\",\n    \"detalle\": \"Parametros aplicados\"\n  },\n  \"signature\": \"{{esp_signature}}\"\n}" },
+            "url": "{{base_url}}/esp/command-response"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 - Sin token, token invalido/vencido y permisos",
+      "item": [
+        {
+          "name": "Sin token - listar heladeras espera 401",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/devices"
+          },
+          "response": []
+        },
+        {
+          "name": "Token invalido - listar heladeras espera 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{invalid_token}}" }
+            ],
+            "url": "{{base_url}}/devices"
+          },
+          "response": []
+        },
+        {
+          "name": "Token vencido - listar heladeras espera 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{expired_token}}" }
+            ],
+            "url": "{{base_url}}/devices",
+            "description": "Pegar en expired_token un JWT realmente vencido. Si se deja el placeholder, probablemente pruebe token invalido."
+          },
+          "response": []
+        },
+        {
+          "name": "Client intenta ver auditoria espera 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "url": "{{base_url}}/audit/summary?hours=24"
+          },
+          "response": []
+        },
+        {
+          "name": "Visitor intenta editar heladera espera 403",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{visitor_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"No deberia editar\",\n  \"location\": \"Solo lectura\",\n  \"min_temp\": 0,\n  \"max_temp\": 10\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Visitor intenta crear stock espera 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{visitor_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"No permitido\",\n  \"quantity\": 1\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/stock"
+          },
+          "response": []
+        },
+        {
+          "name": "Client intenta crear usuario espera 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"No Permitido\",\n  \"username\": \"pm_forbidden_{{new_user_suffix}}\",\n  \"email\": \"pm_forbidden_{{new_user_suffix}}@tempsegura.local\",\n  \"password\": \"TempSegura123\",\n  \"role\": \"client\"\n}" },
+            "url": "{{base_url}}/users"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10 - Validaciones negativas",
+      "item": [
+        {
+          "name": "Login sin password espera 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{client_identifier}}\"\n}" },
+            "url": "{{base_url}}/login"
+          },
+          "response": []
+        },
+        {
+          "name": "Login credenciales invalidas espera 401",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"usuario_inexistente\",\n  \"password\": \"Mal123456\"\n}" },
+            "url": "{{base_url}}/login"
+          },
+          "response": []
+        },
+        {
+          "name": "Registro email invalido espera 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Usuario Malo\",\n  \"username\": \"pm_bad_email\",\n  \"email\": \"correo_malo\",\n  \"password\": \"TempSegura123\",\n  \"phone\": \"+541100000300\"\n}" },
+            "url": "{{base_url}}/register"
+          },
+          "response": []
+        },
+        {
+          "name": "Registro password debil espera 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Usuario Malo\",\n  \"username\": \"pm_bad_password\",\n  \"email\": \"pm_bad_password@tempsegura.local\",\n  \"password\": \"123\",\n  \"phone\": \"+541100000301\"\n}" },
+            "url": "{{base_url}}/register"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin intenta crear admin espera 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Admin Bloqueado\",\n  \"username\": \"pm_admin_forbidden_{{new_user_suffix}}\",\n  \"email\": \"pm_admin_forbidden_{{new_user_suffix}}@tempsegura.local\",\n  \"phone\": \"+541100000302\",\n  \"password\": \"TempSegura123\",\n  \"role\": \"admin\"\n}" },
+            "url": "{{base_url}}/users"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear grupo sin nombre espera 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Falta name\"\n}" },
+            "url": "{{base_url}}/device-groups"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear heladera sin device_code espera 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Heladera sin codigo\",\n  \"location\": \"Prueba\",\n  \"min_temp\": 2,\n  \"max_temp\": 8\n}" },
+            "url": "{{base_url}}/devices"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear heladera rango temperatura invalido espera 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"device_code\": \"PM-BAD-TEMP-001\",\n  \"name\": \"Heladera rango malo\",\n  \"location\": \"Prueba\",\n  \"min_temp\": 10,\n  \"max_temp\": 2\n}" },
+            "url": "{{base_url}}/devices"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear heladera asignada a visitor espera 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"device_code\": \"PM-BAD-VISITOR-001\",\n  \"name\": \"Heladera visitor\",\n  \"user_id\": {{managed_visitor_id}},\n  \"min_temp\": 2,\n  \"max_temp\": 8\n}" },
+            "url": "{{base_url}}/devices"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear stock sin nombre espera 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 5,\n  \"expiration_date\": \"2026-12-31\"\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/stock"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear stock cantidad negativa espera 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Stock malo\",\n  \"quantity\": -1,\n  \"expiration_date\": \"2026-12-31\"\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/stock"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear stock fecha invalida espera 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{client_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Stock fecha mala\",\n  \"quantity\": 5,\n  \"expiration_date\": \"31-12-2026\"\n}" },
+            "url": "{{base_url}}/devices/{{device_id}}/stock"
+          },
+          "response": []
+        },
+        {
+          "name": "Ver recurso inexistente espera 404 o 403 segun rol",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/devices/{{missing_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify email token invalido espera 400/404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/verify-email?token=token-invalido"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset password token invalido espera 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"token-invalido\",\n  \"new_password\": \"TempSegura123\"\n}" },
+            "url": "{{base_url}}/reset-password"
+          },
+          "response": []
+        },
+        {
+          "name": "ESP registro sin palabra_clave espera 401",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{esp_mac}}\",\n  \"modelo\": \"ESP32-GSM-V3\",\n  \"firmware_version\": \"2.0.0\",\n  \"protocol_version\": \"2.0\",\n  \"timestamp\": {{esp_timestamp}}\n}" },
+            "url": "{{base_url}}/esp/register"
+          },
+          "response": []
+        },
+        {
+          "name": "ESP sync firma invalida espera 401",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"pm-sync-bad-signature\",\n  \"seq\": 99,\n  \"data\": [\n    { \"temp\": 4.3, \"time\": {{esp_record_time_1}} }\n  ],\n  \"signature\": \"firma-invalida\"\n}" },
+            "url": "{{base_url}}/esp/sync"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
