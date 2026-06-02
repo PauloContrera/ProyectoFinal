@@ -52,13 +52,14 @@ php tests\run_backend_suite.php
 
 ## Archivos de prueba
 
+- `Backend/tests/access_control_security_test.php`: crea dos clientes, dos visitantes, admin y superadmin para intentar saltos IDOR con IDs validos de otros usuarios. Verifica que el cliente vea solo sus datos, que admin pueda editar, que visitor sea solo lectura y que pueda leer multiples productos si tiene acceso explicito.
 - `Backend/tests/backend_roles_flow_test.php`: crea usuarios temporales y prueba roles, permisos, grupos, heladeras, historial de temperaturas, stock y auditoria.
 - `Backend/tests/protocol_http_sms_test.php`: simula un ESP32 por HTTP, prueba registro, palabra clave de activacion, HMAC, sync idempotente, firma invalida, comandos y persistencia en base.
-- `Backend/tests/run_backend_suite.php`: runner que ejecuta ambos tests en orden.
+- `Backend/tests/run_backend_suite.php`: runner que ejecuta todos los tests en orden.
 
 ## Datos temporales
 
-La suite crea usuarios con prefijo `flowtest_`, una heladera con prefijo `FLOWT-`, grupos, temperaturas y stock. Al finalizar elimina los datos operativos temporales para no contaminar la demo ni los usuarios reales.
+La suite crea usuarios con prefijos `acltest_` y `flowtest_`, heladeras con prefijos `ACL-` y `FLOWT-`, grupos, temperaturas y stock. Al finalizar elimina los datos operativos temporales para no contaminar la demo ni los usuarios reales.
 
 Los logs de auditoria quedan guardados a proposito. Esa persistencia permite comprobar que el backend registra requests, eventos y cambios aunque los datos temporales se limpien.
 
@@ -70,6 +71,17 @@ Los logs de auditoria quedan guardados a proposito. Esa persistencia permite com
 | `admin` | Creacion de visitantes, edicion administrativa de usuarios no privilegiados y bloqueo al intentar crear otro admin. |
 | `client` | Bloqueo de listado de usuarios, CRUD de grupos, alta/edicion de heladera, historial de temperaturas, CRUD de stock y baja de grupo sin heladeras asociadas. |
 | `visitor` | Login, lectura de heladeras compartidas, lectura de temperaturas y stock, bloqueo de edicion de heladera, grupos y stock. |
+
+## Seguridad ACL/IDOR
+
+El test `access_control_security_test.php` arma datos de dos clientes distintos y despues prueba ataques con IDs reales del otro dueno:
+
+- `client A` no puede listar, leer, editar, borrar ni compartir heladeras, grupos, temperaturas o stock de `client B`.
+- `client B` no puede ver recursos de `client A`.
+- `visitor A` puede leer dos heladeras compartidas y varios productos de esas heladeras, pero no puede modificar nada aunque el request de grant envie `can_modify=true`.
+- `visitor B` no ve recursos si no tiene acceso explicito.
+- `admin` puede listar y editar heladeras, grupos, stock y datos de usuarios clientes.
+- Los intentos denegados quedan registrados en `api_request_logs` y los cambios permitidos quedan en `audit_events`.
 
 ## Flujo ESP32
 
@@ -99,6 +111,7 @@ La prueba verifica que:
 Una corrida correcta termina con:
 
 ```text
+OK seguridad ACL/IDOR por roles verificada.
 OK flujo integral de usuarios, permisos, stock, temperaturas y auditoria verificado.
 OK protocolo HTTP/SMS verificado por HTTP y DB
 OK suite backend completa.

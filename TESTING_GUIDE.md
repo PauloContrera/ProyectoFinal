@@ -18,6 +18,7 @@ test-backend.bat
 
 La suite ejecuta:
 
+- `Backend/tests/access_control_security_test.php`
 - `Backend/tests/backend_roles_flow_test.php`
 - `Backend/tests/protocol_http_sms_test.php`
 
@@ -65,6 +66,7 @@ La coleccion manual tambien incluye la carpeta `11 - Protocolo ESP v2.1 casos co
 - Lectura de historial de temperaturas con consistencia de ultima lectura.
 - CRUD de stock.
 - Vista solo lectura para visitante.
+- Seguridad ACL/IDOR: usuarios aislados por dueno, admin editable, visitante solo lectura y multiples productos compartidos.
 - Logs en `api_request_logs`.
 - Eventos en `audit_events`.
 - Endpoints administrativos `/api/audit/*`.

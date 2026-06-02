@@ -11,6 +11,7 @@ if (!getenv('ESP_TEST_BASE_URL')) {
 
 $php = PHP_BINARY ?: 'php';
 $tests = [
+    'access_control_security_test.php' => 'Seguridad ACL/IDOR: aislamiento por usuario, admin editable y visitor solo lectura',
     'backend_roles_flow_test.php' => 'Usuarios, roles, permisos, stock, temperaturas y auditoria',
     'protocol_http_sms_test.php' => 'ESP32: registro, firma HMAC, sync idempotente y comandos',
 ];
