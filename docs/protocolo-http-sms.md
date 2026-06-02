@@ -1,6 +1,8 @@
 # Protocolo HTTP/SMS para ESP32
 
-Version objetivo: `2.0`.
+Version objetivo: `2.1`.
+
+Documento extendido y actualizado por casos: `docs/protocolo-comunicacion-esp-v2.1.md`.
 
 Este documento explica como debe comunicarse el ESP32 con la API de Temp Segura. Sirve para firmware real, simulacion en Postman y pruebas desde scripts.
 

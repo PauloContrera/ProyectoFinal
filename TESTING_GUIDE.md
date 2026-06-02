@@ -40,6 +40,22 @@ Esta coleccion no usa scripts para tokens. Importala en Postman, ejecuta los log
 
 Tambien copia manualmente los IDs devueltos por los POST a `managed_client_id`, `managed_visitor_id`, `group_id`, `device_id` y `stock_id`. Incluye requests positivos, CRUD completo, permisos, sin token, token invalido, token vencido y validaciones negativas.
 
+## Protocolo ESP32
+
+Documento principal:
+
+```text
+docs/protocolo-comunicacion-esp-v2.1.md
+```
+
+Coleccion Postman con HMAC automatico para ESP:
+
+```text
+postman-esp32-simulator.json
+```
+
+La coleccion manual tambien incluye la carpeta `11 - Protocolo ESP v2.1 casos completos`, pero ahi las firmas HMAC se pegan como variables manuales. Para probar rapido el ESP conviene usar el simulador.
+
 ## Que cubre
 
 - Login de `superadmin`, `admin`, `client` y `visitor`.
