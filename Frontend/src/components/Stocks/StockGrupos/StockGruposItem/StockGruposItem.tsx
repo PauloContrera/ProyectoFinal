@@ -1,148 +1,179 @@
-import { useState } from "react";
-import "./StockGruposItem.css";
+import { ReactNode, useEffect, useState } from "react";
+import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
+import "./StockGruposItem.css";
 
-interface StockItem {
+export interface StockTableItem {
   id: number;
   name: string;
   quantity: number;
   expirationDate: string;
 }
 
+type StockDraft = {
+  name: string;
+  quantity: string;
+  expirationDate: string;
+};
+
 interface StockGruposItemProps {
-  stock: StockItem[];
+  stock: StockTableItem[];
   name: string;
   location: string;
+  readOnly?: boolean;
+  actions?: ReactNode;
+  onAddItem?: (item: Omit<StockTableItem, "id">) => Promise<void> | void;
+  onUpdateItem?: (item: StockTableItem) => Promise<void> | void;
+  onDeleteItem?: (id: number) => Promise<void> | void;
 }
+
+const emptyDraft = (): StockDraft => ({
+  name: "",
+  quantity: "0",
+  expirationDate: "",
+});
+
+const toDraft = (item: StockTableItem): StockDraft => ({
+  name: item.name,
+  quantity: String(item.quantity),
+  expirationDate: item.expirationDate,
+});
+
+const toItem = (draft: StockDraft, id: number): StockTableItem => ({
+  id,
+  name: draft.name.trim(),
+  quantity: Math.max(0, Number(draft.quantity) || 0),
+  expirationDate: draft.expirationDate,
+});
 
 export default function StockGruposItem({
   stock,
   name,
   location,
+  readOnly = false,
+  actions,
+  onAddItem,
+  onUpdateItem,
+  onDeleteItem,
 }: StockGruposItemProps) {
-  const [isVisible, setIsVisible] = useState<boolean>(true);
-  const [isRotated, setIsRotated] = useState<boolean>(false);
-  const [newStock, setNewStock] = useState<StockItem[]>(stock); // Inicializamos con los datos recibidos
-  const [tempItem, setTempItem] = useState<StockItem>({
-    id: Date.now(),
-    name: "",
-    quantity: 0,
-    expirationDate: "",
-  });
-
-  // Estado para controlar la visibilidad del formulario
-  const [showForm, setShowForm] = useState<boolean>(false);
-
-  // Estado para controlar la fila que se está editando
+  const [isVisible, setIsVisible] = useState(true);
+  const [items, setItems] = useState<StockTableItem[]>(stock);
+  const [draft, setDraft] = useState<StockDraft>(emptyDraft);
+  const [showForm, setShowForm] = useState(false);
   const [editItemId, setEditItemId] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const hasRemoteHandlers = Boolean(onAddItem || onUpdateItem || onDeleteItem);
 
-  const toggleVisibility = () => {
-    setIsVisible(!isVisible);
-    setIsRotated(!isRotated);
-  };
+  useEffect(() => {
+    setItems(stock);
+  }, [stock]);
 
-  const handleAddNewItem = () => {
-    setNewStock([...newStock, tempItem]);
-    // Reseteamos el formulario y volvemos a mostrar el botón "Agregar Nuevo Artículo"
-    setTempItem({
-      id: Date.now(),
-      name: "",
-      quantity: 0,
-      expirationDate: "",
-    });
+  const toggleVisibility = () => setIsVisible((current) => !current);
+
+  const resetDraft = () => {
+    setDraft(emptyDraft());
+    setEditItemId(null);
     setShowForm(false);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTempItem((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const updateDraft = (field: keyof StockDraft, value: string) => {
+    setDraft((current) => ({ ...current, [field]: value }));
   };
 
-  // Función para cancelar el formulario
-  const handleCancel = () => {
-    // Reseteamos el formulario y ocultamos la sección de agregar
-    setTempItem({
-      id: Date.now(),
-      name: "",
-      quantity: 0,
-      expirationDate: "",
-    });
-    setShowForm(false);
+  const handleAddNewItem = async () => {
+    const nextItem = toItem(draft, Date.now());
+    if (!nextItem.name) return;
+
+    setIsSaving(true);
+    try {
+      if (onAddItem) {
+        await onAddItem({
+          name: nextItem.name,
+          quantity: nextItem.quantity,
+          expirationDate: nextItem.expirationDate,
+        });
+      }
+      if (!hasRemoteHandlers) {
+        setItems((current) => [...current, nextItem]);
+      }
+      resetDraft();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Alternar visibilidad del formulario
-  const toggleFormVisibility = () => {
-    setShowForm(!showForm);
-  };
-
-  // Función para comenzar a editar un item
-  const handleEdit = (item: StockItem) => {
+  const handleEdit = (item: StockTableItem) => {
     setEditItemId(item.id);
-    setTempItem(item);
+    setDraft(toDraft(item));
+    setShowForm(false);
   };
 
-  // Función para guardar los cambios de edición
-  const handleSave = () => {
-    setNewStock((prev) =>
-      prev.map((item) => (item.id === editItemId ? { ...tempItem } : item))
-    );
-    setEditItemId(null);
-    setTempItem({
-      id: Date.now(),
-      name: "",
-      quantity: 0,
-      expirationDate: "",
-    });
+  const handleSave = async () => {
+    if (editItemId === null) return;
+
+    const nextItem = toItem(draft, editItemId);
+    if (!nextItem.name) return;
+
+    setIsSaving(true);
+    try {
+      if (onUpdateItem) {
+        await onUpdateItem(nextItem);
+      }
+      if (!hasRemoteHandlers) {
+        setItems((current) =>
+          current.map((item) => (item.id === editItemId ? nextItem : item))
+        );
+      }
+      resetDraft();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Función para cancelar la edición
-  const handleCancelEdit = () => {
-    setEditItemId(null);
-    setTempItem({
-      id: Date.now(),
-      name: "",
-      quantity: 0,
-      expirationDate: "",
-    });
-  };
-
-  // Función para eliminar un item
-  const handleDelete = (id: number) => {
-    setNewStock((prev) => prev.filter((item) => item.id !== id));
+  const handleDelete = async (id: number) => {
+    setIsSaving(true);
+    try {
+      if (onDeleteItem) {
+        await onDeleteItem(id);
+      }
+      if (!hasRemoteHandlers) {
+        setItems((current) => current.filter((item) => item.id !== id));
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="stock-grupos-container">
-      <button onClick={toggleVisibility} className="TempGruposTitulo">
-        <motion.div
-          animate={{ rotate: isRotated ? 0 : 180 }}
-          transition={{ duration: 0.3 }}
-          className="TempGruposTituloBoton"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className="ToggleIcon"
-            width="24"
-            height="24"
+      <div className="TempGruposTitulo StockItemsHeaderRow">
+        <button onClick={toggleVisibility} className="StockItemsToggleButton" type="button">
+          <motion.div
+            animate={{ rotate: isVisible ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="TempGruposTituloBoton"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 15l6-6 6 6"
-            />
-          </svg>
-        </motion.div>
-        <h3 className="StockItemsTitulo">
-          {name} - {location}
-        </h3>
-      </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="ToggleIcon"
+              width="24"
+              height="24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 15l6-6 6 6" />
+            </svg>
+          </motion.div>
+          <span className="StockItemsHeader">
+            <h3 className="StockItemsTitulo">
+              {name} - {location || "Sin ubicacion"}
+            </h3>
+          </span>
+        </button>
+        {actions && <span className="StockItemsHeaderActions">{actions}</span>}
+      </div>
+
       {isVisible && (
         <motion.div
           className="TempGruposItems"
@@ -154,225 +185,146 @@ export default function StockGruposItem({
             <table className="stock-grupos-table">
               <thead className="stock-grupos-thead">
                 <tr>
-                  <th className="stock-grupos-th">Artículo</th>
+                  <th className="stock-grupos-th">Articulo</th>
                   <th className="stock-grupos-th">Cantidad</th>
-                  <th className="stock-grupos-th">Fecha de Vencimiento</th>
-                  <th className="stock-grupos-th">Acciones</th>
+                  <th className="stock-grupos-th">Vencimiento</th>
+                  {!readOnly && <th className="stock-grupos-th">Acciones</th>}
                 </tr>
               </thead>
               <tbody className="stock-grupos-tbody">
-                {newStock.map((item, index) => (
-                  <tr key={index} className="stock-grupos-tr">
+                {items.length === 0 && (
+                  <tr className="stock-grupos-tr">
+                    <td className="stock-grupos-td stock-grupos-readonly" colSpan={readOnly ? 3 : 4}>
+                      Sin items cargados
+                    </td>
+                  </tr>
+                )}
+
+                {items.map((item) => (
+                  <tr key={item.id} className="stock-grupos-tr">
                     {editItemId === item.id ? (
                       <>
                         <td className="stock-grupos-td">
                           <input
                             className="StockItemsEntradas"
-                            placeholder="Nombre del artículo"
-                            name="name"
-                            value={tempItem.name}
-                            onChange={handleChange}
+                            placeholder="Nombre del articulo"
+                            value={draft.name}
+                            onChange={(event) => updateDraft("name", event.target.value)}
                           />
                         </td>
-                        <td className="stock-grupos-td ">
+                        <td className="stock-grupos-td">
                           <input
                             className="StockItemsEntradas StockItemsEntradasCentrado"
                             type="number"
+                            min="0"
                             placeholder="Cantidad"
-                            name="quantity"
-                            value={tempItem.quantity}
-                            onChange={handleChange}
+                            value={draft.quantity}
+                            onChange={(event) => updateDraft("quantity", event.target.value)}
                           />
                         </td>
                         <td className="stock-grupos-td">
                           <input
                             className="StockItemsEntradas StockItemsEntradasCentrado"
                             type="date"
-                            name="expirationDate"
-                            value={tempItem.expirationDate}
-                            onChange={handleChange}
+                            value={draft.expirationDate}
+                            onChange={(event) => updateDraft("expirationDate", event.target.value)}
                           />
                         </td>
-                        <td className="stock-grupos-td ">
-                          <button
-                            className="custom-button"
-                            onClick={handleSave}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              className="custom-icon"
-                            >
-                              <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-                              <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path>
-                              <path d="M7 3v4a1 1 0 0 0 1 1h7"></path>
-                            </svg>
-                          </button>
-
-                          <button
-                            className="custom-button"
-                            onClick={handleCancelEdit}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              className="custom-icon"
-                            >
-                              <path d="M18 6 6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
+                        <td className="stock-grupos-td">
+                          <div className="stock-grupos-actions">
+                            <button className="custom-button" onClick={handleSave} disabled={isSaving} type="button" title="Guardar item">
+                              <Check className="custom-icon" />
+                            </button>
+                            <button className="custom-button" onClick={resetDraft} disabled={isSaving} type="button" title="Cancelar">
+                              <X className="custom-icon" />
+                            </button>
+                          </div>
                         </td>
                       </>
                     ) : (
                       <>
                         <td className="stock-grupos-td">{item.name}</td>
                         <td className="stock-grupos-td">{item.quantity}</td>
-                        <td className="stock-grupos-td">
-                          {item.expirationDate}
-                        </td>
-                        <td className="stock-grupos-td">
-                          <button
-                            className="custom-button"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              className="custom-icon"
-                            >
-                              <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                              <path d="M18.375 2.625a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path>
-                            </svg>
-                          </button>
-                          <button
-                            className="custom-button"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              className="custom-icon"
-                            >
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                              <line x1="10" x2="10" y1="11" y2="17"></line>
-                              <line x1="14" x2="14" y1="11" y2="17"></line>
-                            </svg>
-                          </button>
-                        </td>
+                        <td className="stock-grupos-td">{item.expirationDate || "Sin vencimiento"}</td>
+                        {!readOnly && (
+                          <td className="stock-grupos-td">
+                            <div className="stock-grupos-actions">
+                              <button className="custom-button" onClick={() => handleEdit(item)} disabled={isSaving} type="button" title="Editar item">
+                                <Pencil className="custom-icon" />
+                              </button>
+                              <button className="custom-button" onClick={() => handleDelete(item.id)} disabled={isSaving} type="button" title="Eliminar item">
+                                <Trash2 className="custom-icon" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </>
                     )}
                   </tr>
                 ))}
-                {/* Renderizar el formulario solo si showForm es true */}
-                {showForm && (
+
+                {!readOnly && showForm && (
                   <tr className="stock-grupos-tr">
                     <td className="stock-grupos-td">
                       <input
                         className="StockItemsEntradas"
-                        placeholder="Nombre del artículo"
-                        name="name"
-                        value={tempItem.name}
-                        onChange={handleChange}
+                        placeholder="Nombre del articulo"
+                        value={draft.name}
+                        onChange={(event) => updateDraft("name", event.target.value)}
                       />
                     </td>
                     <td className="stock-grupos-td">
                       <input
                         className="StockItemsEntradas"
                         type="number"
+                        min="0"
                         placeholder="Cantidad"
-                        name="quantity"
-                        value={tempItem.quantity}
-                        onChange={handleChange}
+                        value={draft.quantity}
+                        onChange={(event) => updateDraft("quantity", event.target.value)}
                       />
                     </td>
                     <td className="stock-grupos-td">
                       <input
                         className="StockItemsEntradas"
                         type="date"
-                        name="expirationDate"
-                        value={tempItem.expirationDate}
-                        onChange={handleChange}
+                        value={draft.expirationDate}
+                        onChange={(event) => updateDraft("expirationDate", event.target.value)}
                       />
                     </td>
                     <td className="stock-grupos-td">
-                      <button
-                        className="custom-button"
-                        onClick={handleAddNewItem}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          className="custom-icon"
-                        >
-                          <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
-                          <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path>
-                          <path d="M7 3v4a1 1 0 0 0 1 1h7"></path>
-                        </svg>
-                      </button>
-
-                      <button className="custom-button" onClick={handleCancel}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          className="custom-icon"
-                        >
-                          <path d="M18 6 6 18"></path>
-                          <path d="M6 6l12 12"></path>
-                        </svg>
-                      </button>
+                      <div className="stock-grupos-actions">
+                        <button className="custom-button" onClick={handleAddNewItem} disabled={isSaving} type="button" title="Guardar item">
+                          <Check className="custom-icon" />
+                        </button>
+                        <button className="custom-button" onClick={resetDraft} disabled={isSaving} type="button" title="Cancelar">
+                          <X className="custom-icon" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-            <button className="StockItemBoton" onClick={toggleFormVisibility}>
-              {showForm ? "Cancelar" : "Agregar Nuevo Artículo"}
-            </button>
+
+            {!readOnly && (
+              <button
+                className="StockItemBoton"
+                onClick={() => {
+                  setShowForm((current) => !current);
+                  setEditItemId(null);
+                  setDraft(emptyDraft());
+                }}
+                disabled={isSaving}
+                type="button"
+              >
+                {showForm ? "Cancelar" : (
+                  <>
+                    <Plus size={16} />
+                    Agregar Nuevo Articulo
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </motion.div>
       )}

@@ -15,7 +15,6 @@ const Landing = ({
   const numeroWhatsApp: string = "+5492634203042";
   const mensaje: string =
     "Hola, me gustaría hablar sobre el tema de Temp Segura.";
-  console.log(onLogin);
   
   return (
     <div id="Home" className="LandingTotal">
@@ -42,7 +41,7 @@ const Landing = ({
             Ver Demo
           </button>
 
-          {/* <button
+          <button
             className="Landing-header-nav-button"
             aria-label="Iniciar sesión"
             onClick={onLogin}
@@ -64,7 +63,7 @@ const Landing = ({
               <polyline points="10 17 15 12 10 7"></polyline>
               <line x1="15" x2="3" y1="12" y2="12"></line>
             </svg>
-          </button> */}
+          </button>
         </nav>
       </header>
       <main>
@@ -258,9 +257,9 @@ const Landing = ({
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#22D3EE"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   data-id="79"
                 >
                   <path d="M4.5 3h15"></path>

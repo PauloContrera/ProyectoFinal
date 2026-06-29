@@ -6,9 +6,11 @@ import { useState } from "react";
 interface TemperaturaGruposItemProps {
   refrigerator: Refrigerator;
   onVerHistorialClick: (refrigeratorId: number) => void;
+  onSaveRange?: (refrigeratorId: number, minTemp: number, maxTemp: number) => Promise<void>;
+  readOnly?: boolean;
 }
 
-export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClick }: TemperaturaGruposItemProps) {
+export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClick, onSaveRange, readOnly = false }: TemperaturaGruposItemProps) {
   const redondearTemperatura = (temperatura: number) => {
     return temperatura.toFixed(1); // toFixed ya puede aplicarse a números directamente
   };
@@ -53,6 +55,8 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
         ValorMaximo={variableMaxima}
         CambiarMaximo={manejarCambioMaximo}
         onToggle={manejarCambioMaximo2}
+        onSave={() => onSaveRange?.(refrigerator.id, variableMinima, variableMaxima)}
+        readOnly={readOnly}
       />
       <div className="TempItemsHistorial">
         <button className="TempItemsHistorialBoton" onClick={() => onVerHistorialClick(refrigerator.id)}>

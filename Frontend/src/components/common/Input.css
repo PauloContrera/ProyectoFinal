@@ -1,0 +1,145 @@
+/* Input Component Styles */
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.input-label.required::after {
+  content: ' *';
+  color: #e74c3c;
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 0.75rem;
+  padding-left: 2.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #2e75b6;
+  box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.1);
+}
+
+.input-field:hover:not(:disabled) {
+  border-color: #bbb;
+}
+
+.input-field:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.input-field.input-error {
+  border-color: #e74c3c;
+  background-color: #fef5f5;
+}
+
+.input-field.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.input-field.input-success {
+  border-color: #27ae60;
+  background-color: #f0fdf4;
+}
+
+.input-field.input-success:focus {
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+.input-field.input-loading {
+  color: #ccc;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #999;
+  pointer-events: none;
+}
+
+.input-spinner {
+  position: absolute;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e0e0e0;
+  border-top-color: #2e75b6;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.input-success-icon {
+  position: absolute;
+  right: 0.75rem;
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.input-text {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.input-helper-text {
+  color: #666;
+}
+
+.input-error-text {
+  color: #e74c3c;
+  font-weight: 500;
+}
+
+/* Sin icono - ajustar padding */
+.input-field:not(.input-with-icon) {
+  padding-left: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .input-field {
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+}

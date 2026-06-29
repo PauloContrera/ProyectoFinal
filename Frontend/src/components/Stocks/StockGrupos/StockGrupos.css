@@ -4,9 +4,66 @@
 }
 .StockGruposnombre{
  color: var(--LetrasColor1);
+ margin: 0;
+}
+.StockGruposHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.StockGruposToggleButton {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+.StockGruposHeaderContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+.StockGruposHeaderContent small {
+    display: block;
+    color: var(--LetrasColor2);
+    margin-top: 0.25rem;
+    text-align: left;
+}
+.StockGruposActions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.StockGruposEmpty {
+    color: var(--LetrasColor2);
+    font-family: "Inter", sans-serif;
+    margin: 0.75rem 0 1rem 3rem;
 }
 @media (max-width: 400px) {
     .StockGruposnombre{
         font-size: 0.9rem;
+    }
+}
+@media (max-width: 700px) {
+    .StockGruposHeaderRow {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .StockGruposToggleButton {
+        width: 100%;
+    }
+    .StockGruposHeaderContent {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

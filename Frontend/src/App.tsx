@@ -1,141 +1,170 @@
+import { useEffect, useState } from "react";
 import "./App.css";
 import Home from "./components/Home/home.tsx";
 import Config from "./components/Home/Config/config.tsx";
 import Landing from "./components/LadingPage/landing.tsx";
 import ModalTerm from "./components/LadingPage/ModalTerm/ModalTerm.tsx";
-import { useState, useEffect } from "react";
 import Modal from "./components/Modal/modal.tsx";
 import TermsAndConditions from "./components/LadingPage/Terminos/terminos.tsx";
+import FormularioLogin from "./components/Login/Formulario-Login.tsx";
+import { useAuth } from "./hooks/useAuth.ts";
 
 function App() {
-  
+  const { isAuthenticated, logout } = useAuth();
+
   const getInitialTheme = () => {
-    const savedTheme = localStorage.getItem('isDarkMode');
+    const savedTheme = localStorage.getItem("isDarkMode");
     if (savedTheme !== null) {
       return JSON.parse(savedTheme);
     }
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   };
 
   const [isDarkMode, setIsDarkMode] = useState(getInitialTheme());
-  const [colorSVG, setColorSVG] = useState(isDarkMode ? 'DarkModeSVG' : 'WhiteModeSVG');
+  const [colorSVG, setColorSVG] = useState(isDarkMode ? "DarkModeSVG" : "WhiteModeSVG");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isModalOpenTermino, setIsModalOpenTermino] = useState(false);
+  const [showHome, setShowHome] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  const closeModal = () => setIsModalOpen(false);
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
+  const closeLoginModal = () => setIsLoginModalOpen(false);
+  const openLoginModal = () => setIsLoginModalOpen(true);
+  const closeModalTermino = () => setIsModalOpenTermino(false);
+  const toggleModalTermino = () => setIsModalOpenTermino((prev) => !prev);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
-    localStorage.setItem('isDarkMode', JSON.stringify(newTheme));
-    setColorSVG(newTheme ? 'DarkModeSVG' : 'WhiteModeSVG');
+    localStorage.setItem("isDarkMode", JSON.stringify(newTheme));
+    setColorSVG(newTheme ? "DarkModeSVG" : "WhiteModeSVG");
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const closeModal = () => setIsModalOpen(prev => !prev);
-  const toggleModal = () => setIsModalOpen(prev => !prev);
-
-  const [isModalOpenTermino, setIsModalOpenTermino] = useState(false);
-  const closeModalTermino = () => setIsModalOpenTermino(prev => !prev);
-  const toggleModalTermino = () => setIsModalOpenTermino(prev => !prev);
-
-  // Estado para controlar la vista
-  const [showHome, setShowHome] = useState(false);
-
-  // Funciones para manejar el acceso a Home
-  const handleLogin = () => {
-    // Lógica futura para manejar la solicitud de login
+  const handleLoginSuccess = () => {
+    closeLoginModal();
+    setIsDemoMode(false);
     setShowHome(true);
   };
 
   const handleDemo = () => {
-    // Simulación de cargar la demo (aquí puedes cargar datos mockeados en el futuro)
+    setIsDemoMode(true);
     setShowHome(true);
   };
-  
+
   const handleLanding = () => {
+    logout();
+    setIsDemoMode(false);
     setShowHome(false);
   };
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (isAuthenticated) {
+      setIsDemoMode(false);
+      setShowHome(true);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleExpiredSession = () => {
+      setShowHome(false);
+      setIsLoginModalOpen(true);
+    };
+
+    window.addEventListener("auth:expired", handleExpiredSession);
+    return () => window.removeEventListener("auth:expired", handleExpiredSession);
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
       const prefersDarkMode = e.matches;
       setIsDarkMode(prefersDarkMode);
-      setColorSVG(prefersDarkMode ? 'DarkModeSVG' : 'WhiteModeSVG');
-      localStorage.setItem('isDarkMode', JSON.stringify(prefersDarkMode));
+      setColorSVG(prefersDarkMode ? "DarkModeSVG" : "WhiteModeSVG");
+      localStorage.setItem("isDarkMode", JSON.stringify(prefersDarkMode));
     };
 
-    mediaQuery.addEventListener('change', handleChange);
+    mediaQuery.addEventListener("change", handleChange);
 
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // !colores
   useEffect(() => {
     if (isDarkMode) {
-      // darkmode
-      document.documentElement.style.setProperty('--ColorFondo1', '#111827');
-      document.documentElement.style.setProperty('--ColorFondo2', '#1f2937');
-      document.documentElement.style.setProperty('--ColorFondo3', '#2563eb');
-      document.documentElement.style.setProperty('--ColorLogo', '#ffffff');
-      document.documentElement.style.setProperty('--ColorFondo3Hover', '#1d4ed8');
-      document.documentElement.style.setProperty('--ColorFondo4', '#1f2937');
-      document.documentElement.style.setProperty('--ColorFondo5', '#111827');
-      document.documentElement.style.setProperty('--LetrasColor1', '#ffffff');
-      document.documentElement.style.setProperty('--LetrasColor2', '#ccd0cf');
-      document.documentElement.style.setProperty('--LetrasColor3', '#f3f4f6');
-      document.documentElement.style.setProperty('--LetrasColor4', '#93c5fd');
-      document.documentElement.style.setProperty('--LetrasColor5', '#3b82f6');
-      document.documentElement.style.setProperty('--LetrasColor6', '#9CA3AF');
-      document.documentElement.style.setProperty('--BorderColor1', '#374151');
-      document.documentElement.style.setProperty('--BorderColor2', '#e4e4e7');
-      document.documentElement.style.setProperty('--BorderColor3', '#e4e4e780');
-
-    
+      document.documentElement.style.setProperty("--ColorFondo1", "#111827");
+      document.documentElement.style.setProperty("--ColorFondo2", "#1f2937");
+      document.documentElement.style.setProperty("--ColorFondo3", "#2563eb");
+      document.documentElement.style.setProperty("--ColorLogo", "#ffffff");
+      document.documentElement.style.setProperty("--ColorFondo3Hover", "#1d4ed8");
+      document.documentElement.style.setProperty("--ColorFondo4", "#1f2937");
+      document.documentElement.style.setProperty("--ColorFondo5", "#111827");
+      document.documentElement.style.setProperty("--LetrasColor1", "#ffffff");
+      document.documentElement.style.setProperty("--LetrasColor2", "#ccd0cf");
+      document.documentElement.style.setProperty("--LetrasColor3", "#f3f4f6");
+      document.documentElement.style.setProperty("--LetrasColor4", "#93c5fd");
+      document.documentElement.style.setProperty("--LetrasColor5", "#3b82f6");
+      document.documentElement.style.setProperty("--LetrasColor6", "#9CA3AF");
+      document.documentElement.style.setProperty("--BorderColor1", "#374151");
+      document.documentElement.style.setProperty("--BorderColor2", "#e4e4e7");
+      document.documentElement.style.setProperty("--BorderColor3", "#e4e4e780");
     } else {
-      // whiteMode
-      document.documentElement.style.setProperty('--ColorFondo1', '#F3F4F6');
-      document.documentElement.style.setProperty('--ColorFondo2', '#ffffff');
-      document.documentElement.style.setProperty('--ColorFondo3', '#18181b');
-      document.documentElement.style.setProperty('--ColorLogo', '#111111');
-      document.documentElement.style.setProperty('--ColorFondo3Hover', '#18181bea');
-      document.documentElement.style.setProperty('--ColorFondo4', '#f3f4f6');
-      document.documentElement.style.setProperty('--ColorFondo5', '#f9fafb');
-      document.documentElement.style.setProperty('--LetrasColor1', '#09090b');
-      document.documentElement.style.setProperty('--LetrasColor2', '#4b5563');
-      document.documentElement.style.setProperty('--LetrasColor3', '#111827');
-      document.documentElement.style.setProperty('--LetrasColor4', '#2563eb');
-      document.documentElement.style.setProperty('--LetrasColor5', '#3b82f6');
-      document.documentElement.style.setProperty('--LetrasColor6', '#71717A');
-      document.documentElement.style.setProperty('--BorderColor1', '#e5e7eb');
-      document.documentElement.style.setProperty('--BorderColor2', '#4b5563');
-      document.documentElement.style.setProperty('--BorderColor3', '#4b556380');
+      document.documentElement.style.setProperty("--ColorFondo1", "#F3F4F6");
+      document.documentElement.style.setProperty("--ColorFondo2", "#ffffff");
+      document.documentElement.style.setProperty("--ColorFondo3", "#18181b");
+      document.documentElement.style.setProperty("--ColorLogo", "#111111");
+      document.documentElement.style.setProperty("--ColorFondo3Hover", "#18181bea");
+      document.documentElement.style.setProperty("--ColorFondo4", "#f3f4f6");
+      document.documentElement.style.setProperty("--ColorFondo5", "#f9fafb");
+      document.documentElement.style.setProperty("--LetrasColor1", "#09090b");
+      document.documentElement.style.setProperty("--LetrasColor2", "#4b5563");
+      document.documentElement.style.setProperty("--LetrasColor3", "#111827");
+      document.documentElement.style.setProperty("--LetrasColor4", "#2563eb");
+      document.documentElement.style.setProperty("--LetrasColor5", "#3b82f6");
+      document.documentElement.style.setProperty("--LetrasColor6", "#71717A");
+      document.documentElement.style.setProperty("--BorderColor1", "#e5e7eb");
+      document.documentElement.style.setProperty("--BorderColor2", "#4b5563");
+      document.documentElement.style.setProperty("--BorderColor3", "#4b556380");
     }
   }, [isDarkMode]);
 
   return (
     <>
       {!showHome ? (
-        <Landing 
-          onLogin={handleLogin} 
-          onDemo={handleDemo} 
-          toggleModal={toggleModalTermino} 
+        <Landing
+          onLogin={openLoginModal}
+          onDemo={handleDemo}
+          toggleModal={toggleModalTermino}
         />
       ) : (
         <>
-          <Home 
-            isDarkMode={isDarkMode}  
-            toggleTheme={toggleTheme} 
+          <Home
+            isDarkMode={isDarkMode}
+            isDemoMode={isDemoMode}
+            toggleTheme={toggleTheme}
             toggleModal={toggleModal}
             onLanding={handleLanding}
             colorSVG={colorSVG}
           />
-          <Modal isOpen={isModalOpen} onClose={closeModal} title="Configuración de Usuario">
+          <Modal isOpen={isModalOpen} onClose={closeModal} title="Configuracion de Usuario">
             <Config onClose={closeModal} shouldCloseOnSave={true} />
           </Modal>
         </>
       )}
 
-      <ModalTerm isOpen={isModalOpenTermino} onClose={closeModalTermino} title="Términos y Condiciones" subtitle="Por favor, lea atentamente los siguientes términos y condiciones de uso de Temp Segura.">
+      <ModalTerm
+        isOpen={isModalOpenTermino}
+        onClose={closeModalTermino}
+        title="Terminos y Condiciones"
+        subtitle="Por favor, lea atentamente los siguientes terminos y condiciones de uso de Temp Segura."
+      >
         <TermsAndConditions />
       </ModalTerm>
+
+      <Modal isOpen={isLoginModalOpen} onClose={closeLoginModal} title="Iniciar sesion">
+        <FormularioLogin onSuccess={handleLoginSuccess} />
+      </Modal>
     </>
   );
 }

@@ -18,14 +18,14 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="ModalFondo">
-      <div className="ModalTotal">
+    <div className="ModalFondo" onClick={onClose}>
+      <div className="ModalTotal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}>
         <div className="Modal-Cabecera">
           <div className="Modal-Cabecera-Texto">
-            <h2 className="Modal-Cabecera-Titulo">{title}</h2>
-            <p className="Modal-Cabecera-Subtitulo">{subtitle}</p>
+            <h2 className="Modal-Cabecera-Titulo" id="modal-title">{title}</h2>
+            {subtitle && <p className="Modal-Cabecera-Subtitulo">{subtitle}</p>}
           </div>
-          <button className="Modal-Cabecera-Cerrar" onClick={onClose}>
+          <button className="Modal-Cabecera-Cerrar" onClick={onClose} aria-label="Cerrar modal" type="button">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -33,9 +33,9 @@ const Modal: React.FC<ModalProps> = ({
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
               <path d="M18 6 6 18"></path>
               <path d="m6 6 12 12"></path>

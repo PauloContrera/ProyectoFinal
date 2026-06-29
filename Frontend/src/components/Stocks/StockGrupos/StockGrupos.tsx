@@ -1,64 +1,85 @@
-import { useState } from "react";
-import "./StockGrupos.css";
-import StockGruposItem from "./StockGruposItem/StockGruposItem";
+import { ReactNode, useState } from "react";
 import { motion } from "framer-motion";
+import "./StockGrupos.css";
+import StockGruposItem, { type StockTableItem } from "./StockGruposItem/StockGruposItem";
 
-interface StockGruposProps {
+export type { StockTableItem } from "./StockGruposItem/StockGruposItem";
+
+export interface StockFridge {
+  id: number;
+  name: string;
+  location: string;
+  min_temp: number;
+  max_temp: number;
+  deviceCode?: string;
   group: {
     id: number;
     name: string;
-    location: string;
-    min_temp: number;
-    max_temp: number;
-    group: {
-      id: number;
-      name: string;
-      description: string;
-    };
-    stock: {
-      id: number;
-      name: string;
-      quantity: number;
-      expirationDate: string;
-    }[];
-  }[];
+    description: string;
+  };
+  stock: StockTableItem[];
 }
 
-export default function StockGrupos({ group }: StockGruposProps) {
-  const [isVisible, setIsVisible] = useState<boolean>(true);
-  const [isRotated, setIsRotated] = useState<boolean>(false);
+interface StockGruposProps {
+  group: StockFridge[];
+  groupInfo?: StockFridge["group"];
+  emptyMessage?: string;
+  readOnly?: boolean;
+  groupActions?: ReactNode;
+  renderFridgeActions?: (fridge: StockFridge) => ReactNode;
+  onAddItem?: (fridgeId: number, item: Omit<StockTableItem, "id">) => Promise<void> | void;
+  onUpdateItem?: (fridgeId: number, item: StockTableItem) => Promise<void> | void;
+  onDeleteItem?: (fridgeId: number, itemId: number) => Promise<void> | void;
+}
 
-  const toggleVisibility = () => {
-    setIsVisible(!isVisible);
-    setIsRotated(!isRotated);
-  };
+export default function StockGrupos({
+  group,
+  groupInfo,
+  emptyMessage = "Este grupo todavia no tiene heladeras.",
+  readOnly = false,
+  groupActions,
+  renderFridgeActions,
+  onAddItem,
+  onUpdateItem,
+  onDeleteItem,
+}: StockGruposProps) {
+  const [isVisible, setIsVisible] = useState(true);
+  const firstGroup = group[0]?.group ?? groupInfo;
+
   return (
     <div className="StockGrupos">
-      <button onClick={toggleVisibility} className="TempGruposTitulo">
-        <motion.div
-          animate={{ rotate: isRotated ? 0 : 180 }}
-          transition={{ duration: 0.3 }}
-          className="TempGruposTituloBoton"
+      <div className="TempGruposTitulo StockGruposHeaderRow">
+        <button
+          onClick={() => setIsVisible((current) => !current)}
+          className="StockGruposToggleButton"
+          type="button"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className="ToggleIcon"
-            width="24"
-            height="24"
+          <motion.div
+            animate={{ rotate: isVisible ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="TempGruposTituloBoton"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 15l6-6 6 6"
-            />
-          </svg>
-        </motion.div>
-        <h2 className="StockGruposnombre" >{group[0]?.group.name || "Grupo"}</h2>
-      </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="ToggleIcon"
+              width="24"
+              height="24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 15l6-6 6 6" />
+            </svg>
+          </motion.div>
+          <span className="StockGruposHeaderContent">
+            <span>
+              <h2 className="StockGruposnombre">{firstGroup?.name || "Grupo"}</h2>
+              {firstGroup?.description && <small>{firstGroup.description}</small>}
+            </span>
+          </span>
+        </button>
+        {groupActions && <span className="StockGruposActions">{groupActions}</span>}
+      </div>
 
       {isVisible && (
         <motion.div
@@ -67,13 +88,23 @@ export default function StockGrupos({ group }: StockGruposProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {group.map((fridge, index) => (
-            <div key={index}>
-
-
-              <StockGruposItem stock={fridge.stock} name={fridge.name} location={fridge.location} />
-            </div>
-          ))}
+          {group.length > 0 ? (
+            group.map((fridge) => (
+              <StockGruposItem
+                key={fridge.id}
+                stock={fridge.stock}
+                name={fridge.name}
+                location={fridge.location}
+                readOnly={readOnly}
+                actions={renderFridgeActions?.(fridge)}
+                onAddItem={onAddItem ? (item) => onAddItem(fridge.id, item) : undefined}
+                onUpdateItem={onUpdateItem ? (item) => onUpdateItem(fridge.id, item) : undefined}
+                onDeleteItem={onDeleteItem ? (itemId) => onDeleteItem(fridge.id, itemId) : undefined}
+              />
+            ))
+          ) : (
+            <p className="StockGruposEmpty">{emptyMessage}</p>
+          )}
         </motion.div>
       )}
     </div>

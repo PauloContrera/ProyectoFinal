@@ -18,14 +18,14 @@ const ModalTerm: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="ModalFondo-Term">
-      <div className="ModalTotal-Term">
+    <div className="ModalFondo-Term" onClick={onClose}>
+      <div className="ModalTotal-Term" role="dialog" aria-modal="true" aria-labelledby="terms-modal-title" onClick={(event) => event.stopPropagation()}>
         <div className="Modal-Term-Cabecera">
           <div className="Modal-Term-Cabecera-Texto">
-            <h2 className="Modal-Term-Cabecera-Titulo">{title}</h2>
-            <p className="Modal-Term-Cabecera-Subtitulo">{subtitle}</p>
+            <h2 className="Modal-Term-Cabecera-Titulo" id="terms-modal-title">{title}</h2>
+            {subtitle && <p className="Modal-Term-Cabecera-Subtitulo">{subtitle}</p>}
           </div>
-          <button className="Modal-Term-Cabecera-Cerrar" onClick={onClose}>
+          <button className="Modal-Term-Cabecera-Cerrar" onClick={onClose} aria-label="Cerrar modal" type="button">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -33,9 +33,9 @@ const ModalTerm: React.FC<ModalProps> = ({
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
               <path d="M18 6 6 18"></path>
               <path d="m6 6 12 12"></path>

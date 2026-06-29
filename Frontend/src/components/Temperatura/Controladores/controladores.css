@@ -158,8 +158,26 @@
   transition: background-color 0.3s;
   cursor: pointer;
 }
+.TempControladores-button-edit:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
 
 /* Edit button hover effect */
 .TempControladores-button-edit:hover {
   background-color: var(--ColorFondo3Hover);
+}
+
+.TempControladores-status {
+  margin: -0.25rem 0 0;
+  font-size: 0.8125rem;
+  font-family: "Inter", sans-serif;
+}
+
+.TempControladores-status.success {
+  color: #16a34a;
+}
+
+.TempControladores-status.error {
+  color: #dc2626;
 }

@@ -1,0 +1,8 @@
+{
+    "name": "Heladera A1",
+    "location": "Cámara 1",
+    "group_id": 1,
+    "min_temp": 2,
+    "max_temp": 8,
+    "firmware_version": "1.0.0"
+}

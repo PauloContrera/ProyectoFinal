@@ -1,0 +1,357 @@
+.AdminPanel {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+}
+
+.AdminHeader,
+.AdminSectionHeader,
+.AdminTabs,
+.AdminActions,
+.AdminAccessRow,
+.AdminProvisioning > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.AdminHeader,
+.AdminSectionHeader {
+  justify-content: space-between;
+}
+
+.AdminHeader {
+  margin-bottom: 18px;
+}
+
+.AdminHeader h2,
+.AdminSection h3,
+.AdminEmpty h2 {
+  margin: 0;
+  color: var(--LetrasColor1);
+}
+
+.AdminHeader p,
+.AdminSectionHeader p,
+.AdminEmpty p,
+.AdminMuted {
+  margin: 6px 0 0;
+  color: var(--LetrasColor2);
+}
+
+.AdminTabs {
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--BorderColor1);
+}
+
+.AdminTabs button,
+.AdminRefresh,
+.AdminPrimaryButton,
+.AdminProvisioning button,
+.AdminActions button,
+.AdminAccessRow button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  color: var(--LetrasColor1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.AdminTabs button {
+  border-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 0 14px;
+}
+
+.AdminTabs button.active,
+.AdminPrimaryButton {
+  border-color: var(--BorderColor2);
+  background: var(--ColorFondo3);
+  color: #fff;
+}
+
+.AdminRefresh,
+.AdminPrimaryButton {
+  padding: 0 14px;
+}
+
+.AdminActions button,
+.AdminAccessRow button {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+}
+
+.AdminTabs button:hover,
+.AdminRefresh:hover,
+.AdminPrimaryButton:hover,
+.AdminProvisioning button:hover,
+.AdminActions button:hover,
+.AdminAccessRow button:hover {
+  border-color: var(--BorderColor2);
+  transform: translateY(-1px);
+}
+
+.AdminActions button:disabled,
+.AdminRefresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.AdminStack {
+  display: grid;
+  gap: 18px;
+}
+
+.AdminSection,
+.AdminEmpty,
+.AdminProvisioning,
+.AdminMetrics div {
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  border-radius: 8px;
+}
+
+.AdminSection {
+  padding: 18px;
+  overflow: hidden;
+}
+
+.AdminEmpty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+}
+
+.AdminFormGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr)) auto;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.AdminDeviceForm {
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+}
+
+.AdminFormGrid input,
+.AdminFormGrid select,
+.AdminInlineFields input,
+.AdminInlineFields select,
+.AdminAccessRow select {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 10px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  outline: none;
+}
+
+.AdminFormGrid input:focus,
+.AdminFormGrid select:focus,
+.AdminInlineFields input:focus,
+.AdminInlineFields select:focus,
+.AdminAccessRow select:focus {
+  border-color: var(--BorderColor2);
+  box-shadow: 0 0 0 2px var(--BorderColor3);
+}
+
+.AdminTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.AdminTable {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  color: var(--LetrasColor1);
+  font-size: 14px;
+}
+
+.AdminTable th,
+.AdminTable td {
+  padding: 11px 10px;
+  text-align: left;
+  border-top: 1px solid var(--BorderColor1);
+  vertical-align: middle;
+}
+
+.AdminTable th {
+  color: var(--LetrasColor6);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.AdminUserCell,
+.AdminInlineFields {
+  display: grid;
+  gap: 5px;
+}
+
+.AdminUserCell span,
+.AdminInlineFields span {
+  color: var(--LetrasColor2);
+}
+
+.AdminInlineFields {
+  min-width: 190px;
+}
+
+.AdminPill,
+.AdminMessage,
+.AdminError {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo5);
+  color: var(--LetrasColor1);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.AdminPill.danger,
+.AdminPill.error,
+.AdminPill.critical,
+.AdminError {
+  color: #dc2626;
+}
+
+.AdminPill.warning {
+  color: #ca8a04;
+}
+
+.AdminPill.info {
+  color: var(--LetrasColor4);
+}
+
+.AdminMessage {
+  margin: 0 0 12px;
+  color: #15803d;
+}
+
+.AdminError {
+  margin: 0 0 12px;
+}
+
+.AdminProvisioning {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.AdminProvisioning > div {
+  justify-content: space-between;
+}
+
+.AdminProvisioning span {
+  color: var(--LetrasColor2);
+}
+
+.AdminProvisioning pre {
+  max-height: 240px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.AdminMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.AdminMetrics div {
+  padding: 16px;
+}
+
+.AdminMetrics span {
+  display: block;
+  color: var(--LetrasColor1);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.AdminMetrics p {
+  margin: 4px 0 0;
+  color: var(--LetrasColor2);
+}
+
+.AdminLogGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.AdminAccessRow {
+  min-width: 320px;
+}
+
+.AdminAccessRow label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--LetrasColor2);
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .AdminFormGrid,
+  .AdminDeviceForm,
+  .AdminLogGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .AdminPanel {
+    padding: 18px 12px;
+  }
+
+  .AdminHeader,
+  .AdminSectionHeader,
+  .AdminProvisioning > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .AdminFormGrid,
+  .AdminDeviceForm,
+  .AdminMetrics,
+  .AdminLogGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .AdminRefresh,
+  .AdminPrimaryButton {
+    width: 100%;
+  }
+}

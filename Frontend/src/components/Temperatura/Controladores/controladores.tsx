@@ -8,6 +8,8 @@ interface ControladoresProps {
   ValorMaximo: number;
   CambiarMaximo: (nuevoValor: number) => void;
   onToggle: (estado: boolean) => void;
+  onSave?: () => Promise<void> | void;
+  readOnly?: boolean;
 }
 
 const Controladores: React.FC<ControladoresProps> = ({
@@ -16,9 +18,12 @@ const Controladores: React.FC<ControladoresProps> = ({
   ValorMaximo,
   CambiarMaximo,
   onToggle,
+  onSave,
+  readOnly = false,
 }) => {
   const [isOn, setIsOn] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const toggleSwitch = () => {
     const nuevoEstado = !isOn;
@@ -62,8 +67,23 @@ const Controladores: React.FC<ControladoresProps> = ({
     }
   };
 
-  const handleEditToggle = () => {
-    setEditMode(!editMode);
+  const handleEditToggle = async () => {
+    if (readOnly) return;
+
+    if (!editMode) {
+      setSaveState("idle");
+      setEditMode(true);
+      return;
+    }
+
+    try {
+      setSaveState("saving");
+      await onSave?.();
+      setSaveState("saved");
+      setEditMode(false);
+    } catch {
+      setSaveState("error");
+    }
   };
 
   return (
@@ -100,7 +120,7 @@ const Controladores: React.FC<ControladoresProps> = ({
                   <button
                     className="TempControladores-button-minus"
                     onClick={RestarVariableMinimo}
-                    disabled={!editMode}
+                    disabled={readOnly || !editMode || saveState === "saving"}
                   >
                     <svg
                       className="TempControladores-icon"
@@ -120,13 +140,13 @@ const Controladores: React.FC<ControladoresProps> = ({
                     type="number"
                     value={ValorMinimo}
                     onChange={handleInputChangeMin}
-                    disabled={!editMode}
+                    disabled={readOnly || !editMode || saveState === "saving"}
                     step="0.1"
                   />
                   <button
                     className="TempControladores-button-plus"
                     onClick={SumarVariableMinimo}
-                    disabled={!editMode}
+                    disabled={readOnly || !editMode || saveState === "saving"}
                   >
                     <svg
                       className="TempControladores-icon"
@@ -151,7 +171,7 @@ const Controladores: React.FC<ControladoresProps> = ({
                   <button
                     className="TempControladores-button-minus"
                     onClick={RestarVariableMaximo}
-                    disabled={!editMode}
+                    disabled={readOnly || !editMode || saveState === "saving"}
                   >
                     <svg
                       className="TempControladores-icon"
@@ -171,13 +191,13 @@ const Controladores: React.FC<ControladoresProps> = ({
                     type="number"
                     value={ValorMaximo}
                     onChange={handleInputChangeMax}
-                    disabled={!editMode}
+                    disabled={readOnly || !editMode || saveState === "saving"}
                     step="0.1"
                   />
                   <button
                     className="TempControladores-button-plus"
                     onClick={SumarVariableMaximo}
-                    disabled={!editMode}
+                    disabled={readOnly || !editMode || saveState === "saving"}
                   >
                     <svg
                       className="TempControladores-icon"
@@ -200,10 +220,13 @@ const Controladores: React.FC<ControladoresProps> = ({
                 <button
                   className="TempControladores-button-edit"
                   onClick={handleEditToggle}
+                  disabled={readOnly || saveState === "saving"}
                 >
-                  {editMode ? "Guardar" : "Editar"}
+                  {readOnly ? "Solo lectura" : saveState === "saving" ? "Guardando..." : editMode ? "Guardar" : "Editar"}
                 </button>
               </div>
+              {saveState === "saved" && <p className="TempControladores-status success">Rangos guardados.</p>}
+              {saveState === "error" && <p className="TempControladores-status error">No se pudieron guardar los rangos.</p>}
             </div>
           </motion.div>
         )}

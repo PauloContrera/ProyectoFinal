@@ -1,0 +1,69 @@
+.BackendData {
+  width: 100%;
+  padding: 28px;
+  color: var(--LetrasColor1);
+}
+
+.BackendData-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.BackendData-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.BackendData-subtitle,
+.BackendData-empty {
+  margin: 8px 0 0;
+  color: var(--LetrasColor2);
+}
+
+.BackendData-error {
+  margin: 12px 0;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.BackendData-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.BackendData-panel {
+  border: 1px solid var(--BorderColor1);
+  background: var(--ColorFondo2);
+  border-radius: 8px;
+  padding: 18px;
+  overflow-x: auto;
+}
+
+.BackendData-panel h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+
+.BackendData-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.BackendData-panel th,
+.BackendData-panel td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--BorderColor1);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.BackendData-panel th {
+  color: var(--LetrasColor2);
+  font-weight: 700;
+}

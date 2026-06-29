@@ -7,11 +7,15 @@ import { motion } from "framer-motion";
 interface TemperaturaGruposProps {
   groupData: GroupData;
   onVerHistorialClick: (refrigeratorId: number) => void;
+  onSaveRange?: (refrigeratorId: number, minTemp: number, maxTemp: number) => Promise<void>;
+  readOnly?: boolean;
 }
 
 export default function TemperaturaGrupos({
   groupData,
-  onVerHistorialClick
+  onVerHistorialClick,
+  onSaveRange,
+  readOnly = false
 }: TemperaturaGruposProps) {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [isRotated, setIsRotated] = useState<boolean>(false);
@@ -68,6 +72,8 @@ export default function TemperaturaGrupos({
                 key={refrigerator.id}
                 refrigerator={refrigerator}
                 onVerHistorialClick={onVerHistorialClick}
+                onSaveRange={onSaveRange}
+                readOnly={readOnly}
               />
             ))}
           </div>
