@@ -3,7 +3,7 @@ import TemperaturaTotal from "../Temperatura/Temperatura-Total";
 // import FormularioLogin from "../Login/Formulario-Login";
 import Documentacion from "../Document/documentacion";
 import StockTotal from "../Stocks/StockTotal";
-import BackendData from "../BackendData/BackendData";
+import Alarmero from "../Alarmero/Alarmero";
 import AdminPanel from "../Admin/AdminPanel";
 import VisitorView from "../Visitor/VisitorView";
 import { useState, useEffect, type ReactNode } from "react";
@@ -11,6 +11,39 @@ import { MenuDesplejable } from "./Menu/MenuDesplejable";
 import MenuVertical from "./Menu/MenuVertical";
 import { useAuth } from "../../hooks/useAuth";
 
+
+/**
+ * Item del menu lateral. Es un <button> real: asi queda en el orden de tabulacion,
+ * responde a Enter y Espacio sin handlers extra, y los lectores de pantalla lo
+ * anuncian como boton con su estado seleccionado.
+ */
+function MenuItem({
+  label,
+  selected,
+  isMenuOpen,
+  onSelect,
+  children,
+}: {
+  label: string;
+  selected: boolean;
+  isMenuOpen: boolean;
+  onSelect: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className={`menuConfiguracionesVerticalSolo ${selected ? "selected" : ""}`}
+      onClick={onSelect}
+      title={label}
+      aria-label={label}
+      aria-current={selected ? "page" : undefined}
+    >
+      {children}
+      {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">{label}</h3>}
+    </button>
+  );
+}
 
 function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colorSVG }: { isDarkMode: boolean; isDemoMode: boolean; onLanding: () => void; toggleModal: () => void; toggleTheme: () => void; colorSVG: string }) {
   const { user } = useAuth();
@@ -39,12 +72,15 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
     if (selectedComponent === "Visitante" && !isVisitor) {
       setSelectedComponent("Temperatura");
     }
-  }, [canUseAdmin, isVisitor, selectedComponent]);
+    if (selectedComponent === "Alarmas" && isDemoMode) {
+      setSelectedComponent("Temperatura");
+    }
+  }, [canUseAdmin, isVisitor, isDemoMode, selectedComponent]);
 
   const componentsMap: Record<string, ReactNode> = {
     Temperatura: <TemperaturaTotal useDemoData={isDemoMode} />,
     Stocks: <StockTotal useDemoData={isDemoMode} />,
-    Backend: <BackendData />,
+    ...(!isDemoMode ? { Alarmas: <Alarmero /> } : {}),
     Documentacion: <Documentacion />,
     ...(canUseAdmin ? { Administracion: <AdminPanel /> } : {}),
     ...(isVisitor ? { Visitante: <VisitorView /> } : {}),
@@ -82,11 +118,11 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
               }`}
             >
               <div className="menuConfiguracionesVerticalArriba">
-              <div
-                className={`menuConfiguracionesVerticalSolo ${
-                  selectedComponent === "Temperatura" ? "selected" : ""
-                }`}
-                onClick={() => handleComponentClick("Temperatura")}
+              <MenuItem
+                label="Temperatura"
+                selected={selectedComponent === "Temperatura"}
+                isMenuOpen={isMenuOpen}
+                onSelect={() => handleComponentClick("Temperatura")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -99,17 +135,17 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="menuConfiguracionesVerticalSoloSVG"
+                  aria-hidden="true"
                   data-id="289"
                 >
                   <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
                 </svg>
-                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Temperatura</h3>}
-              </div>
-              <div
-                className={`menuConfiguracionesVerticalSolo ${
-                  selectedComponent === "Stocks" ? "selected" : ""
-                }`}
-                onClick={() => handleComponentClick("Stocks")}
+              </MenuItem>
+              <MenuItem
+                label="Stock"
+                selected={selectedComponent === "Stocks"}
+                isMenuOpen={isMenuOpen}
+                onSelect={() => handleComponentClick("Stocks")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -122,6 +158,7 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="menuConfiguracionesVerticalSoloSVG"
+                  aria-hidden="true"
                   data-id="291"
                 >
                   <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
@@ -130,15 +167,39 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                   <path d="M16 13H8"></path>
                   <path d="M16 17H8"></path>
                 </svg>
-               {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Stock</h3>}
-              </div>
+              </MenuItem>
+              {!isDemoMode && (
+              <MenuItem
+                label="Alarmas"
+                selected={selectedComponent === "Alarmas"}
+                isMenuOpen={isMenuOpen}
+                onSelect={() => handleComponentClick("Alarmas")}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="menuConfiguracionesVerticalSoloSVG"
+                  aria-hidden="true"
+                >
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                </svg>
+              </MenuItem>
+              )}
               </div>
               {canUseAdmin && (
-                <div
-                  className={`menuConfiguracionesVerticalSolo ${
-                    selectedComponent === "Administracion" ? "selected" : ""
-                  }`}
-                  onClick={() => handleComponentClick("Administracion")}
+                <MenuItem
+                  label="Administración"
+                  selected={selectedComponent === "Administracion"}
+                  isMenuOpen={isMenuOpen}
+                  onSelect={() => handleComponentClick("Administracion")}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -151,19 +212,19 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="menuConfiguracionesVerticalSoloSVG"
+                    aria-hidden="true"
                   >
                     <path d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4Z"></path>
                     <path d="M9 12l2 2 4-4"></path>
                   </svg>
-                  {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Admin</h3>}
-                </div>
+                </MenuItem>
               )}
               {isVisitor && (
-                <div
-                  className={`menuConfiguracionesVerticalSolo ${
-                    selectedComponent === "Visitante" ? "selected" : ""
-                  }`}
-                  onClick={() => handleComponentClick("Visitante")}
+                <MenuItem
+                  label="Vista de visitante"
+                  selected={selectedComponent === "Visitante"}
+                  isMenuOpen={isMenuOpen}
+                  onSelect={() => handleComponentClick("Visitante")}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -176,18 +237,18 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="menuConfiguracionesVerticalSoloSVG"
+                    aria-hidden="true"
                   >
                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
-                  {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Visitante</h3>}
-                </div>
+                </MenuItem>
               )}
-              <div
-                className={`menuConfiguracionesVerticalSolo ${
-                  selectedComponent === "Backend" ? "selected" : ""
-                }`}
-                onClick={() => handleComponentClick("Backend")}
+              <MenuItem
+                label="Documentación"
+                selected={selectedComponent === "Documentacion"}
+                isMenuOpen={isMenuOpen}
+                onSelect={() => handleComponentClick("Documentacion")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -200,37 +261,13 @@ function Home({ isDarkMode, isDemoMode, onLanding,toggleModal, toggleTheme, colo
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="menuConfiguracionesVerticalSoloSVG"
-                >
-                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                  <path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"></path>
-                  <path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"></path>
-                </svg>
-                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Backend</h3>}
-              </div>
-              <div
-                className={`menuConfiguracionesVerticalSolo ${
-                  selectedComponent === "Documentacion" ? "selected" : ""
-                }`}
-                onClick={() => handleComponentClick("Documentacion")}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="menuConfiguracionesVerticalSoloSVG"
+                  aria-hidden="true"
                   data-id="211"
                 >
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
-                {isMenuOpen && <h3 className="menuConfiguracionesVerticalSoloDescrip">Documentacion</h3>}
-              </div>
+              </MenuItem>
             </div>
           </div>
           <div className="menuContenido">

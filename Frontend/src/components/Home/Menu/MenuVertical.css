@@ -121,9 +121,23 @@
     color: var(--ColorLogo);
   }
 
-@media (max-width: 340px) {
+/* En mobile mostramos solo el isotipo "T" para que entren bien los íconos
+   de configuración/usuario/salir sin amontonarse ni cortarse. */
+@media (max-width: 600px) {
   .Menu-Logo-Solo-text {
     display: none;
   }
-
+  .menuConfiguracionesConfiguraciones {
+    width: 34px;
+  }
+}
+/* Botón de cerrar sesión */
+.menuLogoutBtn {
+  cursor: pointer;
+}
+.menuLogoutBtn:hover {
+  color: #ef4444;
+}
+.menuLogoutBtn:hover .menuConfiguracionesConfiguracionesSVG {
+  stroke: #ef4444;
 }

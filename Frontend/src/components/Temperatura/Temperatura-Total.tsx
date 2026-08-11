@@ -25,6 +25,7 @@ export default function TemperaturaTotal({ useDemoData }: TemperaturaTotalProps)
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const canEditRanges = useDemoData || Boolean(user && user.role !== "visitor");
+  const isAdmin = Boolean(user && (user.role === "admin" || user.role === "superadmin"));
 
   useEffect(() => {
     setSelectedRefrigeratorId(null);
@@ -67,9 +68,10 @@ export default function TemperaturaTotal({ useDemoData }: TemperaturaTotalProps)
           const item = {
             id: device.id,
             name: device.name,
-            location: device.location || "Sin ubicacion",
+            location: device.location || "Sin ubicación",
             min_temp: Number(device.min_temp),
             max_temp: Number(device.max_temp),
+            owner_name: device.owner_name ?? null,
             group: {
               id: group?.id ?? 0,
               name: group?.name || "Sin grupo",
@@ -179,7 +181,7 @@ export default function TemperaturaTotal({ useDemoData }: TemperaturaTotalProps)
     : null;
 
   return (
-    <div className="TemperaturaTotal">
+    <div className={`TemperaturaTotal ${selectedRefrigerator ? "detalle" : ""}`}>
       {!selectedRefrigeratorId && (
         <div className="StockTotalCabesera">
           <h2 className="StockTotalTitulo">Temperaturas</h2>
@@ -229,6 +231,7 @@ export default function TemperaturaTotal({ useDemoData }: TemperaturaTotalProps)
             onVerHistorialClick={handleVerHistorialClick}
             onSaveRange={!useDemoData && canEditRanges ? handleSaveRange : undefined}
             readOnly={!canEditRanges}
+            showOwner={isAdmin && !useDemoData}
           />
         ))
       ) : !isLoading && !error ? (

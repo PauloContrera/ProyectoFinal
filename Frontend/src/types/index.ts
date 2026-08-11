@@ -53,6 +53,9 @@ export interface Device {
   status: 'active' | 'inactive' | 'maintenance';
   user_id: number;
   group_id?: number;
+  owner_name?: string | null;
+  owner_username?: string | null;
+  group_name?: string | null;
   max_temp: number;
   min_temp: number;
   firmware_version?: string | null;
@@ -102,6 +105,7 @@ export interface StockItem {
   id: number;
   device_id: number;
   name: string;
+  rfid?: string | null;
   quantity: number;
   expiration_date?: string | null;
   created_at?: string;
@@ -127,6 +131,25 @@ export interface Alert {
   created_at: string;
   resolved_at?: string;
 }
+
+// Alerta tal como la devuelve el backend (GET /api/devices/{id}/alerts y GET /api/alerts)
+export interface DeviceAlert {
+  id: number;
+  device_id: number;
+  temperature: number | null;
+  recorded_at: string;
+  type: 'TEMP_HIGH' | 'TEMP_LOW';
+  notified: number;
+  acknowledged: number;
+  acknowledged_at: string | null;
+  resolved: number;
+  resolved_at: string | null;
+  // Presentes solo en el alarmero global (GET /api/alerts)
+  device_name?: string;
+  device_location?: string;
+}
+
+export type AlertStatusFilter = 'open' | 'active' | 'acknowledged' | 'resolved' | 'all';
 
 // ============ RESPUESTA API ============
 export interface ApiResponse<T = unknown> {

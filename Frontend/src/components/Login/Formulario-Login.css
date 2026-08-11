@@ -93,3 +93,31 @@
     width: 100%;
   }
 }
+
+.LogearteForgotLink {
+  background: none;
+  border: none;
+  color: var(--LetrasColor4, #2563eb);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin: -0.25rem 0 0.5rem 0;
+  align-self: flex-start;
+  text-decoration: underline;
+  font-family: inherit;
+}
+
+.LogearteForgotLink:hover {
+  filter: brightness(1.1);
+}
+
+.LogearteForgotLink:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.LogearteForgotTexto {
+  color: var(--LetrasColor2, #9ca3af);
+  font-size: 0.88rem;
+  margin: 0 0 0.75rem 0;
+}

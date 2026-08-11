@@ -13,6 +13,12 @@ use Middleware\RateLimiter;
 
 class AuthController
 {
+    /**
+     * Hash descartable contra el que se verifica la contrasena cuando el usuario
+     * no existe, para que un login fallido tarde lo mismo exista o no la cuenta.
+     */
+    private const DUMMY_PASSWORD_HASH = '$2y$10$JEkK2O8TmOWxEImQyogv7epFqqMzRsJ2rppFzWVRBy0vH27OHksVy';
+
     public function register()
     {
         $data = json_decode(file_get_contents('php://input'), true);
@@ -68,7 +74,7 @@ class AuthController
         $stmt->execute([$userId, $email, $token, $ip, $expiresAt]);
         $userModel->logEvent($userId, 'register', 'Usuario registrado exitosamente', $ip);
 
-        $verificationLink = $_ENV['APP_URL'] . "/api/verify-email?token=" . $token;
+        $verificationLink = $_ENV['APP_URL'] . "/verify-email?token=" . $token;
         $template = EmailVerificationTemplate::generate($name, $verificationLink);
         $mailResult = \Helpers\MailHelper::sendMail($email, $name, $template['subject'], $template['body']);
 
@@ -114,10 +120,14 @@ class AuthController
 
         // Umbrales de .env
         $accountLockAttempts = intval($_ENV['ACCOUNT_LOCK_ATTEMPTS'] ?? 5);
+        $accountLockMinutes = intval($_ENV['ACCOUNT_LOCK_DURATION'] ?? 30);
         $ipBlockAttempts = intval($_ENV['IP_BLOCK_ATTEMPTS'] ?? 10);
         $ipBlockDuration = intval($_ENV['IP_BLOCK_DURATION'] ?? 60);
 
         if (!$user) {
+            // Se verifica contra un hash descartable para que la respuesta tarde lo
+            // mismo que con un usuario real y no se pueda enumerar por latencia.
+            password_verify($password, self::DUMMY_PASSWORD_HASH);
             $userModel->logEvent(null, 'login_failed', 'Intento de inicio de sesión fallido, Usuario incorrecto', $ip);
 
             // Bloqueo automático de IP por fallos repetidos
@@ -126,12 +136,37 @@ class AuthController
             return Response::json(401, 'INVALID_CREDENTIALS');
         }
 
-        if ($user['failed_login_attempts'] >= $accountLockAttempts) {
-            $userModel->logEvent($user['id'], 'login_failed', 'Intento de inicio de sesión fallido, Usuario Bloqueado', $ip);
-            return Response::json(403, 'ACCOUNT_LOCKED');
+        // Desbloqueo automático: si vencio la ventana de bloqueo se limpia el
+        // contador y el intento sigue su curso normal.
+        if ($userModel->clearExpiredLock((int)$user['id'])) {
+            $user['failed_login_attempts'] = 0;
+            $user['locked_until'] = null;
         }
 
-        // Verificar email verificado
+        $passwordOk = password_verify($password, $user['password']);
+
+        if ($userModel->isLocked($user, $accountLockAttempts)) {
+            $userModel->logEvent($user['id'], 'login_failed', 'Intento de inicio de sesión fallido, Usuario Bloqueado', $ip);
+
+            // Solo se informa el bloqueo a quien acierta la contraseña: para el
+            // resto la respuesta es indistinguible de un usuario inexistente.
+            return $passwordOk
+                ? Response::json(403, 'ACCOUNT_LOCKED')
+                : Response::json(401, 'INVALID_CREDENTIALS');
+        }
+
+        if (!$passwordOk) {
+            $userModel->incrementFailedAttempts($user['id'], $accountLockAttempts, $accountLockMinutes);
+            $userModel->logEvent($user['id'], 'login_failed', 'Intento de inicio de sesión fallido, Contraseña incorrecta', $ip);
+
+            // Bloqueo automático de IP por fallos repetidos
+            $this->checkAndBlockIp($db, $ip, $ipBlockAttempts, $ipBlockDuration);
+
+            return Response::json(401, 'INVALID_CREDENTIALS');
+        }
+
+        // Email verificado: se comprueba despues de validar la contraseña para que
+        // no sirva como oraculo de existencia de cuentas.
         $stmt = $db->prepare("SELECT verified FROM email_verifications WHERE user_id = ? AND verified = 1 LIMIT 1");
         $stmt->execute([$user['id']]);
         $verifiedRecord = $stmt->fetch();
@@ -139,16 +174,6 @@ class AuthController
         if (!$verifiedRecord) {
             $userModel->logEvent($user['id'], 'login_failed', 'Intento de inicio de sesión fallido, Correo no verificado', $ip);
             return Response::json(403, 'EMAIL_NOT_VERIFIED');
-        }
-
-        if (!password_verify($password, $user['password'])) {
-            $userModel->incrementFailedAttempts($user['id']);
-            $userModel->logEvent($user['id'], 'login_failed', 'Intento de inicio de sesión fallido, Contraseña incorrecta', $ip);
-
-            // Bloqueo automático de IP por fallos repetidos
-            $this->checkAndBlockIp($db, $ip, $ipBlockAttempts, $ipBlockDuration);
-
-            return Response::json(401, 'INVALID_CREDENTIALS');
         }
 
         // Login exitoso
@@ -213,7 +238,9 @@ class AuthController
         }
 
         $db = (new Database())->getConnection();
-        $stmt = $db->prepare("SELECT * FROM email_verifications WHERE token = ? AND verified = 0 LIMIT 1");
+        // Buscamos por token sin filtrar por estado para poder ser idempotentes
+        // (doble click en el enlace, prefetch de clientes de correo, StrictMode, etc.).
+        $stmt = $db->prepare("SELECT * FROM email_verifications WHERE token = ? LIMIT 1");
         $stmt->execute([$token]);
         $record = $stmt->fetch(\PDO::FETCH_ASSOC);
         $userModel = new \Models\User($db);
@@ -222,9 +249,19 @@ class AuthController
             return Response::json(404, 'INVALID_OR_EXPIRED_TOKEN');
         }
 
+        // Idempotente: si este token ya verifico el correo, devolvemos exito.
+        if ((int)$record['verified'] === 1) {
+            return Response::json(200, 'EMAIL_ALREADY_VERIFIED');
+        }
+
+        // Estado distinto de 0 (p. ej. -1 invalidado por reenvio): token no usable.
+        if ((int)$record['verified'] !== 0) {
+            return Response::json(404, 'INVALID_OR_EXPIRED_TOKEN');
+        }
+
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         if (isset($record['expires_at']) && strtotime($record['expires_at']) < time()) {
-            $userModel->logEvent($record['user_id'], 'email_verified', 'Correo verificado correctamente', $ip);
+            $userModel->logEvent($record['user_id'], 'email_verification_failed', 'Verificación de correo fallida, token expirado', $ip);
 
             return Response::json(400, 'TOKEN_EXPIRED');
         }
@@ -278,7 +315,7 @@ class AuthController
         $stmt = $db->prepare("INSERT INTO email_verifications (user_id, email, token, ip_address, expires_at) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$user['id'], $email, $token, $ip, $expiresAt]);
 
-        $verificationLink = $_ENV['APP_URL'] . "/api/verify-email?token={$token}";
+        $verificationLink = $_ENV['APP_URL'] . "/verify-email?token={$token}";
         $template = \MailTemplates\EmailVerificationTemplate::generate($user['name'], $verificationLink);
         $mailResult = \Helpers\MailHelper::sendMail($email, $user['name'], $template['subject'], $template['body']);
 
@@ -336,7 +373,7 @@ class AuthController
 
         $userModel->createPasswordResetRequest($user['id'], $email, $token, $expiresAt, $ip);
 
-        $resetLink = $_ENV['APP_URL'] . "/api/reset-password?token={$token}";
+        $resetLink = $_ENV['APP_URL'] . "/reset-password?token={$token}";
         $template = \MailTemplates\PasswordResetTemplate::generate($user['name'], $resetLink);
         \Helpers\MailHelper::sendMail($email, $user['name'], $template['subject'], $template['body']);
         $userModel->logEvent($user['id'], 'password_reset_requested', 'Solicitud de restablecimiento de contraseña', $ip);
@@ -414,7 +451,8 @@ class AuthController
         $userId = $resetRecord['user_id'] ?? null;
 
         if ($userId) {
-            $db->prepare("UPDATE users SET failed_login_attempts = 0 WHERE id = ?")->execute([$userId]);
+            // El reset de contraseña tambien levanta el bloqueo de la cuenta.
+            $db->prepare("UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?")->execute([$userId]);
             $userModel->logEvent($userId, 'password_reset', 'Contraseña restablecida', $ip);
         } else {
             $userModel->logEvent(null, 'password_reset', 'Contraseña restablecida', $ip);
@@ -435,7 +473,9 @@ class AuthController
         ];
 
         if (strlen($secret) < 32 || ($appEnv === 'production' && in_array($secret, $placeholderSecrets, true))) {
-            return Response::json(500, 'INTERNAL_ERROR');
+            \Helpers\Logger::critical('JWT secret is missing or unsafe');
+            Response::json(500, 'INTERNAL_ERROR');
+            exit;
         }
 
         return $secret;

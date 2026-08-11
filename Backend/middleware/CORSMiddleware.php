@@ -16,8 +16,10 @@ class CORSMiddleware
             'http://127.0.0.1:5173'
         ];
 
-        // En producción, agregar dominios reales desde env
-        if ($env = getenv('ALLOWED_ORIGINS')) {
+        // En producción, agregar dominios reales desde env.
+        // Se usa $_ENV porque phpdotenv (createImmutable) no puebla getenv().
+        $env = $_ENV['ALLOWED_ORIGINS'] ?? getenv('ALLOWED_ORIGINS');
+        if ($env) {
             $allowedOrigins = array_merge($allowedOrigins, array_map('trim', explode(',', $env)));
         }
 
@@ -27,6 +29,23 @@ class CORSMiddleware
     /**
      * Aplica headers CORS
      */
+    /**
+     * Fuera de produccion se acepta cualquier puerto de localhost.
+     *
+     * Vite arranca en 5173, pero si ese puerto esta ocupado se mueve solo a otro y
+     * la API rechazaba el origen sin decir por que. En produccion sigue valiendo
+     * unicamente la lista de ALLOWED_ORIGINS.
+     */
+    private static function isLocalDevOrigin(string $origin): bool
+    {
+        $appEnv = strtolower((string)($_ENV['APP_ENV'] ?? 'development'));
+        if ($appEnv === 'production') {
+            return false;
+        }
+
+        return preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin) === 1;
+    }
+
     public static function handle()
     {
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -35,14 +54,17 @@ class CORSMiddleware
         header('Vary: Origin');
 
         // Validar origen. Si no coincide, no se emite Access-Control-Allow-Origin.
-        if ($origin !== '' && in_array($origin, $allowedOrigins, true)) {
+        if ($origin !== '' && (in_array($origin, $allowedOrigins, true) || self::isLocalDevOrigin($origin))) {
             header('Access-Control-Allow-Origin: ' . $origin);
         }
 
-        // Headers permitidos
+        // Headers permitidos.
+        // No se emite Access-Control-Allow-Credentials: la sesion viaja en el header
+        // Authorization, no en cookies, asi que habilitar credenciales solo ampliaria
+        // la superficie sin que nada lo use.
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
         header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Expose-Headers: X-Request-ID, Retry-After');
         header('Access-Control-Max-Age: 86400'); // 24 horas
 
         // Manejar OPTIONS request

@@ -10,7 +10,7 @@
 .input-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #333;
+  color: var(--LetrasColor1, #333);
   margin-bottom: 0.25rem;
 }
 
@@ -29,12 +29,17 @@
   width: 100%;
   padding: 0.75rem 0.75rem;
   padding-left: 2.5rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--BorderColor2, #e0e0e0);
   border-radius: 0.5rem;
   font-size: 1rem;
   font-family: inherit;
   transition: all 0.3s ease;
-  background-color: #fff;
+  background-color: var(--ColorFondo5, #fff);
+  color: var(--LetrasColor1, #111827);
+}
+
+.input-field::placeholder {
+  color: var(--LetrasColor2, #9ca3af);
 }
 
 .input-field:focus {
@@ -48,14 +53,12 @@
 }
 
 .input-field:disabled {
-  background-color: #f5f5f5;
-  color: #999;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .input-field.input-error {
   border-color: #e74c3c;
-  background-color: #fef5f5;
 }
 
 .input-field.input-error:focus {
@@ -64,7 +67,6 @@
 
 .input-field.input-success {
   border-color: #27ae60;
-  background-color: #f0fdf4;
 }
 
 .input-field.input-success:focus {
@@ -124,7 +126,7 @@
 }
 
 .input-helper-text {
-  color: #666;
+  color: var(--LetrasColor2, #666);
 }
 
 .input-error-text {

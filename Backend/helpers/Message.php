@@ -4,25 +4,47 @@ namespace Helpers;
 
 class Message
 {
-    private static $messages = [];
+    /** Idiomas con catalogo en config/lang/. Evita armar rutas con datos externos. */
+    private const SUPPORTED = ['es', 'en'];
+    private const FALLBACK = 'es';
 
-    private static function loadMessages($lang = 'es')
+    /** @var array<string, array<string, string>> catalogos ya cargados, por idioma */
+    private static $catalogs = [];
+
+    /**
+     * Cachea por idioma. Antes se cacheaba un unico catalogo global, asi que el
+     * primer mensaje del request fijaba el idioma: un usuario en 'en' recibia
+     * español si algo habia respondido antes de autenticar.
+     */
+    private static function loadMessages(string $lang): array
     {
-        if (empty(self::$messages)) {
-            $file = __DIR__ . "/../config/lang/{$lang}.php";
-            if (file_exists($file)) {
-                self::$messages = require $file;
-            } else {
-                self::$messages = require __DIR__ . '/../config/lang/es.php';
-            }
+        if (!isset(self::$catalogs[$lang])) {
+            self::$catalogs[$lang] = require __DIR__ . "/../config/lang/{$lang}.php";
         }
+
+        return self::$catalogs[$lang];
     }
 
-public static function get($key)
-{
-    $lang = $_SERVER['user']['lang'] ?? 'es';
-    self::loadMessages($lang);
-    return self::$messages[$key] ?? $key;
-}
+    /**
+     * Normaliza contra la lista de idiomas soportados: el valor viene del claim
+     * 'lang' del JWT y nunca debe usarse tal cual para armar una ruta de archivo.
+     */
+    private static function currentLang(): string
+    {
+        $lang = strtolower(trim((string)($_SERVER['user']['lang'] ?? self::FALLBACK)));
 
+        return in_array($lang, self::SUPPORTED, true) ? $lang : self::FALLBACK;
+    }
+
+    public static function get($key)
+    {
+        // Clave nula (respuestas que solo devuelven datos): no hay nada que traducir.
+        if ($key === null || $key === '') {
+            return null;
+        }
+
+        $messages = self::loadMessages(self::currentLang());
+
+        return $messages[$key] ?? $key;
+    }
 }

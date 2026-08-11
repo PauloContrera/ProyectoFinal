@@ -53,6 +53,7 @@ try {
         'data' => [
             ['temp' => 4.3, 'time' => $now - 60],
             ['temp' => 4.6, 'time' => $now - 30],
+            ['temp' => 1.0, 'time' => $now - 45], // por debajo del min (2) -> alerta server-side TEMP_LOW
         ],
         'local_alerts' => [
             ['type' => 'temp_high', 'temp' => 10.1, 'time' => $now - 20],
@@ -104,11 +105,13 @@ try {
     assertTrue($command['status'] === 200, 'Respuesta comando HTTP 200');
     assertTrue(($command['json']['success'] ?? false) === true, 'Respuesta comando success=true');
 
-    assertDbCount($pdo, 'temperatures', $deviceId, 2);
+    assertDbCount($pdo, 'temperatures', $deviceId, 3);
     assertDbCount($pdo, 'esp_local_alerts', $deviceId, 2);
     assertDbCount($pdo, 'esp_diagnostics', $deviceId, 1);
     assertDbCount($pdo, 'esp_command_responses', $deviceId, 1);
     assertDbCount($pdo, 'esp_sync_batches', $deviceId, 2);
+    // Alertas server-side: 1 TEMP_LOW (lectura 1.0 < min) + 1 TEMP_HIGH (local_alert temp_high).
+    assertDbCount($pdo, 'alerts', $deviceId, 2);
 
     echo "OK protocolo HTTP/SMS verificado por HTTP y DB\n";
 } finally {

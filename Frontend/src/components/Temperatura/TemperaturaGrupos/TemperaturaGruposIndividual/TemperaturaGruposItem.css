@@ -10,10 +10,11 @@
     padding: 25px;
     background-color: var(--ColorFondo2);
     height: min-content;
-    min-width: 350px;
+    min-width: 0;
     width: 100%;
     flex-grow: 1;
-    box-sizing: border-box; 
+    box-sizing: border-box;
+    border-radius: 10px;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 
 }
@@ -23,7 +24,19 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem;
-    height: 52px;
+    min-height: 52px;
+    gap: 0.5rem;
+}
+
+.TempItemsTextoDueno{
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8rem;
+    color: var(--LetrasColor4);
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .TempItemsTotal{ padding: 16px; }
 }
 .TempItemsTexto{
     display: flex;

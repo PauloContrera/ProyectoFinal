@@ -8,13 +8,31 @@ use PDOException;
 class EspProtocol
 {
     private PDO $conn;
+    private Alert $alertModel;
 
     public function __construct(PDO $db)
     {
         $this->conn = $db;
+        $this->alertModel = new Alert($db);
     }
 
-    public function findDeviceByMac(string $mac)
+    /**
+     * Evalua una lectura aceptada contra el rango configurado de la heladera y
+     * genera una alerta server-side si corresponde (con dedup y suppression).
+     */
+    public function evaluateReadingAlert(array $device, float $temperature, int $recordedAt): ?string
+    {
+        $min = isset($device['min_temp']) ? (float)$device['min_temp'] : null;
+        $max = isset($device['max_temp']) ? (float)$device['max_temp'] : null;
+
+        return $this->alertModel->evaluateReading((int)$device['id'], $temperature, $min, $max, $recordedAt);
+    }
+
+    /**
+     * Devuelve null (y no false) cuando la MAC no existe, para poder tipar los
+     * consumidores como ?array.
+     */
+    public function findDeviceByMac(string $mac): ?array
     {
         $stmt = $this->conn->prepare("
             SELECT d.*, dg.name AS group_name
@@ -24,21 +42,30 @@ class EspProtocol
             LIMIT 1
         ");
         $stmt->execute([':mac' => $mac]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $device = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $device ?: null;
     }
 
-    public function registerDevice(array $payload, string $defaultSecret): array
+    public function registerDevice(array $payload, string $provisionedSecret): array
     {
         $mac = $payload['mac'];
         $device = $this->findDeviceByMac($mac);
 
         if ($device) {
+            // Heladera preprovisionada desde administracion o ya registrada: se
+            // actualizan los datos de firmware sin tocar el secreto existente.
+            // Las filas viejas sin secreto (seeds, altas manuales por SQL) reciben
+            // uno ahora, porque el sync exige firma con secreto propio.
+            $needsSecret = trim((string)($device['shared_secret'] ?? '')) === '';
+
             $stmt = $this->conn->prepare("
                 UPDATE devices
                 SET registered_model = :model,
                     firmware_version = COALESCE(:firmware_version, firmware_version),
                     sim_imei = :sim_imei,
-                    protocol_version = COALESCE(:protocol_version, protocol_version)
+                    protocol_version = COALESCE(:protocol_version, protocol_version),
+                    shared_secret = COALESCE(NULLIF(shared_secret, ''), :shared_secret)
                 WHERE id = :id
             ");
             $stmt->execute([
@@ -46,11 +73,15 @@ class EspProtocol
                 ':firmware_version' => $payload['firmware_version'] ?? null,
                 ':sim_imei' => $payload['sim_imei'] ?? null,
                 ':protocol_version' => $payload['protocol_version'] ?? null,
+                ':shared_secret' => $provisionedSecret,
                 ':id' => $device['id'],
             ]);
 
             $updated = $this->findDeviceByMac($mac);
             $updated['_created'] = false;
+            if ($needsSecret) {
+                $updated['_provisioned_secret'] = $provisionedSecret;
+            }
             return $updated;
         }
 
@@ -95,7 +126,7 @@ class EspProtocol
         $stmt->execute([
             ':device_code' => $deviceCode,
             ':mac_address' => $mac,
-            ':shared_secret' => $defaultSecret,
+            ':shared_secret' => $provisionedSecret,
             ':name' => $name,
             ':location' => 'Pendiente de asignar',
             ':firmware_version' => $payload['firmware_version'] ?? null,
@@ -107,7 +138,7 @@ class EspProtocol
 
         $created = $this->findDeviceByMac($mac);
         $created['_created'] = true;
-        $created['_provisioned_secret'] = $defaultSecret;
+        $created['_provisioned_secret'] = $provisionedSecret;
 
         return $created;
     }
@@ -256,8 +287,9 @@ class EspProtocol
             ':payload_json' => json_encode($alert, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ]);
 
-        if (in_array($type, ['temp_high', 'TEMP_HIGH', 'temp_low', 'TEMP_LOW'], true)) {
-            $this->insertServerAlert($deviceId, $type, $alert);
+        if (in_array(strtolower($type), ['temp_high', 'temp_low'], true)) {
+            $temperature = isset($alert['temp']) ? (float)$alert['temp'] : null;
+            $this->alertModel->fromLocalAlert($deviceId, $type, $temperature, $occurredAt);
         }
     }
 
@@ -377,24 +409,6 @@ class EspProtocol
             'max_batch_size' => (int)($device['max_batch_size'] ?? 120),
             'retry_base_seconds' => (int)($device['retry_base_seconds'] ?? 30),
         ];
-    }
-
-    private function insertServerAlert(int $deviceId, string $type, array $alert): void
-    {
-        $serverType = in_array($type, ['temp_low', 'TEMP_LOW'], true) ? 'TEMP_LOW' : 'TEMP_HIGH';
-        $temperature = isset($alert['temp']) ? (float)$alert['temp'] : null;
-        $recordedAt = $this->toSqlDate((int)($alert['time'] ?? time()));
-
-        $stmt = $this->conn->prepare("
-            INSERT INTO alerts (device_id, temperature, recorded_at, type, notified)
-            VALUES (:device_id, :temperature, :recorded_at, :type, 1)
-        ");
-        $stmt->execute([
-            ':device_id' => $deviceId,
-            ':temperature' => $temperature,
-            ':recorded_at' => $recordedAt,
-            ':type' => $serverType,
-        ]);
     }
 
     private function defaultActivationKeyword(): string

@@ -18,7 +18,7 @@ class StockItem
     public function getByDeviceId(int $deviceId): array
     {
         $stmt = $this->conn->prepare("
-            SELECT id, device_id, name, quantity, expiration_date, created_at, updated_at
+            SELECT id, device_id, name, rfid, quantity, expiration_date, created_at, updated_at
             FROM {$this->table}
             WHERE device_id = :device_id
             ORDER BY expiration_date IS NULL, expiration_date ASC, name ASC
@@ -30,7 +30,7 @@ class StockItem
     public function getById(int $id)
     {
         $stmt = $this->conn->prepare("
-            SELECT id, device_id, name, quantity, expiration_date, created_at, updated_at
+            SELECT id, device_id, name, rfid, quantity, expiration_date, created_at, updated_at
             FROM {$this->table}
             WHERE id = :id
         ");
@@ -41,12 +41,13 @@ class StockItem
     public function create(int $deviceId, array $data, ?int $userId = null): int
     {
         $stmt = $this->conn->prepare("
-            INSERT INTO {$this->table} (device_id, name, quantity, expiration_date)
-            VALUES (:device_id, :name, :quantity, :expiration_date)
+            INSERT INTO {$this->table} (device_id, name, rfid, quantity, expiration_date)
+            VALUES (:device_id, :name, :rfid, :quantity, :expiration_date)
         ");
         $stmt->execute([
             ':device_id' => $deviceId,
             ':name' => $data['name'],
+            ':rfid' => $data['rfid'] ?? null,
             ':quantity' => $data['quantity'],
             ':expiration_date' => $data['expiration_date'],
         ]);
@@ -65,6 +66,7 @@ class StockItem
         $stmt = $this->conn->prepare("
             UPDATE {$this->table}
             SET name = :name,
+                rfid = :rfid,
                 quantity = :quantity,
                 expiration_date = :expiration_date,
                 updated_at = NOW()
@@ -72,6 +74,7 @@ class StockItem
         ");
         $stmt->execute([
             ':name' => $data['name'],
+            ':rfid' => $data['rfid'] ?? null,
             ':quantity' => $data['quantity'],
             ':expiration_date' => $data['expiration_date'],
             ':id' => $id,
@@ -96,7 +99,7 @@ class StockItem
 
     private function logDifferences(int $stockId, int $deviceId, ?int $userId, array $old, array $new): void
     {
-        foreach (['name', 'quantity', 'expiration_date'] as $field) {
+        foreach (['name', 'rfid', 'quantity', 'expiration_date'] as $field) {
             $oldValue = $old[$field] ?? null;
             $newValue = $new[$field] ?? null;
 
@@ -108,7 +111,7 @@ class StockItem
 
     private function logFullChange(int $stockId, int $deviceId, ?int $userId, string $action, array $data): void
     {
-        foreach (['name', 'quantity', 'expiration_date'] as $field) {
+        foreach (['name', 'rfid', 'quantity', 'expiration_date'] as $field) {
             $value = $data[$field] ?? null;
             if ($action === 'create') {
                 $this->insertLog($stockId, $deviceId, $userId, $action, $field, null, $value);

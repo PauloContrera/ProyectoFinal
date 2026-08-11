@@ -6,12 +6,14 @@ import "./StockGruposItem.css";
 export interface StockTableItem {
   id: number;
   name: string;
+  rfid?: string;
   quantity: number;
   expirationDate: string;
 }
 
 type StockDraft = {
   name: string;
+  rfid: string;
   quantity: string;
   expirationDate: string;
 };
@@ -29,12 +31,14 @@ interface StockGruposItemProps {
 
 const emptyDraft = (): StockDraft => ({
   name: "",
+  rfid: "",
   quantity: "0",
   expirationDate: "",
 });
 
 const toDraft = (item: StockTableItem): StockDraft => ({
   name: item.name,
+  rfid: item.rfid || "",
   quantity: String(item.quantity),
   expirationDate: item.expirationDate,
 });
@@ -42,6 +46,7 @@ const toDraft = (item: StockTableItem): StockDraft => ({
 const toItem = (draft: StockDraft, id: number): StockTableItem => ({
   id,
   name: draft.name.trim(),
+  rfid: draft.rfid.trim(),
   quantity: Math.max(0, Number(draft.quantity) || 0),
   expirationDate: draft.expirationDate,
 });
@@ -89,6 +94,7 @@ export default function StockGruposItem({
       if (onAddItem) {
         await onAddItem({
           name: nextItem.name,
+          rfid: nextItem.rfid,
           quantity: nextItem.quantity,
           expirationDate: nextItem.expirationDate,
         });
@@ -144,6 +150,25 @@ export default function StockGruposItem({
     }
   };
 
+  // Sumar / restar cantidad rápido (no baja de 0). Persiste con el mismo update.
+  const handleAdjustQty = async (item: StockTableItem, delta: number) => {
+    const nextQty = Math.max(0, (Number(item.quantity) || 0) + delta);
+    if (nextQty === item.quantity) return;
+    const updated = { ...item, quantity: nextQty };
+
+    setIsSaving(true);
+    try {
+      if (onUpdateItem) {
+        await onUpdateItem(updated);
+      }
+      if (!hasRemoteHandlers) {
+        setItems((current) => current.map((it) => (it.id === item.id ? updated : it)));
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="stock-grupos-container">
       <div className="TempGruposTitulo StockItemsHeaderRow">
@@ -167,7 +192,7 @@ export default function StockGruposItem({
           </motion.div>
           <span className="StockItemsHeader">
             <h3 className="StockItemsTitulo">
-              {name} - {location || "Sin ubicacion"}
+              {name} - {location || "Sin ubicación"}
             </h3>
           </span>
         </button>
@@ -185,7 +210,8 @@ export default function StockGruposItem({
             <table className="stock-grupos-table">
               <thead className="stock-grupos-thead">
                 <tr>
-                  <th className="stock-grupos-th">Articulo</th>
+                  <th className="stock-grupos-th">Artículo</th>
+                  <th className="stock-grupos-th">RFID</th>
                   <th className="stock-grupos-th">Cantidad</th>
                   <th className="stock-grupos-th">Vencimiento</th>
                   {!readOnly && <th className="stock-grupos-th">Acciones</th>}
@@ -194,7 +220,7 @@ export default function StockGruposItem({
               <tbody className="stock-grupos-tbody">
                 {items.length === 0 && (
                   <tr className="stock-grupos-tr">
-                    <td className="stock-grupos-td stock-grupos-readonly" colSpan={readOnly ? 3 : 4}>
+                    <td className="stock-grupos-td stock-grupos-readonly" colSpan={readOnly ? 4 : 5}>
                       Sin items cargados
                     </td>
                   </tr>
@@ -210,6 +236,14 @@ export default function StockGruposItem({
                             placeholder="Nombre del articulo"
                             value={draft.name}
                             onChange={(event) => updateDraft("name", event.target.value)}
+                          />
+                        </td>
+                        <td className="stock-grupos-td">
+                          <input
+                            className="StockItemsEntradas StockItemsEntradasCentrado"
+                            placeholder="RFID"
+                            value={draft.rfid}
+                            onChange={(event) => updateDraft("rfid", event.target.value)}
                           />
                         </td>
                         <td className="stock-grupos-td">
@@ -244,7 +278,34 @@ export default function StockGruposItem({
                     ) : (
                       <>
                         <td className="stock-grupos-td">{item.name}</td>
-                        <td className="stock-grupos-td">{item.quantity}</td>
+                        <td className="stock-grupos-td">{item.rfid || "—"}</td>
+                        <td className="stock-grupos-td">
+                          {readOnly ? (
+                            item.quantity
+                          ) : (
+                            <div className="stock-qty-adjust">
+                              <button
+                                type="button"
+                                className="stock-qty-btn"
+                                onClick={() => handleAdjustQty(item, -1)}
+                                disabled={isSaving || item.quantity <= 0}
+                                title="Restar 1"
+                              >
+                                −
+                              </button>
+                              <span className="stock-qty-val">{item.quantity}</span>
+                              <button
+                                type="button"
+                                className="stock-qty-btn"
+                                onClick={() => handleAdjustQty(item, 1)}
+                                disabled={isSaving}
+                                title="Sumar 1"
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                        </td>
                         <td className="stock-grupos-td">{item.expirationDate || "Sin vencimiento"}</td>
                         {!readOnly && (
                           <td className="stock-grupos-td">
@@ -271,6 +332,14 @@ export default function StockGruposItem({
                         placeholder="Nombre del articulo"
                         value={draft.name}
                         onChange={(event) => updateDraft("name", event.target.value)}
+                      />
+                    </td>
+                    <td className="stock-grupos-td">
+                      <input
+                        className="StockItemsEntradas"
+                        placeholder="RFID (opcional)"
+                        value={draft.rfid}
+                        onChange={(event) => updateDraft("rfid", event.target.value)}
                       />
                     </td>
                     <td className="stock-grupos-td">
@@ -320,7 +389,7 @@ export default function StockGruposItem({
                 {showForm ? "Cancelar" : (
                   <>
                     <Plus size={16} />
-                    Agregar Nuevo Articulo
+                    Agregar Nuevo Artículo
                   </>
                 )}
               </button>

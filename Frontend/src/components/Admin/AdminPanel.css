@@ -140,12 +140,95 @@
 .AdminFormGrid {
   display: grid;
   grid-template-columns: repeat(6, minmax(120px, 1fr)) auto;
-  gap: 10px;
+  gap: 10px 12px;
   margin-top: 16px;
+  align-items: end; /* el botón queda alineado con la base de los campos con label */
+}
+
+/* Campo con etiqueta visible (label arriba + control abajo) */
+.AdminField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.AdminField > label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--LetrasColor2);
+}
+
+.AdminFormSubmit {
+  height: 38px;
+  white-space: nowrap;
+}
+
+/* Campos señuelo para frenar el autofill del navegador */
+.AdminHiddenField {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  left: -9999px;
+}
+
+/* Selects de reasignación dentro de las filas de la tabla */
+.AdminOwnerCell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.AdminRowSelect {
+  width: 100%;
+  min-width: 150px;
+  min-height: 34px;
+  padding: 6px 8px;
+  color: var(--LetrasColor1);
+  background: var(--ColorFondo5);
+  border: 1px solid var(--BorderColor1);
+  border-radius: 8px;
+  outline: none;
+  font-size: 13px;
+}
+
+.AdminRowSelect:focus {
+  border-color: var(--BorderColor2);
+  box-shadow: 0 0 0 2px var(--BorderColor3);
+}
+
+.AdminRowSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sección destacada de ESPs sin dueño */
+.AdminUnassigned {
+  border: 1px solid #f59e0b55;
+  box-shadow: inset 3px 0 0 #f59e0b;
 }
 
 .AdminDeviceForm {
   grid-template-columns: repeat(4, minmax(130px, 1fr));
+}
+
+.AdminGroupForm {
+  grid-template-columns: repeat(3, minmax(150px, 1fr)) auto;
+}
+
+/* Inputs de rango (mín/máx) lado a lado al editar una heladera */
+.AdminRangeFields {
+  flex-direction: row !important;
+  gap: 6px;
+}
+
+.AdminRangeFields input {
+  width: 64px;
+  text-align: center;
 }
 
 .AdminFormGrid input,
@@ -354,4 +437,74 @@
   .AdminPrimaryButton {
     width: 100%;
   }
+}
+
+.AdminTagMuted {
+  color: var(--LetrasColor2);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* ===== Resumen de clientes (vista superadmin) ===== */
+.AdminClientsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+.AdminClientCard {
+  background-color: var(--ColorFondo5, #111827);
+  border: 1px solid var(--BorderColor3);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.AdminClientCard.conAlerta {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px #dc262633;
+}
+.AdminClientCardHead {
+  display: flex;
+  flex-direction: column;
+}
+.AdminClientCardHead strong {
+  color: var(--LetrasColor1);
+  font-size: 1rem;
+}
+.AdminClientCardHead span {
+  color: var(--LetrasColor2);
+  font-size: 0.8rem;
+}
+.AdminClientCardStats {
+  display: flex;
+  gap: 0.75rem;
+}
+.AdminClientCardStats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  background-color: var(--ColorFondo2);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+.AdminClientCardStats .num {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--LetrasColor1);
+  line-height: 1.2;
+}
+.AdminClientCardStats .num.alerta {
+  color: #dc2626;
+}
+.AdminClientCardStats small {
+  color: var(--LetrasColor2);
+  font-size: 0.72rem;
+  text-align: center;
+}
+.AdminClientCardFoot {
+  color: var(--LetrasColor2);
+  font-size: 0.78rem;
 }

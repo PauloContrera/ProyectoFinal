@@ -9,8 +9,10 @@ use Middleware\AuthMiddleware;
 
 class DeviceGroupController {
     private $groupModel;
+    private $db;
 
     public function __construct($db) {
+        $this->db = $db;
         $this->groupModel = new DeviceGroup($db);
     }
 
@@ -29,10 +31,22 @@ class DeviceGroupController {
             return Response::json(400, 'INVALID_DATA');
         }
 
+        // Por defecto el grupo es del usuario logueado. Un admin/superadmin puede
+        // crear el grupo a nombre de un cliente concreto enviando user_id.
+        $ownerId = (int)$user['id'];
+        if (in_array($user['role'], ['admin', 'superadmin'], true) && !empty($input['user_id'])) {
+            $ownerId = (int)$input['user_id'];
+            $check = $this->db->prepare("SELECT id, role FROM users WHERE id = ?");
+            $check->execute([$ownerId]);
+            $target = $check->fetch();
+            if (!$target) return Response::json(400, 'USER_NOT_FOUND');
+            if ($target['role'] === 'visitor') return Response::json(403, 'CANNOT_ASSIGN_TO_VISITOR');
+        }
+
         $data = [
             'name' => $name,
             'description' => $description,
-            'user_id' => $user['id']
+            'user_id' => $ownerId
         ];
 
         $groupId = $this->groupModel->create($data);
@@ -44,7 +58,7 @@ class DeviceGroupController {
         $user = $_SERVER['user'];
 
         if (in_array($user['role'], ['admin', 'superadmin'])) {
-            global $db;
+            $db = $this->db;
             $stmt = $db->query("SELECT * FROM device_groups");
             $groups = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } else {

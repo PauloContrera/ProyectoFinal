@@ -102,8 +102,16 @@ class StockController
             }
         }
 
+        $rfid = isset($input['rfid']) ? trim((string)$input['rfid']) : '';
+        if ($rfid === '') {
+            $rfid = null;
+        } elseif (strlen($rfid) > 64 || !preg_match('/^[A-Za-z0-9:_-]+$/', $rfid)) {
+            return null; // RFID inválido: hasta 64 chars, letras/números/:/_/-
+        }
+
         return [
             'name' => $name,
+            'rfid' => $rfid,
             'quantity' => max(0, (int)($input['quantity'] ?? 0)),
             'expiration_date' => $expirationDate,
         ];

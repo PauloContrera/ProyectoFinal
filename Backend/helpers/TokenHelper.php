@@ -1,4 +1,5 @@
 <?php
+
 namespace Helpers;
 
 class TokenHelper
@@ -7,14 +8,7 @@ class TokenHelper
     {
         return bin2hex(random_bytes($length));
     }
-}
-?>
-<?php
 
-namespace Helpers;
-
-class TokenHelper
-{
     public static function isHexToken(?string $token, int $bytes): bool
     {
         if ($token === null) {

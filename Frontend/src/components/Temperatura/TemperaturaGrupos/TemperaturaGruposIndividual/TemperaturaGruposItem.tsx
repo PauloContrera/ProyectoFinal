@@ -8,9 +8,10 @@ interface TemperaturaGruposItemProps {
   onVerHistorialClick: (refrigeratorId: number) => void;
   onSaveRange?: (refrigeratorId: number, minTemp: number, maxTemp: number) => Promise<void>;
   readOnly?: boolean;
+  showOwner?: boolean;
 }
 
-export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClick, onSaveRange, readOnly = false }: TemperaturaGruposItemProps) {
+export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClick, onSaveRange, readOnly = false, showOwner = false }: TemperaturaGruposItemProps) {
   const redondearTemperatura = (temperatura: number) => {
     return temperatura.toFixed(1); // toFixed ya puede aplicarse a números directamente
   };
@@ -40,11 +41,14 @@ export default function TemperaturaGruposItem({ refrigerator, onVerHistorialClic
         <div className="TempItemsTexto">
           <h3 className="TempItemsTextoTitulo">{refrigerator.name}</h3>
           <p className="TempItemsTextoUbi">{refrigerator.location}</p>
+          {showOwner && refrigerator.owner_name && (
+            <p className="TempItemsTextoDueno">Dueño: {refrigerator.owner_name}</p>
+          )}
         </div>
 
       </div>
       <div className="TempItemsValorTotal">
-        <p className="TempItemsValorTexto">Última valor:</p>
+        <p className="TempItemsValorTexto">Último valor:</p>
         <p className={`TempItemsValorValor ${temperaturaClass}`}>
           {redondearTemperatura(refrigerator.last_temperature.temperature)}°C
         </p>

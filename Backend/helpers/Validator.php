@@ -10,15 +10,18 @@ class Validator
     const MIN_USERNAME_LENGTH = 3;
     const MAX_USERNAME_LENGTH = 50;
     const MIN_PASSWORD_LENGTH = 8;
-    const MAX_PASSWORD_LENGTH = 128;
+    // bcrypt (PASSWORD_DEFAULT) solo considera los primeros 72 bytes: aceptar mas
+    // daria la ilusion de una contraseña mas fuerte de lo que realmente se guarda.
+    const MAX_PASSWORD_LENGTH = 72;
 
     /**
      * Valida nombre - mínimo 2 caracteres, máximo 100
+     * Se cuenta en caracteres (mb_strlen), no en bytes: "José" son 4, no 5.
      */
     public static function validateName($name)
     {
         $name = trim($name);
-        $length = strlen($name);
+        $length = mb_strlen($name, 'UTF-8');
         return $length >= self::MIN_NAME_LENGTH && $length <= self::MAX_NAME_LENGTH;
     }
 
@@ -28,7 +31,7 @@ class Validator
     public static function validateUsername($username)
     {
         $username = trim($username);
-        $length = strlen($username);
+        $length = mb_strlen($username, 'UTF-8');
 
         // Validar longitud
         if ($length < self::MIN_USERNAME_LENGTH || $length > self::MAX_USERNAME_LENGTH) {
@@ -45,6 +48,7 @@ class Validator
      */
     public static function validatePassword($password)
     {
+        // A proposito en bytes y no en caracteres: es el limite real de bcrypt.
         $length = strlen($password);
 
         // Validar longitud
@@ -52,13 +56,11 @@ class Validator
             return false;
         }
 
-        // Validar requisitos de complejidad
+        // Requerir: Mayúscula + Minúscula + Número
         $hasUppercase = preg_match('/[A-Z]/', $password) === 1;
         $hasLowercase = preg_match('/[a-z]/', $password) === 1;
         $hasNumber = preg_match('/[0-9]/', $password) === 1;
-        $hasSpecial = preg_match('/[!@#$%^&*()_+\-=\[\]{};:\'",.<>?\/\\|`~]/', $password) === 1;
 
-        // Requerir: Mayúscula + Minúscula + Número
         return $hasUppercase && $hasLowercase && $hasNumber;
     }
 
@@ -87,7 +89,7 @@ class Validator
     public static function validateDeviceCode($code)
     {
         $code = trim(strtoupper($code));
-        $length = strlen($code);
+        $length = mb_strlen($code, 'UTF-8');
         return $length >= 6 && $length <= 32 && preg_match('/^[A-Z0-9\-]+$/', $code) === 1;
     }
 
@@ -112,7 +114,9 @@ class Validator
             $errors[] = 'Mínimo ' . self::MIN_PASSWORD_LENGTH . ' caracteres';
         }
         if ($length > self::MAX_PASSWORD_LENGTH) {
-            $errors[] = 'Máximo ' . self::MAX_PASSWORD_LENGTH . ' caracteres';
+            $errors[] = mb_strlen($password, 'UTF-8') <= self::MAX_PASSWORD_LENGTH
+                ? 'Máximo ' . self::MAX_PASSWORD_LENGTH . ' bytes (los acentos y emojis ocupan más de uno)'
+                : 'Máximo ' . self::MAX_PASSWORD_LENGTH . ' caracteres';
         }
         if (!preg_match('/[A-Z]/', $password)) {
             $errors[] = 'Debe contener al menos una mayúscula';

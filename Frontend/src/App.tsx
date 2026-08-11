@@ -8,6 +8,8 @@ import Modal from "./components/Modal/modal.tsx";
 import TermsAndConditions from "./components/LadingPage/Terminos/terminos.tsx";
 import FormularioLogin from "./components/Login/Formulario-Login.tsx";
 import { useAuth } from "./hooks/useAuth.ts";
+import VerifyEmail from "./pages/VerifyEmail.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 
 function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -129,6 +131,16 @@ function App() {
     }
   }, [isDarkMode]);
 
+  // Ruteo liviano por path para los enlaces que llegan por email.
+  // Se evalua despues de todos los hooks para respetar las reglas de hooks.
+  const routePath = window.location.pathname;
+  if (routePath === "/verify-email") {
+    return <VerifyEmail />;
+  }
+  if (routePath === "/reset-password") {
+    return <ResetPassword />;
+  }
+
   return (
     <>
       {!showHome ? (
@@ -147,7 +159,7 @@ function App() {
             onLanding={handleLanding}
             colorSVG={colorSVG}
           />
-          <Modal isOpen={isModalOpen} onClose={closeModal} title="Configuracion de Usuario">
+          <Modal isOpen={isModalOpen} onClose={closeModal} title="Configuración de Usuario">
             <Config onClose={closeModal} shouldCloseOnSave={true} />
           </Modal>
         </>
@@ -156,13 +168,13 @@ function App() {
       <ModalTerm
         isOpen={isModalOpenTermino}
         onClose={closeModalTermino}
-        title="Terminos y Condiciones"
-        subtitle="Por favor, lea atentamente los siguientes terminos y condiciones de uso de Temp Segura."
+        title="Términos y Condiciones"
+        subtitle="Por favor, lea atentamente los siguientes términos y condiciones de uso de Temp Segura."
       >
         <TermsAndConditions />
       </ModalTerm>
 
-      <Modal isOpen={isLoginModalOpen} onClose={closeLoginModal} title="Iniciar sesion">
+      <Modal isOpen={isLoginModalOpen} onClose={closeLoginModal} title="">
         <FormularioLogin onSuccess={handleLoginSuccess} />
       </Modal>
     </>

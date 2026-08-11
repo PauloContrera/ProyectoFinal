@@ -545,6 +545,8 @@ Colecciones:
 
 - `temp-segura-backend-completo.postman_collection.json`: pruebas manuales de backend y protocolo.
 - `postman-esp32-simulator.json`: simulador ESP con scripts de timestamp y HMAC.
+- `postman-esp32-manual-json.postman_collection.json`: simulador manual sin scripts, con JSON raw y firmas pegadas a mano.
+- `docs/postman-esp32-sin-scripts.md`: guia paso a paso para usar la coleccion manual.
 
 Casos cubiertos:
 

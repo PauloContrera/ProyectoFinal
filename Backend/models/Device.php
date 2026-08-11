@@ -81,10 +81,15 @@ class Device
 
     public function getAccessibleDevices($userId)
     {
+        // Se usa EXISTS en vez de JOIN: con LEFT JOIN, una heladera compartida con
+        // N usuarios devolvia N filas duplicadas para su dueño.
         $stmt = $this->conn->prepare("
             {$this->selectWithLatestTemperature()}
-            LEFT JOIN device_access da ON d.id = da.device_id
-            WHERE d.user_id = :owner_uid OR da.user_id = :access_uid
+            WHERE d.user_id = :owner_uid
+               OR EXISTS (
+                   SELECT 1 FROM device_access da
+                   WHERE da.device_id = d.id AND da.user_id = :access_uid
+               )
             ORDER BY d.created_at DESC
         ");
         $stmt->execute([
@@ -207,21 +212,29 @@ class Device
         $device = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$device) return ['error' => 'DEVICE_NOT_FOUND'];
-        if ($device['user_id']) return ['error' => 'DEVICE_ALREADY_ASSIGNED'];
 
-        $stmt = $this->conn->prepare("UPDATE devices SET user_id = :user_id WHERE device_code = :device_code");
+        $previousOwner = $device['user_id'];
+        // Si cambia el dueño, el grupo anterior pertenece al dueño viejo y deja de ser válido,
+        // así que lo reseteamos para no dejar un grupo huérfano de otro cliente.
+        $ownerChanged = (int)$previousOwner !== (int)$userId;
+
+        if ($ownerChanged) {
+            $stmt = $this->conn->prepare("UPDATE devices SET user_id = :user_id, group_id = NULL WHERE device_code = :device_code");
+        } else {
+            $stmt = $this->conn->prepare("UPDATE devices SET user_id = :user_id WHERE device_code = :device_code");
+        }
         $stmt->execute([
             ':user_id' => $userId,
             ':device_code' => $deviceCode
         ]);
 
-        // log del cambio de asignación de usuario
+        // log del cambio de asignación de usuario (queda el dueño anterior para auditoría)
         $this->insertLog(
             $device['id'],
             $userId,
             'update',
             'user_id',
-            null,
+            $previousOwner,
             $userId
         );
 
@@ -285,6 +298,9 @@ class Device
         return "
             SELECT
                 {$this->publicDeviceColumns('d')},
+                (SELECT u.name FROM users u WHERE u.id = d.user_id) AS owner_name,
+                (SELECT u.username FROM users u WHERE u.id = d.user_id) AS owner_username,
+                (SELECT g.name FROM device_groups g WHERE g.id = d.group_id) AS group_name,
                 (
                     SELECT t.id
                     FROM temperatures t

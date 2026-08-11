@@ -6,7 +6,6 @@ import StockGruposItem from "../Stocks/StockGrupos/StockGruposItem/StockGruposIt
 import TempEjemplo from "../../data/TempEjemplo";
 import StocksEj from "../../data/StockEjem";
 
-
 interface DocumentacionCardProps {
   title: string;
   children: ReactNode;
@@ -34,184 +33,116 @@ const DocumentacionSection: React.FC<DocumentacionSectionProps> = ({ id, title, 
   </section>
 );
 
-
 const Documentacion = () => {
-
   const [VariableMinima, setVariableMinima] = useState(2);
-  const manejarCambioAmarillo = (nuevoValorAmarillo: number) => {
-    setVariableMinima(nuevoValorAmarillo);
-  };
   const [VariableMaxima, setVariableMaxima] = useState(8);
-  const manejarCambioRojo = (nuevoValorRojo: number) => {
-    setVariableMaxima(nuevoValorRojo);
-  };
-
-
-
-  // const [controladoresActivos, setControladoresActivos] = useState<boolean>(false);
-  const manejarToggleControladores = () => {
-    // setControladoresActivos(estado);
-  };
-
 
   return (
     <div className="DocumentacionTotal">
-    
       <div className="Documentacion-container">
-        <h2 className="Documentacion-title">Documentación de Temp Segura</h2>
+        <h2 className="Documentacion-title">Manual de uso de Temp Segura</h2>
+        <p className="Documentacion-paragraph">
+          Esta guía explica, paso a paso, cómo usar Temp Segura para controlar la temperatura de tus
+          heladeras, recibir alarmas y administrar tu inventario. No necesitás conocimientos técnicos.
+        </p>
+
         <div className="Documentacion-space">
-          <h3 className="Documentacion-subtitle">Contenido:</h3>
+          <h3 className="Documentacion-subtitle">Contenido</h3>
           <ul className="Documentacion-list">
-            <li><a href="#introduccion" className="Documentacion-link">Introducción</a></li>
-            <li><a href="#graficos" className="Documentacion-link">Gráficos de Temperatura</a></li>
-            <li><a href="#controladores" className="Documentacion-link">Controladores de Temperatura</a></li>
-            <li><a href="#stock" className="Documentacion-link">Control de Stock</a></li>
-            {/* <li><a href="#usuarios" className="Documentacion-link">Gestión de Usuarios</a></li>
-            <li><a href="#tema" className="Documentacion-link">Cambio de Tema</a></li> */}
+            <li><a href="#introduccion" className="Documentacion-link">¿Qué es Temp Segura?</a></li>
+            <li><a href="#roles" className="Documentacion-link">Tipos de usuario</a></li>
+            <li><a href="#temperaturas" className="Documentacion-link">Temperaturas e historial</a></li>
+            <li><a href="#controladores" className="Documentacion-link">Configurar el rango (mín/máx)</a></li>
+            <li><a href="#alarmas" className="Documentacion-link">Alarmas</a></li>
+            <li><a href="#stock" className="Documentacion-link">Inventario (stock)</a></li>
+            <li><a href="#compartir" className="Documentacion-link">Compartir una heladera</a></li>
+            <li><a href="#cuenta" className="Documentacion-link">Tu cuenta y contraseña</a></li>
+            <li><a href="#soporte" className="Documentacion-link">Soporte</a></li>
           </ul>
         </div>
 
-        <DocumentacionSection id="introduccion" title="Introducción a Temp Segura">
+        <DocumentacionSection id="introduccion" title="¿Qué es Temp Segura?">
           <p className="Documentacion-paragraph">
-            Temp Segura es un sistema integral para el monitoreo de temperatura
-            en refrigeradores médicos y la gestión de inventario. Esta
-            documentación le guiará a través de las principales funcionalidades
-            del sistema.
+            Temp Segura es una plataforma para vigilar la temperatura de heladeras y freezers (por
+            ejemplo de vacunas, medicamentos o alimentos). Cada heladera tiene un dispositivo que mide
+            la temperatura y la envía al sistema. Vos podés ver el historial en gráficos, recibir
+            <strong> alarmas </strong> cuando la temperatura se sale del rango seguro, y llevar el
+            <strong> inventario </strong> de lo que hay adentro.
+          </p>
+          <p className="Documentacion-paragraph">
+            Para empezar, iniciá sesión con el usuario y contraseña que te dieron. Al entrar verás el
+            menú lateral con las secciones: <strong>Temperaturas</strong>, <strong>Stock</strong>,
+            <strong> Alarmas</strong> y este <strong>Manual</strong>.
           </p>
         </DocumentacionSection>
 
-        <DocumentacionSection id="graficos" title="Gráficos de Temperatura">
+        <DocumentacionSection id="roles" title="Tipos de usuario">
+          <p className="Documentacion-paragraph">Según tu rol vas a ver y poder hacer cosas distintas:</p>
+          <ul className="Documentacion-list">
+            <li><strong>Cliente:</strong> administra sus propias heladeras, grupos, rangos e inventario, y puede compartir heladeras con visitantes.</li>
+            <li><strong>Visitante:</strong> solo lectura. Ve las heladeras que le compartieron (temperaturas, historial y stock), pero no puede editar.</li>
+            <li><strong>Administrador / Superadmin:</strong> gestiona usuarios y dispositivos, y ve todas las heladeras con su dueño.</li>
+          </ul>
+        </DocumentacionSection>
+
+        <DocumentacionSection id="temperaturas" title="Temperaturas e historial">
           <p className="Documentacion-paragraph">
-            Los gráficos de temperatura proporcionan una visualización clara de
-            las fluctuaciones de temperatura a lo largo del tiempo.
+            En <strong>Temperaturas</strong> ves tus heladeras agrupadas, cada una con su última lectura.
+            Si la temperatura está dentro del rango se muestra en <span style={{ color: "#22c55e" }}>verde</span>;
+            si está fuera, en <span style={{ color: "#ef4444" }}>rojo</span>. Tocá <strong>"Ver Historial"</strong>
+            para abrir el gráfico de la heladera.
           </p>
-          <DocumentacionCard title="Gráfico de Temperatura">
+          <DocumentacionCard title="Ejemplo de gráfico de historial">
             <div className="Graficooooo">
-            <Grafico
-              datos={TempEjemplo}
-              mostrarAlertas={false}
-              alertaMinima={2}
-              alertaMaxima={2}
-              
-            />
+              <Grafico datos={TempEjemplo} mostrarAlertas={false} alertaMinima={2} alertaMaxima={2} />
             </div>
-          
           </DocumentacionCard>
           <p className="Documentacion-paragraph">
-            Este gráfico muestra la temperatura a lo largo de un período de 24
-            horas...
+            El gráfico muestra cómo varió la temperatura en el tiempo. Pasá el mouse (o tocá) sobre la
+            línea para ver el valor exacto y la fecha de cada medición.
           </p>
-          <p className="Documentacion-paragraph">Para resolver problemas comunes con los gráficos:</p>
-          <ul className="Documentacion-list">
-            <li>Si el gráfico no se carga, verifique su conexión a internet y recargue la página.</li>
-            <li>Si los datos parecen incorrectos, asegúrese de que los sensores estén correctamente calibrados.</li>
-            <li>Para ver un período de tiempo diferente, use los controles de fecha en la parte superior del gráfico.</li>
-          </ul>
         </DocumentacionSection>
 
-        <DocumentacionSection id="controladores" title="Controladores de Temperatura">
+        <DocumentacionSection id="controladores" title="Configurar el rango (mín/máx)">
           <p className="Documentacion-paragraph">
-            Los controladores de temperatura le permiten ajustar los límites de
-            alerta para cada refrigerador.
+            Cada heladera tiene una temperatura <strong>mínima</strong> y <strong>máxima</strong> permitida.
+            Si una lectura queda por debajo del mínimo o por encima del máximo, se genera una alarma.
+            Ajustá los valores con los deslizadores y guardá los cambios.
           </p>
-          <DocumentacionCard title="Control de Temperatura">
+          <DocumentacionCard title="Control de rango de temperatura">
             <div className="Documentacion-cardContent">
-            <div className="Controladoressolos">
-            <Controladores
-              ValorMinimo={VariableMinima}
-              CambiarMinimo={manejarCambioAmarillo}
-              ValorMaximo={VariableMaxima}
-              CambiarMaximo={manejarCambioRojo} 
-              onToggle={manejarToggleControladores}  
-      
-            />
-          </div>
+              <div className="Controladoressolos">
+                <Controladores
+                  ValorMinimo={VariableMinima}
+                  CambiarMinimo={setVariableMinima}
+                  ValorMaximo={VariableMaxima}
+                  CambiarMaximo={setVariableMaxima}
+                  onToggle={() => {}}
+                />
+              </div>
             </div>
           </DocumentacionCard>
           <p className="Documentacion-paragraph">
-            Use los deslizadores para ajustar la temperatura actual y los límites de alerta...
+            Consejo: configurá el rango según lo que guardás (por ejemplo, las vacunas suelen ir entre
+            2&nbsp;°C y 8&nbsp;°C). Solo los clientes (y administradores) pueden cambiar el rango; los
+            visitantes solo ven.
           </p>
-          <p className="Documentacion-paragraph">Solución de problemas comunes:</p>
+        </DocumentacionSection>
+
+        <DocumentacionSection id="alarmas" title="Alarmas">
+          <p className="Documentacion-paragraph">
+            Cuando una heladera se sale del rango, Temp Segura crea una <strong>alarma</strong> y le
+            avisa por correo al dueño. Entrá a la sección <strong>Alarmas</strong> para verlas todas.
+            Cada alarma pasa por tres estados:
+          </p>
           <ul className="Documentacion-list">
-            <li>Si los controladores no responden, intente refrescar la página.</li>
-            <li>Si las alertas no se activan, verifique que los límites estén configurados correctamente.</li>
-            <li>Para una calibración precisa, use un termómetro externo.</li>
+            <li><strong>Activa:</strong> recién detectada, nadie la atendió todavía.</li>
+            <li><strong>Reconocida:</strong> alguien la vio y está al tanto, pero el problema sigue. Usá el botón <strong>"Reconocer"</strong>.</li>
+            <li><strong>Resuelta:</strong> el problema se solucionó. Usá el botón <strong>"Resolver"</strong>.</li>
           </ul>
-        </DocumentacionSection>
-
-        <DocumentacionSection id="stock" title="Control de Stock">
           <p className="Documentacion-paragraph">
-            El control de stock le permite gestionar el inventario de productos
-            en cada refrigerador.
-          </p>
-          <DocumentacionCard title="Gestión de Stock">
-            <div className="Documentacion-cardContent">
-            {StocksEj.map((fridge, index) => (
-        <StockGruposItem 
-          key={index}
-          stock={fridge.stock} 
-          name={fridge.name} 
-          location={fridge.location} 
-        />
-      ))}
-            </div>
-          </DocumentacionCard>
-          <p className="Documentacion-paragraph">
-            Para agregar un nuevo artículo, complete los campos y haga clic en
-            "Agregar Artículo"...
-          </p>
-          <p className="Documentacion-paragraph">Solución de problemas comunes:</p>
-          <ul className="Documentacion-list">
-            <li>Si un artículo no aparece después de agregarlo, intente refrescar la página.</li>
-            <li>Para corregir errores en los datos, use la función de edición.</li>
-            <li>Si el stock no coincide con el inventario físico, realice un conteo manual.</li>
-          </ul>
-        </DocumentacionSection>
-
-        {/* <DocumentacionSection id="usuarios" title="Gestión de Usuarios">
-          <p className="Documentacion-paragraph">
-            La gestión de usuarios le permite controlar quién tiene acceso al
-            sistema y qué pueden hacer.
-          </p>
-          <DocumentacionCard title="Permisos de Usuario">
-            <div className="Usuarios-cardContent">
-              <p>tabluko</p>
-            </div>
-          </DocumentacionCard>
-          <p className="Usuarios-paragraph">
-            Use los interruptores para activar o desactivar permisos específicos...
-          </p>
-          <p className="Usuarios-paragraph">Solución de problemas comunes:</p>
-          <ul className="Usuarios-list">
-            <li>Si un usuario no puede acceder a ciertas funciones, verifique sus permisos.</li>
-            <li>Para añadir un nuevo usuario, use el botón "Agregar Usuario".</li>
-            <li>Para revocar permisos, considere desactivar su cuenta.</li>
-          </ul>
-        </DocumentacionSection>
-
-        <DocumentacionSection id="tema" title="Cambio de Tema">
-          <p className="Tema-paragraph">
-            Temp Segura ofrece la opción de cambiar entre un tema claro y oscuro...
-          </p>
-          <DocumentacionCard title="Preferencia de Tema">
-            <div className="Tema-cardContent">
-              <p>cambio de tema</p>
-            </div>
-          </DocumentacionCard>
-          <p className="Tema-paragraph">
-            Use el interruptor para cambiar entre el tema claro y oscuro...
-          </p>
-          <p className="Tema-paragraph">Solución de problemas comunes:</p>
-          <ul className="Tema-list">
-            <li>Si el cambio de tema no se aplica correctamente, intente refrescar la página.</li>
-            <li>En caso de problemas, cierre sesión y vuelva a iniciar sesión.</li>
-            <li>Si prefiere un ajuste automático, busque la opción "Tema Automático".</li>
-          </ul>
-        </DocumentacionSection> */}
-
-        <DocumentacionSection id="alertas" title="Sistema de Alertas">
-          <p className="Alertas-description">
-            Temp Segura cuenta con un sistema de alertas SMS que notifica a los usuarios...
+            Podés filtrar por estado (Activas, Reconocidas, Resueltas o Todas) para enfocarte en lo que
+            falta atender. También vas a ver las alarmas dentro del historial de cada heladera.
           </p>
           <div className="Nota mt-4 p-4">
             <h4 className="Nota-title flex items-center text-lg font-semibold mb-2">
@@ -223,16 +154,53 @@ const Documentacion = () => {
               Importante
             </h4>
             <p className="Nota-text">
-              Asegúrese de que los números de teléfono de los usuarios estén actualizados...
+              Para recibir los avisos, mantené tu correo y tu teléfono actualizados en la configuración
+              de tu cuenta. Los avisos por SMS los envía el propio dispositivo de la heladera.
             </p>
           </div>
         </DocumentacionSection>
 
+        <DocumentacionSection id="stock" title="Inventario (stock)">
+          <p className="Documentacion-paragraph">
+            En <strong>Stock</strong> llevás el control de lo que hay dentro de cada heladera: nombre del
+            artículo, cantidad y fecha de vencimiento. Tocá <strong>"Agregar Nuevo Artículo"</strong>,
+            completá los datos y guardá. Para corregir o borrar un ítem, usá los botones de cada fila.
+          </p>
+          <DocumentacionCard title="Ejemplo de inventario de una heladera">
+            <div className="Documentacion-cardContent">
+              {StocksEj.map((fridge, index) => (
+                <StockGruposItem key={index} stock={fridge.stock} name={fridge.name} location={fridge.location} />
+              ))}
+            </div>
+          </DocumentacionCard>
+        </DocumentacionSection>
+
+        <DocumentacionSection id="compartir" title="Compartir una heladera">
+          <p className="Documentacion-paragraph">
+            Si sos cliente, podés darle acceso de <strong>solo lectura</strong> a un visitante (por
+            ejemplo, un auditor o inspector) para que pueda mirar las temperaturas y el stock de una
+            heladera, sin poder modificar nada. Desde la heladera, otorgá el acceso al usuario que quieras.
+            Para quitarlo, revocá el acceso en cualquier momento.
+          </p>
+        </DocumentacionSection>
+
+        <DocumentacionSection id="cuenta" title="Tu cuenta y contraseña">
+          <p className="Documentacion-paragraph">
+            Tocá el ícono de usuario (arriba a la derecha) para abrir la configuración de tu cuenta. Ahí
+            podés actualizar tu nombre, correo y teléfono, y cambiar tu nombre de usuario o tu contraseña.
+          </p>
+          <ul className="Documentacion-list">
+            <li>¿Olvidaste la contraseña? En la pantalla de inicio de sesión usá <strong>"¿Olvidaste tu contraseña?"</strong> y te llega un enlace por correo para crear una nueva.</li>
+            <li>Al registrarte, vas a recibir un correo para <strong>verificar tu cuenta</strong> antes de poder iniciar sesión.</li>
+          </ul>
+        </DocumentacionSection>
+
         <DocumentacionSection id="soporte" title="Soporte">
-          <p className="Soporte-description">
-            Para obtener ayuda adicional o reportar problemas, por favor contacte a
-            nuestro equipo de soporte en 
-            <a href="mailto:support@Temp Segura.com" className="Soporte-link"> tempsegura.contact@gmail.com</a>
+          <p className="Documentacion-paragraph">
+            ¿Necesitás ayuda o querés reportar un problema? Escribinos a{" "}
+            <a href="mailto:soporte@tempsegura.orbitar.dev" className="Documentacion-link">
+              soporte@tempsegura.orbitar.dev
+            </a>.
           </p>
         </DocumentacionSection>
       </div>

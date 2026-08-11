@@ -51,8 +51,12 @@ class Logger
         $logPath = self::LOG_DIR . '/' . $file;
         file_put_contents($logPath, $logString, FILE_APPEND | LOCK_EX);
 
-        // Enviar a stderr en desarrollo
-        if (getenv('APP_ENV') === 'development') {
+        // Enviar a stderr en desarrollo.
+        // Se lee de $_ENV porque phpdotenv (createImmutable) no puebla getenv().
+        // STDERR solo existe en el SAPI cli: bajo php -S (cli-server), Apache o
+        // php-fpm la constante no esta definida y usarla seria un fatal error.
+        $appEnv = $_ENV['APP_ENV'] ?? getenv('APP_ENV');
+        if ($appEnv === 'development' && PHP_SAPI === 'cli' && defined('STDERR')) {
             fwrite(STDERR, "[{$level}] {$message}\n");
         }
     }

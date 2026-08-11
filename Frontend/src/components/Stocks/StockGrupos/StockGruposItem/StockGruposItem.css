@@ -3,6 +3,44 @@
   padding: 1rem;
 }
 
+/* Ajuste rápido de cantidad (+ / -) por item */
+.stock-qty-adjust {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.stock-qty-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid var(--BorderColor2, #334155);
+  background: var(--ColorFondo5, #0b1222);
+  color: var(--LetrasColor1, #e2e8f0);
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.stock-qty-btn:hover:not(:disabled) {
+  background: var(--LetrasColor5, #3b82f6);
+  border-color: var(--LetrasColor5, #3b82f6);
+  color: #fff;
+}
+.stock-qty-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.stock-qty-val {
+  min-width: 2ch;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .stock-gruposItemTotal {
   padding: 0 3rem 0 2rem;
   

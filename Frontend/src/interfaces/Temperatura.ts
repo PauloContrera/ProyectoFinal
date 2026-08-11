@@ -23,6 +23,7 @@ export interface LastTemperature {
     location: string;
     min_temp: number;  // Cambiar a number
     max_temp: number;  // Cambiar a number
+    owner_name?: string | null; // Dueño de la heladera (se muestra a admins)
     last_temperature: {
       id: number;
       temperature: number; // Asegúrate de que sea number

@@ -107,6 +107,12 @@ return [
     'GROUP_NOT_OWNED' => 'El grupo no pertenece al usuario asignado.',
 
 
+    // * Alertas
+    'ALERT_LIST' => 'Listado de alertas.',
+    'ALERT_RESOLVED' => 'Alerta marcada como resuelta.',
+    'ALERT_ACKNOWLEDGED' => 'Alarma reconocida.',
+    'ALERT_NOT_FOUND' => 'La alerta no existe.',
+
     // * General
     'SUCCESS' => 'Operación exitosa.',
 ];

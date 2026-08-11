@@ -44,6 +44,26 @@ if (preg_match('#^/api/devices/(\d+)/temperatures$#', $relativeUri, $matches) &&
     exit;
 }
 
+if ($relativeUri === '/api/alerts' && $requestMethod === 'GET') {
+    (new \Controllers\AlertController($db))->getAll();
+    exit;
+}
+
+if (preg_match('#^/api/devices/(\d+)/alerts$#', $relativeUri, $matches) && $requestMethod === 'GET') {
+    (new \Controllers\AlertController($db))->getByDevice((int)$matches[1]);
+    exit;
+}
+
+if (preg_match('#^/api/alerts/(\d+)/resolve$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
+    (new \Controllers\AlertController($db))->resolve((int)$matches[1]);
+    exit;
+}
+
+if (preg_match('#^/api/alerts/(\d+)/acknowledge$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
+    (new \Controllers\AlertController($db))->acknowledge((int)$matches[1]);
+    exit;
+}
+
 if (preg_match('#^/api/devices/(\d+)/stock$#', $relativeUri, $matches) && $requestMethod === 'GET') {
     (new \Controllers\StockController($db))->getByDevice((int)$matches[1]);
     exit;
