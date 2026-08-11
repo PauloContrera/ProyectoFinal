@@ -113,6 +113,17 @@ return [
     'ALERT_ACKNOWLEDGED' => 'Alarma reconocida.',
     'ALERT_NOT_FOUND' => 'La alerta no existe.',
 
+    // * Stock
+    'STOCK_LIST' => 'Listado de stock.',
+    'STOCK_CREATED' => 'Ítem de stock creado correctamente.',
+    'STOCK_UPDATED' => 'Ítem de stock actualizado correctamente.',
+    'STOCK_DELETED' => 'Ítem de stock eliminado correctamente.',
+    'STOCK_NOT_FOUND' => 'El ítem de stock no existe.',
+
+    // * Temperaturas
+    'TEMPERATURE_LIST' => 'Listado de temperaturas.',
+
     // * General
+    'CANNOT_DELETE_SELF' => 'No puede eliminar su propio usuario.',
     'SUCCESS' => 'Operación exitosa.',
 ];

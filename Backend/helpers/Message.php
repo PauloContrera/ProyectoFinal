@@ -43,8 +43,24 @@ class Message
             return null;
         }
 
-        $messages = self::loadMessages(self::currentLang());
+        $lang = self::currentLang();
+        $messages = self::loadMessages($lang);
+        if (isset($messages[$key])) {
+            return $messages[$key];
+        }
 
-        return $messages[$key] ?? $key;
+        // Catalogo incompleto: antes se devolvia la clave cruda y el usuario veia
+        // "STOCK_UPDATED" como mensaje. Se cae al idioma base y, si tampoco esta,
+        // se avisa por log para que la falta se pueda corregir.
+        if ($lang !== self::FALLBACK) {
+            $base = self::loadMessages(self::FALLBACK);
+            if (isset($base[$key])) {
+                return $base[$key];
+            }
+        }
+
+        Logger::warning('Clave de mensaje sin traduccion', ['key' => $key, 'lang' => $lang]);
+
+        return $key;
     }
 }

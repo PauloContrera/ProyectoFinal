@@ -63,6 +63,15 @@ class StockItem
         $current = $this->getById($id);
         if (!$current) return 0;
 
+        // Se decide con los datos, no con rowCount(). Como el UPDATE siempre setea
+        // updated_at = NOW(), rowCount() daba 0 solo si el reenvio caia dentro del
+        // mismo segundo: NO_CHANGES dependia del reloj y updated_at se pisaba aunque
+        // el usuario no hubiera cambiado nada.
+        $changed = $this->changedFields($current, $data);
+        if (!$changed) {
+            return 0;
+        }
+
         $stmt = $this->conn->prepare("
             UPDATE {$this->table}
             SET name = :name,
@@ -80,9 +89,31 @@ class StockItem
             ':id' => $id,
         ]);
 
-        $this->logDifferences($id, (int)$current['device_id'], $userId, $current, $data);
+        foreach ($changed as [$field, $oldValue, $newValue]) {
+            $this->insertLog($id, (int)$current['device_id'], $userId, 'update', $field, $oldValue, $newValue);
+        }
 
-        return $stmt->rowCount();
+        return count($changed);
+    }
+
+    /**
+     * Campos cuyo valor realmente cambia con este payload.
+     *
+     * @return array<int, array{0:string, 1:mixed, 2:mixed}> [campo, viejo, nuevo]
+     */
+    private function changedFields(array $current, array $data): array
+    {
+        $changed = [];
+        foreach (['name', 'rfid', 'quantity', 'expiration_date'] as $field) {
+            $oldValue = $current[$field] ?? null;
+            $newValue = $data[$field] ?? null;
+
+            if ((string)$oldValue !== (string)$newValue) {
+                $changed[] = [$field, $oldValue, $newValue];
+            }
+        }
+
+        return $changed;
     }
 
     public function delete(int $id, ?int $userId = null): int
@@ -95,18 +126,6 @@ class StockItem
         $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE id = :id");
         $stmt->execute([':id' => $id]);
         return $stmt->rowCount();
-    }
-
-    private function logDifferences(int $stockId, int $deviceId, ?int $userId, array $old, array $new): void
-    {
-        foreach (['name', 'rfid', 'quantity', 'expiration_date'] as $field) {
-            $oldValue = $old[$field] ?? null;
-            $newValue = $new[$field] ?? null;
-
-            if ((string)$oldValue !== (string)$newValue) {
-                $this->insertLog($stockId, $deviceId, $userId, 'update', $field, $oldValue, $newValue);
-            }
-        }
     }
 
     private function logFullChange(int $stockId, int $deviceId, ?int $userId, string $action, array $data): void
