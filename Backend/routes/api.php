@@ -74,6 +74,11 @@ if (preg_match('#^/api/devices/(\d+)/stock$#', $relativeUri, $matches) && $reque
     exit;
 }
 
+if (preg_match('#^/api/devices/(\d+)/movements$#', $relativeUri, $matches) && $requestMethod === 'GET') {
+    (new \Controllers\StockController($db))->getMovements((int)$matches[1]);
+    exit;
+}
+
 if (preg_match('#^/api/stock/(\d+)$#', $relativeUri, $matches) && $requestMethod === 'PUT') {
     (new \Controllers\StockController($db))->update((int)$matches[1]);
     exit;

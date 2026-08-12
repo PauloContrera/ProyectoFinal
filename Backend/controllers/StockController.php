@@ -7,16 +7,19 @@ use Helpers\Validator;
 use Middleware\AuthMiddleware;
 use Models\Device;
 use Models\StockItem;
+use Models\StockMovement;
 
 class StockController
 {
     private Device $deviceModel;
     private StockItem $stockModel;
+    private StockMovement $movementModel;
 
     public function __construct($db)
     {
         $this->deviceModel = new Device($db);
         $this->stockModel = new StockItem($db);
+        $this->movementModel = new StockMovement($db);
     }
 
     public function getByDevice(int $deviceId)
@@ -28,7 +31,33 @@ class StockController
         if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
         if (!$this->canReadDevice($device, $user)) return Response::json(403, 'ACCESS_DENIED');
 
+        // ?rfid=... resuelve una tarjeta sin traer todo el listado, que es lo que
+        // necesita cualquier lector para saber a que item corresponde un escaneo.
+        if (isset($_GET['rfid'])) {
+            $uid = StockMovement::normalizeUid($_GET['rfid']);
+            if ($uid === null) return Response::json(400, 'INVALID_DATA');
+
+            return Response::json(200, 'STOCK_LIST', $this->stockModel->getByDeviceAndRfid($deviceId, $uid));
+        }
+
         return Response::json(200, 'STOCK_LIST', $this->stockModel->getByDeviceId($deviceId));
+    }
+
+    /**
+     * Historial de entradas y salidas registradas por RFID.
+     */
+    public function getMovements(int $deviceId)
+    {
+        AuthMiddleware::verifyToken();
+        $user = $_SERVER['user'];
+
+        $device = $this->deviceModel->getById($deviceId);
+        if (!$device) return Response::json(404, 'FRIDGE_NOT_FOUND');
+        if (!$this->canReadDevice($device, $user)) return Response::json(403, 'ACCESS_DENIED');
+
+        $limit = min(500, max(1, (int)($_GET['limit'] ?? 100)));
+
+        return Response::json(200, 'MOVEMENT_LIST', $this->movementModel->getByDevice($deviceId, $limit));
     }
 
     public function create(int $deviceId)

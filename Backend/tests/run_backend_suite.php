@@ -16,6 +16,7 @@ $tests = [
     'protocol_http_sms_test.php' => 'ESP32: registro, firma HMAC, sync idempotente y comandos',
     'alert_generation_test.php' => 'Alertas: evaluacion server-side, cooldown, acknowledge y alarmero',
     'security_hardening_test.php' => 'Bloqueo temporal de cuenta, anti-enumeracion y provisioning ESP por dispositivo',
+    'rfid_stock_movements_test.php' => 'RFID: entradas y salidas de stock, idempotencia y reconciliacion',
 ];
 
 foreach ($tests as $testFile => $description) {

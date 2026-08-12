@@ -1,0 +1,367 @@
+{
+  "info": {
+    "name": "Temp Segura - Stock por RFID",
+    "description": "Entradas y salidas de stock disparadas por lecturas RFID del ESP.\n\nLas peticiones al ESP van firmadas con HMAC-SHA256. La firma la arma sola el script de pre-request de la coleccion, que decide que mandar segun el numero de peticion, asi que no hay que tocar nada.\n\nCOMO USARLA\n1. Completa 'password' (queda vacia a proposito: no se versionan credenciales).\n2. Ajusta base_url (local o produccion) y activation_keyword para que coincida con el .env del backend.\n3. Corre las peticiones EN ORDEN, o usa el Collection Runner.\n\nPOR QUE UNA CUENTA ADMIN\nLa heladera que crea la peticion 01 se da de alta sola desde el ESP y queda SIN DUEÑO. Un usuario 'client' no la ve hasta que un admin se la asigne, asi que las consultas darian 403. Con admin o superadmin funciona directo.\nSi preferis probar con un client, primero asignale la heladera desde el panel de administracion.\n\nVARIABLES QUE SE COMPLETAN SOLAS\n  shared_secret  la deja la 01\n  token          la deja la 02\n  device_id      la deja la 02\n  stock_id       la deja la 03",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "mac", "value": "AA:BB:CC:DD:EE:70" },
+    { "key": "activation_keyword", "value": "clavesecreta4321" },
+    { "key": "usuario", "value": "PauloSuperAdmin" },
+    { "key": "password", "value": "" },
+    { "key": "uid_a", "value": "3A:5C:33:02" },
+    { "key": "uid_desconocido", "value": "FF:FF:FF:FF" },
+    { "key": "shared_secret", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "device_id", "value": "" },
+    { "key": "stock_id", "value": "" },
+    { "key": "scan_time", "value": "" },
+    { "key": "signed_body", "value": "" },
+    { "key": "ts", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// ------------------------------------------------------------------",
+          "// Pre-request de la COLECCION: corre antes de cada peticion.",
+          "//",
+          "// Arma y firma el cuerpo de los sync del ESP:",
+          "//   signature = HMAC_SHA256(mac + timestamp + json_canonico, shared_secret)",
+          "// donde json_canonico es el payload SIN mac, timestamp ni signature, con",
+          "// las claves de cada objeto ordenadas alfabeticamente.",
+          "//",
+          "// Todo se decide aca (y no en cada peticion) porque Postman ejecuta este",
+          "// script ANTES del de la peticion: si cada una definiera sus parametros,",
+          "// llegarian tarde.",
+          "// ------------------------------------------------------------------",
+          "",
+          "pm.collectionVariables.set('ts', Math.floor(Date.now() / 1000));",
+          "",
+          "const nombre = pm.info.requestName || '';",
+          "const numero = (nombre.match(/^(\\d+)/) || [])[1];",
+          "",
+          "// Que manda cada peticion firmada.",
+          "const escenarios = {",
+          "  '04': { uid: '{{uid_a}}',           mov: 'descarga', cant: 1, reusarScan: false },",
+          "  '05': { uid: '{{uid_a}}',           mov: 'descarga', cant: 1, reusarScan: true  },",
+          "  '06': { uid: '{{uid_a}}',           mov: 'carga',    cant: 5, reusarScan: false },",
+          "  '07': { uid: '{{uid_desconocido}}', mov: 'descarga', cant: 1, reusarScan: false }",
+          "};",
+          "",
+          "const esc = escenarios[numero];",
+          "if (!esc) { return; }",
+          "",
+          "const secret = pm.collectionVariables.get('shared_secret');",
+          "if (!secret) {",
+          "  throw new Error('Falta shared_secret. Corre primero la peticion 01.');",
+          "}",
+          "",
+          "const ts = Math.floor(Date.now() / 1000);",
+          "",
+          "// La 05 reusa el instante de la 04: es el MISMO escaneo fisico reenviado,",
+          "// que es justo lo que hace el ESP cuando se le corta la red.",
+          "let scanTime;",
+          "if (esc.reusarScan) {",
+          "  scanTime = parseInt(pm.collectionVariables.get('scan_time'), 10);",
+          "  if (!scanTime) { throw new Error('Corre primero la peticion 04.'); }",
+          "} else {",
+          "  scanTime = ts - 5;",
+          "  pm.collectionVariables.set('scan_time', String(scanTime));",
+          "}",
+          "",
+          "const mac = pm.collectionVariables.get('mac');",
+          "const uid = pm.collectionVariables.replaceIn(esc.uid);",
+          "",
+          "const evento = { uid: uid, movimiento: esc.mov, time: scanTime };",
+          "if (esc.cant !== 1) { evento.cantidad = esc.cant; }",
+          "",
+          "// Parte firmada del payload (sin mac ni timestamp).",
+          "const firmado = {",
+          "  packet_id: 'pm-' + ts + '-' + Math.floor(Math.random() * 100000),",
+          "  seq: ts % 100000,",
+          "  data: [],",
+          "  local_alerts: [],",
+          "  rfid_events: [evento]",
+          "};",
+          "",
+          "function canon(v) {",
+          "  if (Array.isArray(v)) { return v.map(canon); }",
+          "  if (v && typeof v === 'object') {",
+          "    const out = {};",
+          "    Object.keys(v).sort().forEach(function (k) { out[k] = canon(v[k]); });",
+          "    return out;",
+          "  }",
+          "  return v;",
+          "}",
+          "",
+          "const canonico = JSON.stringify(canon(firmado));",
+          "const firma = CryptoJS.HmacSHA256(mac + ts + canonico, secret).toString(CryptoJS.enc.Hex);",
+          "",
+          "const cuerpo = Object.assign({ mac: mac, timestamp: ts }, firmado, { signature: firma });",
+          "pm.collectionVariables.set('signed_body', JSON.stringify(cuerpo, null, 2));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Registrar el lector (obtiene shared_secret)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const j = pm.response.json();",
+              "const secret = j.provisioning && j.provisioning.shared_secret;",
+              "if (secret) {",
+              "  pm.collectionVariables.set('shared_secret', secret);",
+              "  console.log('shared_secret guardado');",
+              "} else {",
+              "  console.warn('La heladera ya existia, no se reenvia el secreto. Cargalo a mano en shared_secret o usa otra MAC.');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/register", "host": ["{{base_url}}"], "path": ["esp", "register"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{mac}}\",\n  \"modelo\": \"ESP32 + MFRC522\",\n  \"firmware_version\": \"2.0.0\",\n  \"protocol_version\": \"2.0\",\n  \"timestamp\": {{ts}},\n  \"palabra_clave\": \"{{activation_keyword}}\"\n}"
+        },
+        "description": "Da de alta el lector. El shared_secret se entrega UNA sola vez; el script lo guarda."
+      }
+    },
+    {
+      "name": "02 - Login y ubicar la heladera",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login OK', function () { pm.response.to.have.status(200); });",
+              "const token = pm.response.json().data.token;",
+              "pm.collectionVariables.set('token', token);",
+              "",
+              "pm.sendRequest({",
+              "  url: pm.collectionVariables.get('base_url') + '/devices',",
+              "  method: 'GET',",
+              "  header: { 'Authorization': 'Bearer ' + token }",
+              "}, function (err, res) {",
+              "  if (err) { console.error(err); return; }",
+              "  const mac = pm.collectionVariables.get('mac').toUpperCase();",
+              "  const dev = (res.json().data || []).find(function (d) {",
+              "    return (d.mac_address || '').toUpperCase() === mac;",
+              "  });",
+              "  if (dev) {",
+              "    pm.collectionVariables.set('device_id', dev.id);",
+              "    console.log('device_id = ' + dev.id);",
+              "  } else {",
+              "    console.warn('No aparece la heladera. Con un usuario client tiene que estar asignada a el; con admin las ve todas.');",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{usuario}}\",\n  \"password\": \"{{password}}\"\n}" },
+        "description": "Guarda el token y resuelve el device_id buscando la MAC del lector."
+      }
+    },
+    {
+      "name": "03 - Cargar un item con tarjeta (cantidad 10)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('stock_id', pm.response.json().data.stock_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}/stock",
+          "host": ["{{base_url}}"],
+          "path": ["devices", "{{device_id}}", "stock"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Vacunas lote A\",\n  \"rfid\": \"{{uid_a}}\",\n  \"quantity\": 10,\n  \"expiration_date\": \"2027-01-01\"\n}"
+        },
+        "description": "Item que la tarjeta {{uid_a}} va a mover. Arranca en 10 unidades."
+      }
+    },
+    {
+      "name": "04 - DESCARGA: se retira una unidad",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const ev = pm.response.json().ack.rfid.events[0];",
+              "console.log(ev);",
+              "pm.test('Se aplico', function () { pm.expect(ev.applied).to.eql(true); });",
+              "pm.test('Resto 1', function () { pm.expect(ev.quantity_after).to.eql(ev.quantity_before - 1); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": { "mode": "raw", "raw": "{{signed_body}}" },
+        "description": "Lectura en el lector de descarga: el servidor resta 1 al item con esa tarjeta y devuelve quantity_before / quantity_after."
+      }
+    },
+    {
+      "name": "05 - Reenviar la MISMA lectura (no debe volver a restar)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ev = pm.response.json().ack.rfid.events[0];",
+              "console.log(ev);",
+              "pm.test('Marcado como duplicado', function () { pm.expect(ev.duplicate).to.eql(true); });",
+              "pm.test('No se volvio a aplicar', function () { pm.expect(ev.applied).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": { "mode": "raw", "raw": "{{signed_body}}" },
+        "description": "Mismo escaneo (misma tarjeta, direccion e instante) con otro packet_id, como cuando el ESP reintenta tras un corte. La clave natural de stock_movements lo frena y la cantidad no se toca."
+      }
+    },
+    {
+      "name": "06 - CARGA: ingresan 5 unidades",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ev = pm.response.json().ack.rfid.events[0];",
+              "console.log(ev);",
+              "pm.test('Sumo 5', function () { pm.expect(ev.quantity_after).to.eql(ev.quantity_before + 5); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": { "mode": "raw", "raw": "{{signed_body}}" },
+        "description": "Lectura en el lector de carga con cantidad explicita. Sin el campo cantidad, cada lectura vale 1."
+      }
+    },
+    {
+      "name": "07 - Tarjeta desconocida (queda para reconciliar)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('El sync no falla', function () { pm.response.to.have.status(200); });",
+              "const ev = pm.response.json().ack.rfid.events[0];",
+              "console.log(ev);",
+              "pm.test('status = unmatched', function () { pm.expect(ev.status).to.eql('unmatched'); });",
+              "pm.test('No aplico', function () { pm.expect(ev.applied).to.eql(false); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": { "mode": "raw", "raw": "{{signed_body}}" },
+        "description": "Una tarjeta sin item asociado no rompe el paquete: el movimiento queda asentado como unmatched para reconciliarlo despues."
+      }
+    },
+    {
+      "name": "08 - Buscar el item por su tarjeta",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}/stock?rfid={{uid_a}}",
+          "host": ["{{base_url}}"],
+          "path": ["devices", "{{device_id}}", "stock"],
+          "query": [{ "key": "rfid", "value": "{{uid_a}}" }]
+        },
+        "description": "Resuelve un escaneo sin traer todo el listado. Ordena FEFO: si varios items comparten tarjeta, primero el que vence antes."
+      }
+    },
+    {
+      "name": "09 - Historial de movimientos",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}/movements?limit=50",
+          "host": ["{{base_url}}"],
+          "path": ["devices", "{{device_id}}", "movements"],
+          "query": [{ "key": "limit", "value": "50" }]
+        },
+        "description": "Entradas y salidas con cantidad antes y despues, estado (applied / unmatched / ambiguous) y el packet_id que las origino."
+      }
+    },
+    {
+      "name": "10 - Firma invalida (control negativo)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('ERR_FIRMA', function () { pm.expect(pm.response.json().error.code).to.eql('ERR_FIRMA'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{mac}}\",\n  \"timestamp\": {{ts}},\n  \"packet_id\": \"firma-mala\",\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [{ \"uid\": \"{{uid_a}}\", \"movimiento\": \"descarga\" }],\n  \"signature\": \"esto-no-es-una-firma\"\n}"
+        },
+        "description": "Sin firma valida no se mueve stock: 401 con ERR_FIRMA."
+      }
+    }
+  ]
+}

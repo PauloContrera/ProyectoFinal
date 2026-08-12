@@ -9,11 +9,58 @@ class EspProtocol
 {
     private PDO $conn;
     private Alert $alertModel;
+    private StockMovement $movementModel;
 
     public function __construct(PDO $db)
     {
         $this->conn = $db;
         $this->alertModel = new Alert($db);
+        $this->movementModel = new StockMovement($db);
+    }
+
+    /**
+     * Procesa las lecturas RFID de un sync y devuelve un resumen por lectura,
+     * para que el ESP pueda confirmar que cada tarjeta quedo registrada.
+     *
+     * Nunca lanza: una tarjeta mal formada se reporta como invalida y el resto
+     * del paquete (temperaturas, alertas) sigue su curso.
+     */
+    public function processRfidEvents(array $device, array $events, ?string $packetId): array
+    {
+        $deviceId = (int)$device['id'];
+        $results = [];
+
+        foreach ($events as $index => $event) {
+            if (!is_array($event)) {
+                $results[] = ['index' => $index, 'status' => 'invalid', 'reason' => 'Cada lectura debe ser un objeto'];
+                continue;
+            }
+
+            $uid = StockMovement::normalizeUid($event['uid'] ?? $event['rfid'] ?? '');
+            if ($uid === null) {
+                $results[] = ['index' => $index, 'status' => 'invalid', 'reason' => 'UID vacio o con caracteres no permitidos'];
+                continue;
+            }
+
+            $direction = StockMovement::normalizeDirection($event['movimiento'] ?? $event['direction'] ?? $event['tipo'] ?? null);
+            if ($direction === null) {
+                $results[] = ['index' => $index, 'uid' => $uid, 'status' => 'invalid', 'reason' => 'movimiento debe ser carga/descarga (o 1/2)'];
+                continue;
+            }
+
+            $quantity = isset($event['cantidad']) ? (int)$event['cantidad'] : (isset($event['quantity']) ? (int)$event['quantity'] : 1);
+            if ($quantity < 1 || $quantity > 10000) {
+                $results[] = ['index' => $index, 'uid' => $uid, 'status' => 'invalid', 'reason' => 'cantidad fuera de rango (1 a 10000)'];
+                continue;
+            }
+
+            $occurredAt = isset($event['time']) && is_numeric($event['time']) ? (int)$event['time'] : time();
+
+            $outcome = $this->movementModel->apply($deviceId, $uid, $direction, $quantity, $occurredAt, $packetId);
+            $results[] = array_merge(['index' => $index, 'uid' => $uid, 'direction' => $direction], $outcome);
+        }
+
+        return $results;
     }
 
     /**

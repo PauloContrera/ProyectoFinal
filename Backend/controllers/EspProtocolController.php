@@ -109,8 +109,13 @@ class EspProtocolController
 
         $payload['data'] = $payload['data'] ?? [];
         $payload['local_alerts'] = $payload['local_alerts'] ?? [];
-        if (!is_array($payload['data']) || !is_array($payload['local_alerts'])) {
-            return $this->protocolError(400, 'ERR_FORMATO', 'Payload incompleto', 'Los campos data y local_alerts deben ser arrays.', $device);
+        $payload['rfid_events'] = $payload['rfid_events'] ?? [];
+        if (!is_array($payload['data']) || !is_array($payload['local_alerts']) || !is_array($payload['rfid_events'])) {
+            return $this->protocolError(400, 'ERR_FORMATO', 'Payload incompleto', 'Los campos data, local_alerts y rfid_events deben ser arrays.', $device);
+        }
+
+        if (count($payload['rfid_events']) > $this->maxBatchSize($device)) {
+            return $this->protocolError(413, 'ERR_BATCH_GRANDE', 'Demasiadas lecturas RFID', 'Dividir las lecturas en lotes mas chicos.', $device);
         }
 
         if (count($payload['data']) > $this->maxBatchSize($device)) {
@@ -177,6 +182,10 @@ class EspProtocolController
             $this->protocolModel->insertLocalAlert((int)$device['id'], $alert);
         }
 
+        // Lecturas RFID: cada una suma o resta del item que tenga esa tarjeta.
+        $rfidResults = $this->protocolModel->processRfidEvents($device, $payload['rfid_events'], $packetId);
+        $rfidApplied = count(array_filter($rfidResults, fn($r) => !empty($r['applied'])));
+
         if (isset($payload['optional']) && is_array($payload['optional'])) {
             $this->protocolModel->insertDiagnostics((int)$device['id'], $payload['optional']);
         }
@@ -197,18 +206,32 @@ class EspProtocolController
             'duplicates' => $duplicates,
             'local_alerts' => count($payload['local_alerts']),
             'alerts_raised' => $alertsRaised,
+            'rfid_events' => count($rfidResults),
+            'rfid_applied' => $rfidApplied,
         ], null, 'device', (string)$device['id'], 'sync');
+
+        $ack = [
+            'packet_id' => $packetId,
+            'status' => 'accepted',
+            'inserted' => $inserted,
+            'duplicates' => $duplicates,
+        ];
+
+        // Solo se agrega el detalle RFID si el paquete traia lecturas, para no
+        // cambiar la forma de la respuesta a los firmwares que no las envian.
+        if ($rfidResults) {
+            $ack['rfid'] = [
+                'received' => count($rfidResults),
+                'applied' => $rfidApplied,
+                'events' => $rfidResults,
+            ];
+        }
 
         $response = $this->successEnvelope($device, [
             'message' => $inserted . ' registros insertados correctamente',
             'cambio' => $change,
             'duplicate' => false,
-            'ack' => [
-                'packet_id' => $packetId,
-                'status' => 'accepted',
-                'inserted' => $inserted,
-                'duplicates' => $duplicates,
-            ],
+            'ack' => $ack,
         ]);
 
         if ($change) {

@@ -27,6 +27,23 @@ class StockItem
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Items de la heladera con un RFID dado, en orden FEFO (vence antes primero).
+     * Es el mismo criterio que usa StockMovement para resolver un escaneo.
+     */
+    public function getByDeviceAndRfid(int $deviceId, string $rfid): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT id, device_id, name, rfid, quantity, expiration_date, created_at, updated_at
+            FROM {$this->table}
+            WHERE device_id = :device_id AND UPPER(rfid) = :rfid
+            ORDER BY expiration_date IS NULL, expiration_date ASC, id ASC
+        ");
+        $stmt->execute([':device_id' => $deviceId, ':rfid' => strtoupper($rfid)]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getById(int $id)
     {
         $stmt = $this->conn->prepare("
