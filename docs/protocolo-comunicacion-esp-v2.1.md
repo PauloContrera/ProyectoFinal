@@ -1,5 +1,12 @@
 # Protocolo de comunicacion ESP32 v2.1
 
+> **Reemplazado por la v2.2.** Para implementar firmware nuevo usar
+> [`protocolo-comunicacion-esp-v2.2.md`](protocolo-comunicacion-esp-v2.2.md), que
+> incorpora el canal RFID (`rfid_events`), la clave de activacion por dispositivo
+> y el rechazo de dispositivos sin secreto propio. Este documento queda como
+> referencia de lo que ya estaba implementado; todo lo que describe sigue siendo
+> valido.
+
 Este documento define como debe comunicarse un ESP32 con Temp Segura usando HTTP como canal principal y SMS como fallback operativo cuando no hay internet. La version `2.1` mantiene compatibilidad con los endpoints actuales y formaliza los casos de uso, errores y acciones esperadas del firmware.
 
 ## Objetivos
