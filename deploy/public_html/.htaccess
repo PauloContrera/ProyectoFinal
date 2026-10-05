@@ -1,0 +1,39 @@
+# Temp Segura - routing del frontend (SPA) + API
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # La API la maneja public_html/api/.htaccess: no la tocamos aca
+    RewriteRule ^api(/|$) - [L]
+
+    # Archivos y carpetas reales se sirven tal cual (assets, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # SPA fallback: cualquier otra ruta (/verify-email, /reset-password, etc.) -> index.html
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# --- Forzar HTTPS (descomentar cuando el certificado SSL este activo en Hostinger) ---
+# <IfModule mod_rewrite.c>
+#     RewriteCond %{HTTPS} off
+#     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
+
+# Cache de assets estaticos (tienen hash en el nombre)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+</IfModule>
+
+# El index.html no debe cachearse (para tomar nuevos deploys)
+<FilesMatch "index\.html$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </IfModule>
+</FilesMatch>

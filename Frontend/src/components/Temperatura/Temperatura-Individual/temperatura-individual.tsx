@@ -6,6 +6,13 @@
   import { useEffect, useMemo, useState } from "react";
   import { Refrigerator} from "../../../interfaces/Temperatura.ts";
   import { api } from "../../../services/api.ts";
+  import { DeviceAlert } from "../../../types/index.ts";
+
+  // recorded_at viene como datetime UTC del backend ("YYYY-MM-DD HH:MM:SS").
+  const formatearFecha = (valor: string): string => {
+    const fecha = new Date(valor.includes("T") ? valor : valor.replace(" ", "T") + "Z");
+    return Number.isNaN(fecha.getTime()) ? valor : fecha.toLocaleString();
+  };
 
   interface TemperaturaIndividual {
     refrigerator: Refrigerator;
@@ -34,6 +41,8 @@
     };
     const [historialReal, setHistorialReal] = useState<Array<{ id: number; temperature: string; recorded_at: string }>>([]);
     const [historialCargando, setHistorialCargando] = useState(false);
+    const [alertas, setAlertas] = useState<DeviceAlert[]>([]);
+    const [resolviendoId, setResolviendoId] = useState<number | null>(null);
 
     useEffect(() => {
       if (useDemoData) {
@@ -78,6 +87,61 @@
         isMounted = false;
       };
     }, [refrigerator.id, useDemoData]);
+
+    useEffect(() => {
+      if (useDemoData) {
+        setAlertas([]);
+        return;
+      }
+
+      let isMounted = true;
+
+      const cargarAlertas = async () => {
+        try {
+          const response = await api.get<DeviceAlert[]>(
+            `/devices/${refrigerator.id}/alerts?limit=50`
+          );
+          if (isMounted) {
+            setAlertas(Array.isArray(response.data) ? response.data : []);
+          }
+        } catch {
+          if (isMounted) setAlertas([]);
+        }
+      };
+
+      cargarAlertas();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [refrigerator.id, useDemoData]);
+
+    const alertasSinResolver = useMemo(
+      () => alertas.filter((a) => Number(a.resolved) === 0),
+      [alertas]
+    );
+
+    // Maquina de estados del backend: Activa -> Reconocida -> Resuelta.
+    const handleAccion = async (alertId: number, accion: "acknowledge" | "resolve") => {
+      setResolviendoId(alertId);
+      try {
+        await api.put(`/alerts/${alertId}/${accion}`, {});
+        const ahora = new Date().toISOString();
+        setAlertas((current) =>
+          current.map((a) => {
+            if (a.id !== alertId) return a;
+            return accion === "resolve"
+              ? { ...a, resolved: 1, resolved_at: ahora }
+              : { ...a, acknowledged: 1, acknowledged_at: ahora };
+          })
+        );
+      } catch {
+        // Silencioso: si falla, la alerta queda como estaba.
+      } finally {
+        setResolviendoId(null);
+      }
+    };
+
 
     const datosTemperatura = useMemo(() => {
       if (useDemoData) {
@@ -153,6 +217,7 @@
             </div>
           </div>
 
+          <div className="DetalleLateral">
           <div className="ControladoresIndicadoresTotal">
             <div className="ControladoresIndicadoresSolos">
               <Indicadores
@@ -168,13 +233,77 @@
                 ValorMinimo={VariableMinima}
                 CambiarMinimo={manejarCambioAmarillo}
                 ValorMaximo={VariableMaxima}
-                CambiarMaximo={manejarCambioRojo} 
-                onToggle={manejarToggleControladores}  
+                CambiarMaximo={manejarCambioRojo}
+                onToggle={manejarToggleControladores}
                 onSave={() => onSaveRange?.(refrigerator.id, VariableMinima, VariableMaxima)}
                 readOnly={readOnly}
-        
+
               />
             </div>
+          </div>
+
+          {!useDemoData && (
+            <div className="AlertasPanel">
+              <div className="AlertasPanelCabecera">
+                <h3 className="AlertasPanelTitulo">Alertas de temperatura</h3>
+                <span className={`AlertasBadge ${alertasSinResolver.length > 0 ? "activa" : "ok"}`}>
+                  {alertasSinResolver.length > 0
+                    ? `${alertasSinResolver.length} sin resolver`
+                    : "Sin alertas activas"}
+                </span>
+              </div>
+
+              {alertas.length === 0 ? (
+                <p className="AlertasVacio">No hay alertas registradas para esta heladera.</p>
+              ) : (
+                <ul className="AlertasLista">
+                  {alertas.map((alerta) => {
+                    const resuelta = Number(alerta.resolved) === 1;
+                    const reconocida = !resuelta && Number(alerta.acknowledged) === 1;
+                    const estado = resuelta ? "resuelta" : reconocida ? "reconocida" : "activa";
+                    const esAlta = alerta.type === "TEMP_HIGH";
+                    const enCurso = resolviendoId === alerta.id;
+                    return (
+                      <li key={alerta.id} className={`AlertaItem ${estado}`}>
+                        <span className={`AlertaTipo ${esAlta ? "alta" : "baja"}`}>
+                          {esAlta ? "Temp. alta" : "Temp. baja"}
+                        </span>
+                        <span className="AlertaTemp">
+                          {alerta.temperature !== null ? `${Number(alerta.temperature).toFixed(1)}°C` : "—"}
+                        </span>
+                        <span className="AlertaFecha">{formatearFecha(alerta.recorded_at)}</span>
+                        <span className="AlertaEstado">
+                          {resuelta ? "Resuelta" : reconocida ? "Reconocida" : "Activa"}
+                        </span>
+                        {!resuelta && !readOnly && (
+                          <span className="AlertaAcciones">
+                            {!reconocida && (
+                              <button
+                                className="AlertaReconocer"
+                                onClick={() => handleAccion(alerta.id, "acknowledge")}
+                                disabled={enCurso}
+                                type="button"
+                              >
+                                {enCurso ? "..." : "Reconocer"}
+                              </button>
+                            )}
+                            <button
+                              className="AlertaResolver"
+                              onClick={() => handleAccion(alerta.id, "resolve")}
+                              disabled={enCurso}
+                              type="button"
+                            >
+                              {enCurso ? "..." : "Resolver"}
+                            </button>
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
           </div>
           </div>
         </div>

@@ -1,2 +1,26 @@
-.GraficoSolo{   
+.GraficoSolo {
+}
+
+/* Tooltip del gráfico: legible en modo claro y oscuro */
+.custom-tooltip {
+  background-color: var(--ColorFondo2, #1f2937);
+  border: 1px solid var(--BorderColor2, #4b5563);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  font-family: "Inter", sans-serif;
+}
+
+.custom-tooltip p {
+  margin: 0;
+  color: var(--LetrasColor1, #f3f4f6);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.custom-tooltip p:first-child {
+  color: var(--LetrasColor2, #9ca3af);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-bottom: 2px;
 }

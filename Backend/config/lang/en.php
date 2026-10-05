@@ -41,5 +41,10 @@ return [
     'TEST_LOG_SUCCESS' => 'Test log created.',
     'MISSING_DEVICE_CODE' => 'Device code is required.',
     'INVALID_DEVICE_CODE' => 'Device code format is invalid.',
-    'INVALID_TEMPERATURE_RANGE' => 'Temperature range is invalid.'
+    'INVALID_TEMPERATURE_RANGE' => 'Temperature range is invalid.',
+    'ALERT_LIST' => 'Alert list.',
+    'ALERT_RESOLVED' => 'Alert marked as resolved.',
+    'ALERT_ACKNOWLEDGED' => 'Alarm acknowledged.',
+    'ALERT_NOT_FOUND' => 'The alert does not exist.',
+    'EMAIL_ALREADY_VERIFIED' => 'The email has already been verified.'
 ];

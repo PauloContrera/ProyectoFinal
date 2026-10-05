@@ -18,7 +18,7 @@ class StockItem
     public function getByDeviceId(int $deviceId): array
     {
         $stmt = $this->conn->prepare("
-            SELECT id, device_id, name, quantity, expiration_date, created_at, updated_at
+            SELECT id, device_id, name, rfid, quantity, expiration_date, created_at, updated_at
             FROM {$this->table}
             WHERE device_id = :device_id
             ORDER BY expiration_date IS NULL, expiration_date ASC, name ASC
@@ -27,10 +27,27 @@ class StockItem
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Items de la heladera con un RFID dado, en orden FEFO (vence antes primero).
+     * Es el mismo criterio que usa StockMovement para resolver un escaneo.
+     */
+    public function getByDeviceAndRfid(int $deviceId, string $rfid): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT id, device_id, name, rfid, quantity, expiration_date, created_at, updated_at
+            FROM {$this->table}
+            WHERE device_id = :device_id AND UPPER(rfid) = :rfid
+            ORDER BY expiration_date IS NULL, expiration_date ASC, id ASC
+        ");
+        $stmt->execute([':device_id' => $deviceId, ':rfid' => strtoupper($rfid)]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getById(int $id)
     {
         $stmt = $this->conn->prepare("
-            SELECT id, device_id, name, quantity, expiration_date, created_at, updated_at
+            SELECT id, device_id, name, rfid, quantity, expiration_date, created_at, updated_at
             FROM {$this->table}
             WHERE id = :id
         ");
@@ -41,12 +58,13 @@ class StockItem
     public function create(int $deviceId, array $data, ?int $userId = null): int
     {
         $stmt = $this->conn->prepare("
-            INSERT INTO {$this->table} (device_id, name, quantity, expiration_date)
-            VALUES (:device_id, :name, :quantity, :expiration_date)
+            INSERT INTO {$this->table} (device_id, name, rfid, quantity, expiration_date)
+            VALUES (:device_id, :name, :rfid, :quantity, :expiration_date)
         ");
         $stmt->execute([
             ':device_id' => $deviceId,
             ':name' => $data['name'],
+            ':rfid' => $data['rfid'] ?? null,
             ':quantity' => $data['quantity'],
             ':expiration_date' => $data['expiration_date'],
         ]);
@@ -62,9 +80,19 @@ class StockItem
         $current = $this->getById($id);
         if (!$current) return 0;
 
+        // Se decide con los datos, no con rowCount(). Como el UPDATE siempre setea
+        // updated_at = NOW(), rowCount() daba 0 solo si el reenvio caia dentro del
+        // mismo segundo: NO_CHANGES dependia del reloj y updated_at se pisaba aunque
+        // el usuario no hubiera cambiado nada.
+        $changed = $this->changedFields($current, $data);
+        if (!$changed) {
+            return 0;
+        }
+
         $stmt = $this->conn->prepare("
             UPDATE {$this->table}
             SET name = :name,
+                rfid = :rfid,
                 quantity = :quantity,
                 expiration_date = :expiration_date,
                 updated_at = NOW()
@@ -72,14 +100,37 @@ class StockItem
         ");
         $stmt->execute([
             ':name' => $data['name'],
+            ':rfid' => $data['rfid'] ?? null,
             ':quantity' => $data['quantity'],
             ':expiration_date' => $data['expiration_date'],
             ':id' => $id,
         ]);
 
-        $this->logDifferences($id, (int)$current['device_id'], $userId, $current, $data);
+        foreach ($changed as [$field, $oldValue, $newValue]) {
+            $this->insertLog($id, (int)$current['device_id'], $userId, 'update', $field, $oldValue, $newValue);
+        }
 
-        return $stmt->rowCount();
+        return count($changed);
+    }
+
+    /**
+     * Campos cuyo valor realmente cambia con este payload.
+     *
+     * @return array<int, array{0:string, 1:mixed, 2:mixed}> [campo, viejo, nuevo]
+     */
+    private function changedFields(array $current, array $data): array
+    {
+        $changed = [];
+        foreach (['name', 'rfid', 'quantity', 'expiration_date'] as $field) {
+            $oldValue = $current[$field] ?? null;
+            $newValue = $data[$field] ?? null;
+
+            if ((string)$oldValue !== (string)$newValue) {
+                $changed[] = [$field, $oldValue, $newValue];
+            }
+        }
+
+        return $changed;
     }
 
     public function delete(int $id, ?int $userId = null): int
@@ -94,21 +145,9 @@ class StockItem
         return $stmt->rowCount();
     }
 
-    private function logDifferences(int $stockId, int $deviceId, ?int $userId, array $old, array $new): void
-    {
-        foreach (['name', 'quantity', 'expiration_date'] as $field) {
-            $oldValue = $old[$field] ?? null;
-            $newValue = $new[$field] ?? null;
-
-            if ((string)$oldValue !== (string)$newValue) {
-                $this->insertLog($stockId, $deviceId, $userId, 'update', $field, $oldValue, $newValue);
-            }
-        }
-    }
-
     private function logFullChange(int $stockId, int $deviceId, ?int $userId, string $action, array $data): void
     {
-        foreach (['name', 'quantity', 'expiration_date'] as $field) {
+        foreach (['name', 'rfid', 'quantity', 'expiration_date'] as $field) {
             $value = $data[$field] ?? null;
             if ($action === 'create') {
                 $this->insertLog($stockId, $deviceId, $userId, $action, $field, null, $value);

@@ -85,22 +85,87 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function incrementFailedAttempts($userId)
+    /**
+     * Suma un intento fallido y, si se alcanzo el umbral, bloquea la cuenta por
+     * $lockMinutes. Con $lockMinutes <= 0 el bloqueo es permanente (locked_until
+     * queda NULL) y solo se levanta con un reset de contraseña.
+     */
+    public function incrementFailedAttempts($userId, ?int $maxAttempts = null, int $lockMinutes = 0)
     {
         $stmt = $this->db->prepare('UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE id = :id');
         $stmt->execute(['id' => $userId]);
+
+        if ($maxAttempts === null || $maxAttempts <= 0 || $lockMinutes <= 0) {
+            return;
+        }
+
+        $stmt = $this->db->prepare('
+            UPDATE users
+            SET locked_until = DATE_ADD(NOW(), INTERVAL :minutes MINUTE)
+            WHERE id = :id AND failed_login_attempts >= :max_attempts
+        ');
+        $stmt->execute([
+            'minutes' => $lockMinutes,
+            'id' => $userId,
+            'max_attempts' => $maxAttempts,
+        ]);
     }
 
     public function resetFailedAttempts($userId)
     {
-        $stmt = $this->db->prepare('UPDATE users SET failed_login_attempts = 0, last_login_at = NOW() WHERE id = :id');
+        $stmt = $this->db->prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL, last_login_at = NOW() WHERE id = :id');
         $stmt->execute(['id' => $userId]);
+    }
+
+    /**
+     * Limpia el bloqueo cuando ya vencio. Devuelve true si desbloqueo la cuenta.
+     */
+    public function clearExpiredLock(int $userId): bool
+    {
+        $stmt = $this->db->prepare('
+            UPDATE users
+            SET failed_login_attempts = 0, locked_until = NULL
+            WHERE id = :id AND locked_until IS NOT NULL AND locked_until <= NOW()
+        ');
+        $stmt->execute(['id' => $userId]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * La cuenta esta bloqueada si tiene una ventana de bloqueo vigente, o si
+     * supero el umbral de intentos sin ventana (bloqueo permanente).
+     *
+     * Importante: si locked_until sigue con valor es porque la ventana no vencio.
+     * Quien compara contra el reloj es MySQL dentro de clearExpiredLock(), que hay
+     * que llamar antes. No se compara en PHP a proposito: el servidor de base y el
+     * de PHP pueden estar en husos horarios distintos y NOW() no es time().
+     */
+    public function isLocked(array $user, int $maxAttempts): bool
+    {
+        if (!empty($user['locked_until'])) {
+            return true;
+        }
+
+        return $maxAttempts > 0 && (int)($user['failed_login_attempts'] ?? 0) >= $maxAttempts;
+    }
+
+    /**
+     * Desbloqueo manual desde administracion.
+     */
+    public function unlockAccount(int $userId): bool
+    {
+        $stmt = $this->db->prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = :id');
+        $stmt->execute(['id' => $userId]);
+
+        return $stmt->rowCount() > 0;
     }
 
     public function getAllUsers()
     {
         $stmt = $this->db->query('
-            SELECT id, name, username, email, phone, role, is_email_verified, last_login_at, registered_at, updated_at
+            SELECT id, name, username, email, phone, role, is_email_verified,
+                   failed_login_attempts, locked_until, last_login_at, registered_at, updated_at
             FROM users
             ORDER BY registered_at DESC, id DESC
         ');

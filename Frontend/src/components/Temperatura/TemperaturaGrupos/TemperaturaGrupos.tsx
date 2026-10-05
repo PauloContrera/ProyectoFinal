@@ -9,13 +9,15 @@ interface TemperaturaGruposProps {
   onVerHistorialClick: (refrigeratorId: number) => void;
   onSaveRange?: (refrigeratorId: number, minTemp: number, maxTemp: number) => Promise<void>;
   readOnly?: boolean;
+  showOwner?: boolean;
 }
 
 export default function TemperaturaGrupos({
   groupData,
   onVerHistorialClick,
   onSaveRange,
-  readOnly = false
+  readOnly = false,
+  showOwner = false
 }: TemperaturaGruposProps) {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [isRotated, setIsRotated] = useState<boolean>(false);
@@ -74,6 +76,7 @@ export default function TemperaturaGrupos({
                 onVerHistorialClick={onVerHistorialClick}
                 onSaveRange={onSaveRange}
                 readOnly={readOnly}
+                showOwner={showOwner}
               />
             ))}
           </div>

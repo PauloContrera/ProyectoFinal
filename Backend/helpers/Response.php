@@ -29,8 +29,23 @@ class Response
             'timestamp' => date('Y-m-d H:i:s')
         ];
 
-        echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        echo json_encode($response, self::jsonFlags());
         exit;
+    }
+
+    /**
+     * JSON_PRETTY_PRINT solo fuera de produccion: en produccion solo agrega bytes
+     * a cada respuesta sin que nadie lea el JSON a mano.
+     */
+    public static function jsonFlags(): int
+    {
+        $flags = JSON_UNESCAPED_UNICODE;
+
+        if (strtolower((string)($_ENV['APP_ENV'] ?? 'development')) !== 'production') {
+            $flags |= JSON_PRETTY_PRINT;
+        }
+
+        return $flags;
     }
 
     /**

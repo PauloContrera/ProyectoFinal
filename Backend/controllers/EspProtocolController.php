@@ -55,8 +55,16 @@ class EspProtocolController
             return $this->protocolError(400, 'ERR_TIMESTAMP', 'Timestamp invalido o fuera de rango', 'Sincronizar hora por SNTP o GET /api/esp/time antes de registrar.');
         }
 
-        if ($this->requiresActivationKey() && !$this->isValidActivationKey($payload)) {
-            return $this->protocolError(401, 'ERR_ACTIVACION', 'Clave de activacion invalida', 'Enviar palabra_clave valida para registrar el dispositivo.');
+        // Se busca la heladera antes de validar para poder exigir la clave de
+        // activacion propia del dispositivo (y no una global compartida).
+        $existing = $this->protocolModel->findDeviceByMac($mac);
+
+        if ($this->requiresActivationKey() && !$this->isValidActivationKey($payload, $existing)) {
+            return $this->protocolError(401, 'ERR_ACTIVACION', 'Clave de activacion invalida', 'Enviar la palabra_clave asignada a esta heladera para registrarla.');
+        }
+
+        if (!$existing && !$this->allowsSelfRegistration()) {
+            return $this->protocolError(403, 'ERR_ACTIVACION', 'Alta automatica deshabilitada', 'Preprovisionar la heladera desde administracion (POST /api/devices con mac_address) antes de registrar el ESP.');
         }
 
         $provisionedSecret = bin2hex(random_bytes(32));
@@ -101,8 +109,13 @@ class EspProtocolController
 
         $payload['data'] = $payload['data'] ?? [];
         $payload['local_alerts'] = $payload['local_alerts'] ?? [];
-        if (!is_array($payload['data']) || !is_array($payload['local_alerts'])) {
-            return $this->protocolError(400, 'ERR_FORMATO', 'Payload incompleto', 'Los campos data y local_alerts deben ser arrays.', $device);
+        $payload['rfid_events'] = $payload['rfid_events'] ?? [];
+        if (!is_array($payload['data']) || !is_array($payload['local_alerts']) || !is_array($payload['rfid_events'])) {
+            return $this->protocolError(400, 'ERR_FORMATO', 'Payload incompleto', 'Los campos data, local_alerts y rfid_events deben ser arrays.', $device);
+        }
+
+        if (count($payload['rfid_events']) > $this->maxBatchSize($device)) {
+            return $this->protocolError(413, 'ERR_BATCH_GRANDE', 'Demasiadas lecturas RFID', 'Dividir las lecturas en lotes mas chicos.', $device);
         }
 
         if (count($payload['data']) > $this->maxBatchSize($device)) {
@@ -152,9 +165,14 @@ class EspProtocolController
 
         $inserted = 0;
         $duplicates = 0;
+        $alertsRaised = 0;
         foreach ($payload['data'] as $record) {
             if ($this->protocolModel->insertTemperatureIfMissing((int)$device['id'], (float)$record['temp'], (int)$record['time'])) {
                 $inserted++;
+                // Evaluacion server-side: alerta si la lectura sale del rango configurado.
+                if ($this->protocolModel->evaluateReadingAlert($device, (float)$record['temp'], (int)$record['time'])) {
+                    $alertsRaised++;
+                }
             } else {
                 $duplicates++;
             }
@@ -163,6 +181,10 @@ class EspProtocolController
         foreach ($payload['local_alerts'] as $alert) {
             $this->protocolModel->insertLocalAlert((int)$device['id'], $alert);
         }
+
+        // Lecturas RFID: cada una suma o resta del item que tenga esa tarjeta.
+        $rfidResults = $this->protocolModel->processRfidEvents($device, $payload['rfid_events'], $packetId);
+        $rfidApplied = count(array_filter($rfidResults, fn($r) => !empty($r['applied'])));
 
         if (isset($payload['optional']) && is_array($payload['optional'])) {
             $this->protocolModel->insertDiagnostics((int)$device['id'], $payload['optional']);
@@ -183,18 +205,33 @@ class EspProtocolController
             'inserted' => $inserted,
             'duplicates' => $duplicates,
             'local_alerts' => count($payload['local_alerts']),
+            'alerts_raised' => $alertsRaised,
+            'rfid_events' => count($rfidResults),
+            'rfid_applied' => $rfidApplied,
         ], null, 'device', (string)$device['id'], 'sync');
+
+        $ack = [
+            'packet_id' => $packetId,
+            'status' => 'accepted',
+            'inserted' => $inserted,
+            'duplicates' => $duplicates,
+        ];
+
+        // Solo se agrega el detalle RFID si el paquete traia lecturas, para no
+        // cambiar la forma de la respuesta a los firmwares que no las envian.
+        if ($rfidResults) {
+            $ack['rfid'] = [
+                'received' => count($rfidResults),
+                'applied' => $rfidApplied,
+                'events' => $rfidResults,
+            ];
+        }
 
         $response = $this->successEnvelope($device, [
             'message' => $inserted . ' registros insertados correctamente',
             'cambio' => $change,
             'duplicate' => false,
-            'ack' => [
-                'packet_id' => $packetId,
-                'status' => 'accepted',
-                'inserted' => $inserted,
-                'duplicates' => $duplicates,
-            ],
+            'ack' => $ack,
         ]);
 
         if ($change) {
@@ -302,9 +339,19 @@ class EspProtocolController
             return null;
         }
 
-        if ($requireSignature && !$this->verifySignature($payload, $device['shared_secret'] ?: $this->defaultSecret())) {
-            $this->protocolError(401, 'ERR_FIRMA', 'Firma no valida o ausente', 'Recalcular HMAC_SHA256(mac + timestamp + json_data).', $device);
-            return null;
+        if ($requireSignature) {
+            // Sin secreto propio no hay forma seria de autenticar el paquete: se
+            // rechaza en vez de degradar a un secreto compartido conocido.
+            $secret = trim((string)($device['shared_secret'] ?? ''));
+            if ($secret === '') {
+                $this->protocolError(401, 'ERR_FIRMA', 'Dispositivo sin secreto aprovisionado', 'Registrar el ESP con POST /api/esp/register para obtener su shared_secret.', $device);
+                return null;
+            }
+
+            if (!$this->verifySignature($payload, $secret)) {
+                $this->protocolError(401, 'ERR_FIRMA', 'Firma no valida o ausente', 'Recalcular HMAC_SHA256(mac + timestamp + json_data).', $device);
+                return null;
+            }
         }
 
         return $device;
@@ -424,12 +471,14 @@ class EspProtocolController
 
     private function successEnvelope(array $device, array $payload): array
     {
+        // Nota: no se incluye 'palabra_clave' ni 'shared_secret' en el envelope.
+        // La clave de activacion solo se usa en el alta y nunca debe viajar en
+        // respuestas de sync/comando (el protocolo lo prohibe explicitamente).
         return array_merge([
             'success' => true,
             'server_time' => time(),
             'request_id' => $this->requestId,
             'estado_cuenta' => (bool)$device['account_enabled'],
-            'palabra_clave' => $device['activation_keyword'] ?: $this->activationKeyword(),
             'config_version' => (int)($device['config_version'] ?? 1),
             'policy' => $this->policy($device),
         ], $payload);
@@ -466,7 +515,7 @@ class EspProtocolController
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: no-store');
         header('X-Request-ID: ' . $this->requestId);
-        echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        echo json_encode($payload, \Helpers\Response::jsonFlags());
         exit;
     }
 
@@ -513,15 +562,32 @@ class EspProtocolController
         return filter_var($_ENV['ESP_REQUIRE_ACTIVATION_KEY'] ?? 'true', FILTER_VALIDATE_BOOL);
     }
 
-    private function isValidActivationKey(array $payload): bool
+    /**
+     * Permite dar de alta una MAC desconocida desde el propio ESP. Con esto en
+     * false solo se registran heladeras preprovisionadas desde administracion.
+     */
+    private function allowsSelfRegistration(): bool
     {
-        $provided = trim((string)($payload['palabra_clave'] ?? $payload['activation_keyword'] ?? ''));
-        return $provided !== '' && hash_equals($this->activationKeyword(), $provided);
+        return filter_var($_ENV['ESP_ALLOW_SELF_REGISTRATION'] ?? 'true', FILTER_VALIDATE_BOOL);
     }
 
-    private function defaultSecret(): string
+    /**
+     * Si la heladera ya existe se exige su propia palabra_clave; la global solo
+     * aplica al alta de una MAC nueva (o a filas viejas sin clave asignada).
+     */
+    private function isValidActivationKey(array $payload, ?array $device = null): bool
     {
-        return $_ENV['ESP_DEFAULT_SECRET'] ?? 'local-dev-esp-secret';
+        $provided = trim((string)($payload['palabra_clave'] ?? $payload['activation_keyword'] ?? ''));
+        if ($provided === '') {
+            return false;
+        }
+
+        $expected = trim((string)($device['activation_keyword'] ?? ''));
+        if ($expected === '') {
+            $expected = $this->activationKeyword();
+        }
+
+        return hash_equals($expected, $provided);
     }
 
     private function activationKeyword(): string

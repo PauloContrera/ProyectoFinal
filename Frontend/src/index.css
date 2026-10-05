@@ -1,4 +1,48 @@
-body{
-    margin: 0;
-    padding: 0;
+:root {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--ColorFondo1, #0f172a);
+  color: var(--LetrasColor1, #111827);
+}
+
+/* Tipografía consistente en toda la app */
+h1, h2, h3, h4, h5, h6,
+button, input, select, textarea, p, a, span, label, td, th, li {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Scrollbars más modernas (oscuras/claras según fondo) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--BorderColor2, #4b5563) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--BorderColor2, #4b5563);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
 }

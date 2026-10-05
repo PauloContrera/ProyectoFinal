@@ -1,0 +1,103 @@
+.AccountPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  background-color: var(--ColorFondo1, #0f172a);
+  font-family: "Inter", sans-serif;
+}
+
+.AccountCard {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--ColorFondo2, #1f2937);
+  border: 1px solid var(--BorderColor3, #33415580);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.3);
+}
+
+.AccountLogo {
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  font-size: 1.1rem;
+  color: var(--LetrasColor4, #2563eb);
+  margin-bottom: 1.5rem;
+}
+
+.AccountTitulo {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.4rem;
+  color: var(--LetrasColor1, #f3f4f6);
+}
+
+.AccountTitulo.ok {
+  color: #16a34a;
+}
+
+.AccountTitulo.error {
+  color: #dc2626;
+}
+
+.AccountMensaje {
+  margin: 0 0 1.5rem 0;
+  color: var(--LetrasColor2, #9ca3af);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.AccountForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.AccountInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7em 0.9em;
+  border-radius: 8px;
+  border: 1px solid var(--BorderColor2, #4b5563);
+  background-color: var(--ColorFondo5, #111827);
+  color: var(--LetrasColor1, #f3f4f6);
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+}
+
+.AccountInput:focus {
+  outline: none;
+  border-color: var(--LetrasColor4, #2563eb);
+}
+
+.AccountError {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.AccountBtn {
+  margin-top: 0.5rem;
+  width: 100%;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  color: #fff;
+  background-color: var(--LetrasColor4, #2563eb);
+}
+
+.AccountBtn:hover {
+  filter: brightness(1.08);
+}
+
+.AccountBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

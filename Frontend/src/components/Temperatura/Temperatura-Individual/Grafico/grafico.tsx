@@ -55,9 +55,15 @@ const Grafico: React.FC<GraficoProps> = ({
     <>
       <ResponsiveContainer width="100%" height={alto}>
         <AreaChart data={datos}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="recorded_at" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.25)" />
+          <XAxis
+            dataKey="recorded_at"
+            tick={{ fill: "#94a3b8", fontSize: 11 }}
+            stroke="rgba(148,163,184,0.45)"
+          />
           <YAxis
+            tick={{ fill: "#94a3b8", fontSize: 11 }}
+            stroke="rgba(148,163,184,0.45)"
             domain={[
               (dataMin: number) => Math.min(dataMin - 1, alertaMinima - 0.5),
               (dataMax: number) => Math.max(dataMax + 1, alertaMaxima + 0.5)

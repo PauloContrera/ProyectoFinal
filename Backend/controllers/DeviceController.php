@@ -11,9 +11,11 @@ use Middleware\AuthMiddleware;
 class DeviceController
 {
     private $deviceModel;
+    private $db;
 
     public function __construct($db)
     {
+        $this->db = $db;
         $this->deviceModel = new Device($db);
     }
 
@@ -41,7 +43,7 @@ class DeviceController
         }
 
         // Validar que no se repita el device_code
-        global $db;
+        $db = $this->db;
         $stmt = $db->prepare("SELECT id FROM devices WHERE device_code = ?");
         $stmt->execute([$deviceCode]);
         if ($stmt->fetch()) return Response::json(400, 'DEVICE_CODE_EXISTS');
@@ -328,7 +330,7 @@ class DeviceController
 
 
         // ✅ Verificar si el usuario existe
-        global $db;
+        $db = $this->db;
         $stmt = $db->prepare("SELECT id, role FROM users WHERE id = ?");
         $stmt->execute([$input['user_id']]);
         $targetUser = $stmt->fetch();
@@ -367,7 +369,7 @@ class DeviceController
 
 
         // ✅ Validar que el usuario exista
-        global $db;
+        $db = $this->db;
         $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
         $stmt->execute([$input['user_id']]);
         if (!$stmt->fetch()) {
@@ -402,7 +404,7 @@ class DeviceController
         $deviceCode = strtoupper(trim((string)$input['device_code']));
         if (!Validator::validateDeviceCode($deviceCode)) return Response::json(400, 'INVALID_DEVICE_CODE');
         // Validar que el usuario a asignar exista
-        global $db;
+        $db = $this->db;
 
         // Validar que el usuario a asignar exista y no sea visitor
         $userCheck = $db->prepare("SELECT id, role FROM users WHERE id = ?");
@@ -449,7 +451,7 @@ class DeviceController
         if (!$isOwner && !$isAdmin) return Response::json(403, 'ACCESS_DENIED');
 
         $groupId = $input['group_id'] === null || $input['group_id'] === '' ? null : (int)$input['group_id'];
-        global $db;
+        $db = $this->db;
         if ($groupId !== null) {
             $stmt = $db->prepare("SELECT id FROM device_groups WHERE id = ?");
             $stmt->execute([$groupId]);

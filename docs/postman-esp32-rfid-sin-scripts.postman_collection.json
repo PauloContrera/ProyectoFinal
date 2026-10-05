@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "Temp Segura - ESP32 v2.2 sin scripts (RFID)",
+    "description": "Coleccion SIN scripts: no tiene pre-request, tests ni calculos automaticos. El JSON se ve y se edita tal cual lo enviaria el ESP32.\n\nLas peticiones firmadas llevan la firma en una variable que se pega a mano. Para calcularla:\n\n    php Backend/tests/firmar_payload.php --ejemplo=sync-rfid <shared_secret>\n\nEse comando imprime el JSON canonico, la firma y el BODY COMPLETO listo para pegar. Guia paso a paso en docs/postman-rfid-sin-scripts.md\n\nIMPORTANTE\n- La firma vale ~15 minutos (tolerancia de timestamp). Vencida, recalcular.\n- Cambiar packet_id en cada lote nuevo: repetirlo con otro contenido da 409 ERR_REPLAY.\n- El time de cada lectura RFID identifica el escaneo: repetirlo se toma como reenvio y no descuenta de nuevo.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "esp_mac", "value": "A1:B2:C3:D4:E5:01" },
+    { "key": "esp_shared_secret", "value": "PEGAR_SHARED_SECRET" },
+    { "key": "activation_keyword", "value": "clavesecreta4321" },
+    { "key": "esp_timestamp", "value": "PEGAR_TIMESTAMP" },
+    { "key": "scan_time", "value": "PEGAR_TIME_DEL_ESCANEO" },
+    { "key": "uid_a", "value": "3A:5C:33:02" },
+    { "key": "uid_b", "value": "33:94:BC:D9" },
+    { "key": "uid_desconocido", "value": "FF:EE:DD:CC" },
+    { "key": "firma_sync_descarga", "value": "PEGAR_FIRMA" },
+    { "key": "firma_sync_carga", "value": "PEGAR_FIRMA" },
+    { "key": "firma_sync_completo", "value": "PEGAR_FIRMA" },
+    { "key": "firma_sync_desconocida", "value": "PEGAR_FIRMA" },
+    { "key": "firma_command", "value": "PEGAR_FIRMA" },
+    { "key": "device_id", "value": "PEGAR_DEVICE_ID" },
+    { "key": "token", "value": "PEGAR_TOKEN" },
+    { "key": "usuario", "value": "PauloSuperAdmin" },
+    { "key": "password", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 - Hora del servidor (sin firma)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/esp/time", "host": ["{{base_url}}"], "path": ["esp", "time"] },
+        "description": "Primer paso siempre. Copiar 'server_time' a la variable esp_timestamp y usar ese mismo valor al calcular la firma.\n\nDevuelve tambien timestamp_tolerance_seconds: cuanto tiempo sigue siendo valida una firma."
+      }
+    },
+    {
+      "name": "01 - Registro del lector (sin firma, con palabra_clave)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/register", "host": ["{{base_url}}"], "path": ["esp", "register"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{esp_mac}}\",\n  \"modelo\": \"ESP32-doit-devkit-v1 + MFRC522\",\n  \"firmware_version\": \"2.2.0\",\n  \"protocol_version\": \"2.2\",\n  \"sim_imei\": \"354829071122334\",\n  \"timestamp\": {{esp_timestamp}},\n  \"palabra_clave\": \"{{activation_keyword}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "No lleva firma. Copiar provisioning.shared_secret de la respuesta a la variable esp_shared_secret: se entrega UNA sola vez.\n\nSi la MAC ya existe no devuelve provisioning, y la palabra_clave que vale es la propia de esa heladera, no la global."
+      }
+    },
+    {
+      "name": "02 - SYNC: descarga de una unidad (firmado)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-rfid-001\",\n  \"seq\": 1,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"movimiento\": \"descarga\", \"time\": {{scan_time}}, \"uid\": \"{{uid_a}}\" }\n  ],\n  \"signature\": \"{{firma_sync_descarga}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Resta 1 al item que tenga la tarjeta uid_a.\n\nJSON que se firma (claves ordenadas, sin mac/timestamp/signature):\n{\"data\":[],\"local_alerts\":[],\"packet_id\":\"manual-rfid-001\",\"rfid_events\":[{\"movimiento\":\"descarga\",\"time\":SCAN_TIME,\"uid\":\"3A:5C:33:02\"}],\"seq\":1}\n\nOJO: dentro de rfid_events las claves van en orden alfabetico (movimiento, time, uid). El body de arriba ya esta en ese orden para que sea facil compararlo.\n\nRespuesta esperada: ack.rfid.events[0] con applied=true, quantity_before y quantity_after."
+      }
+    },
+    {
+      "name": "03 - SYNC: reenviar la MISMA lectura (no debe restar)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-rfid-002\",\n  \"seq\": 2,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"movimiento\": \"descarga\", \"time\": {{scan_time}}, \"uid\": \"{{uid_a}}\" }\n  ],\n  \"signature\": \"PEGAR_FIRMA_DE_ESTE_PAQUETE\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Mismo escaneo (mismo uid, movimiento y time) pero con packet_id DISTINTO: es lo que hace el ESP cuando reintenta despues de un corte de red.\n\nHay que recalcular la firma porque cambio el packet_id.\n\nEsperado: ack.rfid.events[0].duplicate = true, applied = false, y la cantidad sin cambios. Esa es la idempotencia por escaneo."
+      }
+    },
+    {
+      "name": "04 - SYNC: carga de 5 unidades (firmado)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-rfid-003\",\n  \"seq\": 3,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"cantidad\": 5, \"movimiento\": \"carga\", \"time\": {{scan_time}}, \"uid\": \"{{uid_a}}\" }\n  ],\n  \"signature\": \"{{firma_sync_carga}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Suma 5. Sin el campo cantidad, cada lectura vale 1.\n\nUsar un time distinto al de la peticion 02, si no se toma como el mismo escaneo y responde duplicate."
+      }
+    },
+    {
+      "name": "05 - SYNC: movimiento como entero del enum TipoRfid",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-rfid-004\",\n  \"seq\": 4,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"movimiento\": 2, \"time\": {{scan_time}}, \"uid\": \"{{uid_a}}\" }\n  ],\n  \"signature\": \"PEGAR_FIRMA_DE_ESTE_PAQUETE\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "El firmware manda (int)event.tipo, donde 1 = carga y 2 = descarga. El servidor lo acepta igual que el texto.\n\nEsperado: direction = 'out' en la respuesta."
+      }
+    },
+    {
+      "name": "06 - SYNC: UID como lo imprime el MFRC522",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-rfid-005\",\n  \"seq\": 5,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"movimiento\": \"carga\", \"time\": {{scan_time}}, \"uid\": \"3A 5C 33 02\" }\n  ],\n  \"signature\": \"PEGAR_FIRMA_DE_ESTE_PAQUETE\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "printUid() del firmware imprime el UID separado por espacios. El servidor lo normaliza a 3A:5C:33:02.\n\nPara firmar hay que usar el string TAL CUAL se envia, con los espacios."
+      }
+    },
+    {
+      "name": "07 - SYNC: tarjeta desconocida (unmatched)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-rfid-006\",\n  \"seq\": 6,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"movimiento\": \"descarga\", \"time\": {{scan_time}}, \"uid\": \"{{uid_desconocido}}\" }\n  ],\n  \"signature\": \"{{firma_sync_desconocida}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Una tarjeta que no corresponde a ningun item no rompe el paquete: responde 200 con status = unmatched y el movimiento queda asentado para reconciliar."
+      }
+    },
+    {
+      "name": "08 - SYNC completo: temperatura + RFID + diagnostico",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-full-001\",\n  \"seq\": 7,\n  \"data\": [\n    { \"temp\": 4.3, \"time\": {{scan_time}} }\n  ],\n  \"local_alerts\": [],\n  \"optional\": {\n    \"battery_level\": 89,\n    \"signal_strength\": -67,\n    \"uptime\": 86400\n  },\n  \"rfid_events\": [\n    { \"movimiento\": \"descarga\", \"time\": {{scan_time}}, \"uid\": \"{{uid_a}}\" }\n  ],\n  \"signature\": \"{{firma_sync_completo}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "El paquete tipico en operacion. Las claves de nivel superior van en orden alfabetico (data, local_alerts, optional, packet_id, rfid_events, seq) para que coincida con el canonico.\n\nEsperado: ack.inserted = 1 y ack.rfid.applied = 1."
+      }
+    },
+    {
+      "name": "09 - COMMAND RESPONSE (firmado)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/command-response", "host": ["{{base_url}}"], "path": ["esp", "command-response"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-cmd-001\",\n  \"seq\": 8,\n  \"respuesta_comando\": {\n    \"detalle\": \"Parametros aplicados correctamente\",\n    \"estado\": \"ok\",\n    \"tipo\": \"cambio_config\"\n  },\n  \"signature\": \"{{firma_command}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Se manda despues de aplicar una config recibida en un sync con cambio = true."
+      }
+    },
+    {
+      "name": "10 - Control negativo: firma invalida",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/esp/sync", "host": ["{{base_url}}"], "path": ["esp", "sync"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"manual-firma-mala\",\n  \"seq\": 99,\n  \"data\": [],\n  \"local_alerts\": [],\n  \"rfid_events\": [\n    { \"movimiento\": \"descarga\", \"time\": {{scan_time}}, \"uid\": \"{{uid_a}}\" }\n  ],\n  \"signature\": \"esto-no-es-una-firma\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Esperado: 401 con ERR_FIRMA y el stock sin tocar. Sirve para confirmar que nada pasa sin firma valida."
+      }
+    },
+    {
+      "name": "11 - Login (para las consultas)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"{{usuario}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "description": "Copiar data.token a la variable token.\n\nUsar una cuenta admin: la heladera dada de alta por el ESP queda sin dueño y un usuario client no la ve."
+      }
+    },
+    {
+      "name": "12 - Consultar stock de la heladera",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}/stock",
+          "host": ["{{base_url}}"],
+          "path": ["devices", "{{device_id}}", "stock"]
+        },
+        "description": "Para ver como quedaron las cantidades despues de los movimientos. El device_id sale de GET /api/devices buscando la MAC."
+      }
+    },
+    {
+      "name": "13 - Buscar un item por su tarjeta",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}/stock?rfid={{uid_a}}",
+          "host": ["{{base_url}}"],
+          "path": ["devices", "{{device_id}}", "stock"],
+          "query": [{ "key": "rfid", "value": "{{uid_a}}" }]
+        },
+        "description": "Resuelve una tarjeta sin traer todo el listado. Orden FEFO: si varios items comparten el UID, primero el que vence antes."
+      }
+    },
+    {
+      "name": "14 - Historial de movimientos",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}/movements?limit=50",
+          "host": ["{{base_url}}"],
+          "path": ["devices", "{{device_id}}", "movements"],
+          "query": [{ "key": "limit", "value": "50" }]
+        },
+        "description": "Entradas y salidas con cantidad antes y despues, estado (applied / unmatched / ambiguous) y el packet_id que las origino."
+      }
+    }
+  ]
+}

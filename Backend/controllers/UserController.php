@@ -247,6 +247,16 @@ class UserController
             }
         }
 
+        // Desbloqueo manual de una cuenta bloqueada por intentos fallidos.
+        if (!empty($data['unlock'])) {
+            if ($this->userModel->unlockAccount((int)$id)) {
+                $changes++;
+                AuditLogger::event('user_account_unlocked', 'Cuenta desbloqueada desde administracion', 'info', [
+                    'target_user_id' => (int)$id,
+                ], (int)$currentUser['id'], 'user', (string)$id, 'unlock');
+            }
+        }
+
         if (!empty($data['password'])) {
             $password = (string)$data['password'];
             if (!Validator::validatePassword($password)) {
@@ -387,28 +397,6 @@ class UserController
 
         return Response::json(200, 'PASSWORD_UPDATE_SUCCESS');
     }
-
-    public function verifyEmail()
-{
-    $token = $_GET['token'] ?? null;
-
-    if (!$token) {
-        return Response::json(400, 'TOKEN_REQUIRED');
-    }
-
-    $user = $this->userModel->getByVerificationToken($token);
-
-    if (!$user) {
-        return Response::json(404, 'INVALID_TOKEN');
-    }
-
-    $this->userModel->verifyEmail($user['id']);
-
-    return Response::json(200, 'EMAIL_VERIFIED_SUCCESS');
-}
-
-
-
 
     public function testLog()
     {

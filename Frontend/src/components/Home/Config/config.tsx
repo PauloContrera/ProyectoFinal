@@ -71,7 +71,7 @@ const Config: React.FC<ConfigProps> = ({ onClose, shouldCloseOnSave = true }) =>
         phone: phone.trim(),
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      setMessage("Configuracion guardada");
+      setMessage("Configuración guardada");
 
       if (shouldCloseOnSave) {
         onClose();
@@ -86,7 +86,7 @@ const Config: React.FC<ConfigProps> = ({ onClose, shouldCloseOnSave = true }) =>
   if (!user) {
     return (
       <div className="ConfigPanel">
-        <p className="ConfigMuted">No hay sesion activa.</p>
+        <p className="ConfigMuted">No hay sesión activa.</p>
       </div>
     );
   }
@@ -95,7 +95,7 @@ const Config: React.FC<ConfigProps> = ({ onClose, shouldCloseOnSave = true }) =>
     <div className="ConfigPanel">
       <div className="ConfigHeader">
         <div>
-          <h2>Configuracion de usuario</h2>
+          <h2>Configuración de usuario</h2>
           <p>{user.role} | datos personales y credenciales</p>
         </div>
       </div>
@@ -117,19 +117,19 @@ const Config: React.FC<ConfigProps> = ({ onClose, shouldCloseOnSave = true }) =>
         </label>
 
         <label>
-          Telefono SMS
+          Teléfono SMS
           <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} />
         </label>
 
         <div className="ConfigDivider" />
 
         <label>
-          Contrasena actual
+          Contraseña actual
           <input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" />
         </label>
 
         <label>
-          Nueva contrasena
+          Nueva contraseña
           <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" />
         </label>
 

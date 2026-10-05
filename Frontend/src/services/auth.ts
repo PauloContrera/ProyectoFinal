@@ -82,6 +82,18 @@ class AuthService {
   }
 
   /**
+   * Verifica si un token de reseteo de contraseña es válido
+   */
+  async verifyResetToken(token: string): Promise<boolean> {
+    try {
+      const response = await api.get(`/reset-password/verify?token=${encodeURIComponent(token)}`);
+      return Boolean(response.success);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Recupera contraseña con token
    */
   async resetPassword(token: string, password: string): Promise<void> {

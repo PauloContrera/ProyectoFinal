@@ -1,0 +1,22 @@
+# Front controller de la API: todo lo que no sea un archivo real va a index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /api/
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# No listar directorios
+Options -Indexes
+
+# Proteger archivos sensibles (env, dependencias, dumps, docs).
+# bootstrap.php se incluye desde index.php: no debe invocarse por URL.
+<FilesMatch "(^\.env|^\.env\..*|^bootstrap\.php$|composer\.(json|lock)|\.sql|\.md|\.log)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear acceso HTTP directo a las carpetas internas de la app
+# (PHP las sigue cargando por filesystem; esto solo corta el acceso por navegador)
+RedirectMatch 403 ^/api/(config|controllers|models|helpers|middleware|routes|MailTemplates|vendor|logs)(/.*)?$

@@ -17,13 +17,12 @@
     margin: 0;
     padding: 0;
     z-index: 1000; /* Asegura que el menú quede por encima de otros elementos */
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-
-
 }
 
 .menuHorizaontalTotal {
     display: flex;
+    align-items: center;
+    height: 100%; /* Ocupa el 100% de la barra superior (sin franja muerta) */
     background-color: var(--ColorFondo2); /* Fondo del menú horizontal */
 }
 
@@ -37,17 +36,17 @@
     background-color: var(--ColorFondo2);
     z-index: 1000; /* Asegura que esté por encima del contenido desplazable */
     overflow-y: auto; /* Permite desplazamiento vertical si el contenido es alto */
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-
+    border-right: 1px solid rgba(0, 0, 0, 0.18); /* Separa de forma sutil del contenido, sin costura arriba */
 }
 
 /* Estilo para el contenedor del menú desplegable */
 .menuDesplejableTotal {
     display: flex;
     align-items: center;
-    justify-content: start;
+    justify-content: center;
     background-color: var(--ColorFondo2);
-    width: 50px;
+    width: 60px;
+    height: 100%;
 }
 
 /* Estilo para la sección del logo en el menú horizontal */
@@ -56,9 +55,9 @@
     align-items: center;
     width: 100%;
     background-color: var(--ColorFondo2);
-    
-  height: 40px;
-  padding: 1rem;;
+
+  height: 100%;
+  padding: 0 1.5rem;
     justify-content: space-between;
 }
 
@@ -78,16 +77,18 @@
 .menuConfiguracionesVerticalTotal {
     display: flex;
     flex-direction: column;
-    align-items: start; /* Alinea los items al inicio */
-    justify-content: space-between;
+    align-items: stretch; /* Los items ocupan todo el ancho del menú */
+    justify-content: flex-start;
     background-color: var(--ColorFondo2);
-    width: 50px; /* Ancho por defecto */
+    width: 60px; /* Ancho por defecto */
     height: calc(100vh - var(--TamanoMenuVertical));
     overflow: hidden;
     transition: width 0.4s; /* Transición suave para el cambio de ancho */
 }
 
 /* Contenedor para cada opción en el menú vertical */
+/* Es un <button> para que el menu sea operable por teclado y lo anuncien los
+   lectores de pantalla; los resets lo dejan visualmente igual que antes. */
 .menuConfiguracionesVerticalSolo {
     display: flex;
     align-items: center;
@@ -97,17 +98,28 @@
     padding: 0 0px; /* Espacio a la izquierda para iconos */
     transition: background-color 0.3s;
     width: 100%;
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+}
+
+.menuConfiguracionesVerticalSolo:focus-visible {
+    outline: 2px solid var(--LetrasColor5);
+    outline-offset: -2px;
 }
 .menuConfiguracionesVerticalSoloDescrip{
-    padding: 0;
+    padding: 0 1.5rem 0 0;
     margin: 0;
+    white-space: nowrap;
     font-family: "Inter", sans-serif;
     font-size: 0.875rem;
     line-height: 1.25rem;
     color: var(--LetrasColor1);
 }
 .menuConfiguracionesVerticalSoloSVG{
-    width: 50px;
+    width: 60px;
     height: 1.5rem;
     color: var(--LetrasColor1);
 }
@@ -120,7 +132,7 @@
 /* Estilo cuando el menú vertical está abierto */
 .menuConfiguracionesVerticalTotal.open {
     width: max-content; /* Ancho cuando está abierto */
-    padding-right: 1em;
+    min-width: 190px;
 }
 
 /* Estilo para el texto dentro de cada opción del menú vertical */
@@ -142,14 +154,29 @@
 
 }
 
+.menuConfiguracionesVerticalArriba {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Resaltado del item activo y al pasar el mouse (azul claro) */
+.menuConfiguracionesVerticalSolo:hover {
+    background-color: rgba(59, 130, 246, 0.08);
+}
+.menuConfiguracionesVerticalSolo.selected {
+    background-color: rgba(59, 130, 246, 0.16);
+    box-shadow: inset 3px 0 0 var(--LetrasColor5, #3b82f6);
+}
+
 
 
 /* Estilo para la sección del contenido principal */
 .menuContenido {
-    margin-left: 50px; /* Espacio para el menú vertical cerrado */
+    margin-left: 60px; /* Espacio para el menú vertical cerrado */
     margin-top: var(--TamanoMenuVertical); /* Espacio para el menú horizontal */
     height: calc(100vh - var(--TamanoMenuVertical)); /* Ajuste dinámico del contenido */
-    width: calc(100% - 50px); /* Ajuste dinámico del contenido */
+    width: calc(100% - 60px); /* Ajuste dinámico del contenido */
     overflow-y: auto; /* Permite desplazamiento vertical del contenido */
 }
 
@@ -198,6 +225,13 @@
         margin-left: 0px; /* Espacio para el menú vertical cerrado */
         width: 100%; /* Ajuste dinámico del contenido */
         overflow-y: auto; /* Permite desplazamiento vertical del contenido */
+    }
+    /* Topbar más compacto en mobile para que no se corten los íconos */
+    .menuLogoHorizaontalTotal {
+        padding: 0 0.75rem;
+    }
+    .menuDesplejableTotal {
+        width: 48px;
     }
   }
   

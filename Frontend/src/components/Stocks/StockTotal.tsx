@@ -63,7 +63,7 @@ const parseNumber = (value: string | number, fallback: number) => {
 };
 
 const itemMatches = (item: StockTableItem, query: string) =>
-  `${item.name} ${item.quantity} ${item.expirationDate || ""}`.toLowerCase().includes(query);
+  `${item.name} ${item.rfid || ""} ${item.quantity} ${item.expirationDate || ""}`.toLowerCase().includes(query);
 
 const filterFridges = (fridges: StockFridge[], query: string) => {
   if (!query) return fridges;
@@ -83,6 +83,7 @@ const toStockItems = (items: StockItem[]): StockTableItem[] =>
   items.map((item) => ({
     id: item.id,
     name: item.name,
+    rfid: item.rfid || "",
     quantity: Number(item.quantity) || 0,
     expirationDate: item.expiration_date || "",
   }));
@@ -94,7 +95,7 @@ const toStockFridge = (
 ): StockFridge => ({
   id: device.id,
   name: device.name,
-  location: device.location || "Sin ubicacion",
+  location: device.location || "Sin ubicación",
   min_temp: Number(device.min_temp),
   max_temp: Number(device.max_temp),
   deviceCode: device.device_code,
@@ -364,6 +365,7 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
     runAction(async () => {
       await api.post(`/devices/${deviceId}/stock`, {
         name: item.name.trim(),
+        rfid: item.rfid?.trim() || null,
         quantity: parseNumber(item.quantity, 0),
         expiration_date: item.expirationDate || null,
       });
@@ -374,6 +376,7 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
     runAction(async () => {
       await api.put(`/stock/${item.id}`, {
         name: item.name.trim(),
+        rfid: item.rfid?.trim() || null,
         quantity: parseNumber(item.quantity, 0),
         expiration_date: item.expirationDate || null,
       });
@@ -417,7 +420,7 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
 
     return (
       <>
-        <span className="StockCountPill">{fridge.min_temp} / {fridge.max_temp} C</span>
+        <span className="StockCountPill" title="Rango de temperatura permitido">Rango: {fridge.min_temp}–{fridge.max_temp} °C</span>
         <button className="StockIconButton" type="button" onClick={() => startEditDevice(device)} title="Editar heladera">
           <Pencil size={16} />
         </button>
@@ -447,14 +450,14 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
         />
         <input
           className="StockField"
-          placeholder="Codigo"
+          placeholder="Código"
           value={draft.device_code}
           onChange={(event) => setDraft({ ...draft, device_code: event.target.value })}
           disabled={mode === "edit"}
         />
         <input
           className="StockField"
-          placeholder="Ubicacion"
+          placeholder="Ubicación"
           value={draft.location}
           onChange={(event) => setDraft({ ...draft, location: event.target.value })}
         />
@@ -564,7 +567,7 @@ export default function StockTotal({ useDemoData }: StockTotalProps) {
               />
               <input
                 className="StockField"
-                placeholder="Descripcion"
+                placeholder="Descripción"
                 value={newGroupDraft.description}
                 onChange={(event) => setNewGroupDraft({ ...newGroupDraft, description: event.target.value })}
               />

@@ -141,14 +141,9 @@ body {
   background-color: var(--ColorFondo5); */
 
 }
-@media (max-width: 1000px) {
-  .Controladoressolos {
-      width: calc(100% - 1rem);
-  }
-}
 
 @media (max-width: 600px) {
-  .Documentacion-container { 
+  .Documentacion-container {
       /* width: 100%; */
       padding: 0;
       margin: 0 ;

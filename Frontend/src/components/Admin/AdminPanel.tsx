@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Cpu, Eye, FileText, Pencil, Plus, RefreshCw, Save, ShieldCheck, Trash2, Users, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Building2, Cpu, Eye, FileText, Pencil, Plus, RefreshCw, Save, ShieldCheck, Trash2, Users, X } from "lucide-react";
 import { api } from "../../services/api";
-import { AuditChangeLog, AuditEventLog, AuditRequestLog, AuditSummary, Device, DeviceGroup, User } from "../../types";
+import { AuditChangeLog, AuditEventLog, AuditRequestLog, AuditSummary, Device, DeviceAlert, DeviceGroup, User } from "../../types";
 import { useAuth } from "../../hooks/useAuth";
 import "./AdminPanel.css";
 
-type AdminTab = "users" | "devices" | "logs";
+type AdminTab = "clients" | "users" | "devices" | "logs";
 
 type UserDraft = {
   name: string;
@@ -46,7 +46,25 @@ type AccessDraft = {
   can_modify: boolean;
 };
 
+type DeviceEditDraft = {
+  name: string;
+  location: string;
+  min_temp: string;
+  max_temp: string;
+  firmware_version: string;
+};
+
 const createDeviceCode = () => `ESP-${Date.now().toString(36).toUpperCase()}`;
+
+// Campo con etiqueta visible para los formularios del panel.
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="AdminField">
+      <label>{label}</label>
+      {children}
+    </div>
+  );
+}
 
 const emptyUserDraft = (role: User["role"]): UserDraft => ({
   name: "",
@@ -72,16 +90,21 @@ const emptyDeviceDraft = (ownerId?: number): DeviceDraft => ({
 });
 
 const friendlyError: Record<string, string> = {
-  ACCESS_DENIED: "No tenes permisos para hacer esta accion.",
+  ACCESS_DENIED: "No tenes permisos para hacer esta acción.",
   USER_OR_EMAIL_EXISTS: "El usuario o el email ya existen.",
-  USERNAME_IN_USE: "El username ya esta en uso.",
-  EMAIL_IN_USE: "El email ya esta en uso.",
-  INVALID_PASSWORD: "La contrasena necesita minimo 8 caracteres, mayuscula, minuscula y numero.",
-  INVALID_DEVICE_CODE: "El codigo del dispositivo no es valido.",
-  DEVICE_CODE_EXISTS: "Ya existe un dispositivo con ese codigo.",
+  USERNAME_IN_USE: "El username ya está en uso.",
+  EMAIL_IN_USE: "El email ya está en uso.",
+  INVALID_PASSWORD: "La contraseña necesita mínimo 8 caracteres, mayúscula, minúscula y número.",
+  INVALID_DEVICE_CODE: "El código del dispositivo no es válido.",
+  DEVICE_CODE_EXISTS: "Ya existe un dispositivo con ese código.",
   MAC_ADDRESS_EXISTS: "Ya existe un dispositivo con esa MAC.",
   CANNOT_ASSIGN_TO_VISITOR: "Los visitantes solo pueden recibir acceso de lectura.",
   GROUP_NOT_OWNED: "El grupo elegido no pertenece al usuario asignado.",
+  GROUP_HAS_DEVICES: "No se puede borrar: el grupo tiene heladeras. Movelas o sacalas del grupo primero.",
+  USER_NOT_FOUND: "El usuario seleccionado no existe.",
+  MISSING_NAME: "Falta el nombre.",
+  DEVICE_ALREADY_ASSIGNED: "La heladera ya tiene dueño.",
+  INVALID_TEMPERATURE_RANGE: "El rango de temperatura no es válido (mínima debe ser menor que la máxima).",
 };
 
 const readError = (error: unknown, fallback: string) => {
@@ -114,9 +137,10 @@ const toInt = (value: string, fallback: number) => {
 
 export default function AdminPanel() {
   const { user } = useAuth();
-  const [selectedTab, setSelectedTab] = useState<AdminTab>("users");
+  const [selectedTab, setSelectedTab] = useState<AdminTab>("clients");
   const [users, setUsers] = useState<User[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [alerts, setAlerts] = useState<DeviceAlert[]>([]);
   const [groups, setGroups] = useState<DeviceGroup[]>([]);
   const [summary, setSummary] = useState<AuditSummary | null>(null);
   const [requestLogs, setRequestLogs] = useState<AuditRequestLog[]>([]);
@@ -128,9 +152,20 @@ export default function AdminPanel() {
   const [userDraft, setUserDraft] = useState<UserDraft>(() => emptyUserDraft(user?.role || "admin"));
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [editUserDraft, setEditUserDraft] = useState<UserDraft>(() => emptyUserDraft(user?.role || "admin"));
-  const [deviceDraft, setDeviceDraft] = useState<DeviceDraft>(() => emptyDeviceDraft(user?.id));
+  const [deviceDraft, setDeviceDraft] = useState<DeviceDraft>(() => emptyDeviceDraft());
   const [provisioning, setProvisioning] = useState<ProvisioningInfo | null>(null);
   const [accessDrafts, setAccessDrafts] = useState<Record<number, AccessDraft>>({});
+  const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
+  const [editDeviceDraft, setEditDeviceDraft] = useState<DeviceEditDraft>({
+    name: "",
+    location: "",
+    min_temp: "",
+    max_temp: "",
+    firmware_version: "",
+  });
+  const [groupDraft, setGroupDraft] = useState({ user_id: "", name: "", description: "" });
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+  const [editGroupDraft, setEditGroupDraft] = useState({ name: "", description: "" });
 
   const canUsePanel = user?.role === "admin" || user?.role === "superadmin";
   const canCreateAdmins = user?.role === "superadmin";
@@ -150,6 +185,12 @@ export default function AdminPanel() {
     [users]
   );
 
+  // Heladeras/ESP que se registraron pero todavía no tienen dueño asignado.
+  const unassignedDevices = useMemo(
+    () => devices.filter((item) => !item.user_id),
+    [devices]
+  );
+
   const loadAdminData = useCallback(async () => {
     if (!canUsePanel) return;
 
@@ -157,7 +198,7 @@ export default function AdminPanel() {
     setError("");
 
     try {
-      const [usersResponse, devicesResponse, groupsResponse, summaryResponse, requestsResponse, eventsResponse, changesResponse] = await Promise.all([
+      const [usersResponse, devicesResponse, groupsResponse, summaryResponse, requestsResponse, eventsResponse, changesResponse, alertsResponse] = await Promise.all([
         api.get<User[]>("/users"),
         api.get<Device[]>("/devices"),
         api.get<DeviceGroup[]>("/device-groups"),
@@ -165,6 +206,7 @@ export default function AdminPanel() {
         api.get<{ items: AuditRequestLog[] }>("/audit/requests?limit=20"),
         api.get<{ items: AuditEventLog[] }>("/audit/events?limit=20"),
         api.get<{ items: AuditChangeLog[] }>("/audit/changes?limit=20"),
+        api.get<DeviceAlert[]>("/alerts?status=open&limit=500"),
       ]);
 
       const nextUsers = Array.isArray(usersResponse.data) ? usersResponse.data : [];
@@ -172,17 +214,12 @@ export default function AdminPanel() {
       setDevices(Array.isArray(devicesResponse.data) ? devicesResponse.data : []);
       setGroups(Array.isArray(groupsResponse.data) ? groupsResponse.data : []);
       setSummary(summaryResponse.data);
+      setAlerts(Array.isArray(alertsResponse.data) ? alertsResponse.data : []);
       setRequestLogs(Array.isArray(requestsResponse.data.items) ? requestsResponse.data.items : []);
       setEventLogs(Array.isArray(eventsResponse.data.items) ? eventsResponse.data.items : []);
       setChangeLogs(Array.isArray(changesResponse.data.items) ? changesResponse.data.items : []);
-
-      setDeviceDraft((current) => {
-        if (current.user_id) return current;
-        const firstOwner = nextUsers.find((item) => item.role !== "visitor");
-        return firstOwner ? { ...current, user_id: String(firstOwner.id) } : current;
-      });
     } catch (err: unknown) {
-      setError(readError(err, "No se pudo cargar administracion"));
+      setError(readError(err, "No se pudo cargar administración"));
     } finally {
       setIsLoading(false);
     }
@@ -198,7 +235,7 @@ export default function AdminPanel() {
         <div className="AdminEmpty">
           <ShieldCheck size={22} />
           <div>
-            <h2>Administracion</h2>
+            <h2>Administración</h2>
             <p>Tu rol actual no tiene acceso a esta vista.</p>
           </div>
         </div>
@@ -299,7 +336,8 @@ export default function AdminPanel() {
       });
 
       setProvisioning(response.data.provisioning || null);
-      setDeviceDraft(emptyDeviceDraft(Number(deviceDraft.user_id) || user?.id));
+      // Mantenemos el dueño elegido para crear varias heladeras del mismo cliente seguidas.
+      setDeviceDraft(emptyDeviceDraft(Number(deviceDraft.user_id) || undefined));
     }, "Dispositivo creado");
   };
 
@@ -319,14 +357,170 @@ export default function AdminPanel() {
     }, "Acceso otorgado");
   };
 
+  const handleAssignOwner = (device: Device, userId: string) => {
+    if (!userId) return;
+    runAction(async () => {
+      await api.post("/devices/assign-to-user", {
+        device_code: device.device_code,
+        user_id: Number(userId),
+      });
+    }, "Dueño reasignado");
+  };
+
+  const handleAssignGroup = (device: Device, groupId: string) => {
+    runAction(async () => {
+      await api.post(`/devices/${device.id}/assign-group`, {
+        group_id: groupId ? Number(groupId) : null,
+      });
+    }, "Grupo actualizado");
+  };
+
+  const startEditDevice = (device: Device) => {
+    setEditingDeviceId(device.id);
+    setEditDeviceDraft({
+      name: device.name || "",
+      location: device.location || "",
+      min_temp: device.min_temp !== undefined && device.min_temp !== null ? String(device.min_temp) : "",
+      max_temp: device.max_temp !== undefined && device.max_temp !== null ? String(device.max_temp) : "",
+      firmware_version: device.firmware_version || "",
+    });
+  };
+
+  const handleSaveDevice = (device: Device) => {
+    runAction(async () => {
+      await api.put(`/devices/${device.id}`, {
+        name: editDeviceDraft.name.trim(),
+        location: editDeviceDraft.location.trim() || null,
+        min_temp: toInt(editDeviceDraft.min_temp, 2),
+        max_temp: toInt(editDeviceDraft.max_temp, 8),
+        firmware_version: editDeviceDraft.firmware_version.trim() || null,
+      });
+      setEditingDeviceId(null);
+    }, "Dispositivo actualizado");
+  };
+
+  const handleDeleteDevice = (device: Device) => {
+    if (!window.confirm(`¿Eliminar la heladera "${device.name}"? Esta acción no se puede deshacer.`)) return;
+    runAction(async () => {
+      await api.delete(`/devices/${device.id}`);
+    }, "Dispositivo eliminado");
+  };
+
+  const handleCreateGroup = () => {
+    if (!groupDraft.user_id) {
+      setError("Elegí un cliente para el grupo.");
+      return;
+    }
+    runAction(async () => {
+      await api.post("/device-groups", {
+        name: groupDraft.name.trim(),
+        description: groupDraft.description.trim() || null,
+        user_id: Number(groupDraft.user_id),
+      });
+      setGroupDraft((current) => ({ user_id: current.user_id, name: "", description: "" }));
+    }, "Grupo creado");
+  };
+
+  const startEditGroup = (group: DeviceGroup) => {
+    setEditingGroupId(group.id);
+    setEditGroupDraft({ name: group.name || "", description: group.description || "" });
+  };
+
+  const handleSaveGroup = (group: DeviceGroup) => {
+    runAction(async () => {
+      await api.put(`/device-groups/${group.id}`, {
+        name: editGroupDraft.name.trim(),
+        description: editGroupDraft.description.trim() || null,
+      });
+      setEditingGroupId(null);
+    }, "Grupo actualizado");
+  };
+
+  const handleDeleteGroup = (group: DeviceGroup) => {
+    if (!window.confirm(`¿Eliminar el grupo "${group.name}"?`)) return;
+    runAction(async () => {
+      await api.delete(`/device-groups/${group.id}`);
+    }, "Grupo eliminado");
+  };
+
   const copyProvisioning = async () => {
     if (!provisioning) return;
     await navigator.clipboard.writeText(JSON.stringify(provisioning, null, 2));
     setMessage("Provisioning copiado");
   };
 
+  const renderClients = () => {
+    const deviceOwner = new Map<number, number>();
+    devices.forEach((d) => deviceOwner.set(Number(d.id), Number(d.user_id)));
+    const alertsByOwner = new Map<number, number>();
+    alerts.forEach((a) => {
+      const ownerId = deviceOwner.get(Number(a.device_id));
+      if (ownerId) alertsByOwner.set(ownerId, (alertsByOwner.get(ownerId) || 0) + 1);
+    });
+    const clients = users.filter((u) => u.role === "client");
+    const totalAlertas = clients.reduce((acc, c) => acc + (alertsByOwner.get(c.id) || 0), 0);
+
+    return (
+      <div className="AdminStack">
+        <div className="AdminMetrics">
+          <div><span>{clients.length}</span><p>clientes</p></div>
+          <div><span>{devices.length}</span><p>heladeras</p></div>
+          <div><span>{totalAlertas}</span><p>alarmas activas</p></div>
+        </div>
+
+        <section className="AdminSection">
+          <div className="AdminSectionHeader">
+            <div>
+              <h3>Clientes</h3>
+              <p>Seguí de un vistazo las heladeras y alarmas de cada cliente</p>
+            </div>
+          </div>
+
+          {clients.length === 0 ? (
+            <p className="AdminTagMuted">No hay clientes registrados todavía.</p>
+          ) : (
+            <div className="AdminClientsGrid">
+              {clients
+                .slice()
+                .sort((a, b) => (alertsByOwner.get(b.id) || 0) - (alertsByOwner.get(a.id) || 0))
+                .map((c) => {
+                  const devs = devices.filter((d) => Number(d.user_id) === c.id);
+                  const al = alertsByOwner.get(c.id) || 0;
+                  return (
+                    <div key={c.id} className={`AdminClientCard ${al > 0 ? "conAlerta" : ""}`}>
+                      <div className="AdminClientCardHead">
+                        <strong>{c.name}</strong>
+                        <span>@{c.username}</span>
+                      </div>
+                      <div className="AdminClientCardStats">
+                        <div>
+                          <span className="num">{devs.length}</span>
+                          <small>heladeras</small>
+                        </div>
+                        <div>
+                          <span className={`num ${al > 0 ? "alerta" : ""}`}>{al}</span>
+                          <small>alarmas activas</small>
+                        </div>
+                      </div>
+                      <div className="AdminClientCardFoot">
+                        Último acceso: {formatDate(c.last_login_at)}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </section>
+      </div>
+    );
+  };
+
   const renderTabs = () => (
     <div className="AdminTabs" role="tablist">
+      <button className={selectedTab === "clients" ? "active" : ""} type="button" onClick={() => setSelectedTab("clients")}>
+        <Building2 size={17} />
+        Clientes
+      </button>
       <button className={selectedTab === "users" ? "active" : ""} type="button" onClick={() => setSelectedTab("users")}>
         <Users size={17} />
         Usuarios
@@ -343,24 +537,47 @@ export default function AdminPanel() {
   );
 
   const renderUserForm = () => (
-    <div className="AdminFormGrid">
-      <input value={userDraft.name} onChange={(event) => setUserDraft({ ...userDraft, name: event.target.value })} placeholder="Nombre" />
-      <input value={userDraft.username} onChange={(event) => setUserDraft({ ...userDraft, username: event.target.value })} placeholder="Username" />
-      <input value={userDraft.email} onChange={(event) => setUserDraft({ ...userDraft, email: event.target.value })} placeholder="Email" />
-      <input value={userDraft.phone} onChange={(event) => setUserDraft({ ...userDraft, phone: event.target.value })} placeholder="Telefono" />
-      <input value={userDraft.password} onChange={(event) => setUserDraft({ ...userDraft, password: event.target.value })} placeholder="Contrasena inicial" type="password" />
-      <select value={userDraft.role} onChange={(event) => setUserDraft({ ...userDraft, role: event.target.value as UserDraft["role"] })}>
-        {assignableRoles.map((role) => (
-          <option value={role} key={role}>
-            {roleLabel[role]}
-          </option>
-        ))}
-      </select>
-      <button className="AdminPrimaryButton" type="button" onClick={handleCreateUser}>
+    <form
+      className="AdminFormGrid"
+      autoComplete="off"
+      onSubmit={(event) => {
+        event.preventDefault();
+        handleCreateUser();
+      }}
+    >
+      {/* Campos señuelo para que el navegador no autocomplete con las credenciales del admin */}
+      <input type="text" name="fakeusernameremembered" autoComplete="username" className="AdminHiddenField" tabIndex={-1} aria-hidden="true" />
+      <input type="password" name="fakepasswordremembered" autoComplete="new-password" className="AdminHiddenField" tabIndex={-1} aria-hidden="true" />
+
+      <Field label="Nombre">
+        <input value={userDraft.name} onChange={(event) => setUserDraft({ ...userDraft, name: event.target.value })} placeholder="Nombre y apellido" autoComplete="off" />
+      </Field>
+      <Field label="Usuario">
+        <input value={userDraft.username} onChange={(event) => setUserDraft({ ...userDraft, username: event.target.value })} placeholder="usuario" autoComplete="off" name="ts_new_username" />
+      </Field>
+      <Field label="Email">
+        <input value={userDraft.email} onChange={(event) => setUserDraft({ ...userDraft, email: event.target.value })} placeholder="correo@ejemplo.com" type="email" autoComplete="off" />
+      </Field>
+      <Field label="Teléfono">
+        <input value={userDraft.phone} onChange={(event) => setUserDraft({ ...userDraft, phone: event.target.value })} placeholder="opcional" autoComplete="off" />
+      </Field>
+      <Field label="Contraseña inicial">
+        <input value={userDraft.password} onChange={(event) => setUserDraft({ ...userDraft, password: event.target.value })} placeholder="mín. 8, may/min/número" type="password" autoComplete="new-password" name="ts_new_password" />
+      </Field>
+      <Field label="Rol">
+        <select value={userDraft.role} onChange={(event) => setUserDraft({ ...userDraft, role: event.target.value as UserDraft["role"] })}>
+          {assignableRoles.map((role) => (
+            <option value={role} key={role}>
+              {roleLabel[role]}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <button className="AdminPrimaryButton AdminFormSubmit" type="submit">
         <Plus size={16} />
-        Usuario
+        Crear usuario
       </button>
-    </div>
+    </form>
   );
 
   const renderUsers = () => (
@@ -389,7 +606,7 @@ export default function AdminPanel() {
                 <th>Usuario</th>
                 <th>Contacto</th>
                 <th>Rol</th>
-                <th>Ultimo login</th>
+                <th>Último login</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -478,6 +695,55 @@ export default function AdminPanel() {
 
   const renderDevices = () => (
     <div className="AdminStack">
+      {unassignedDevices.length > 0 && (
+        <section className="AdminSection AdminUnassigned">
+          <div className="AdminSectionHeader">
+            <div>
+              <h3>ESPs sin asignar ({unassignedDevices.length})</h3>
+              <p>Dispositivos que se registraron solos y todavía no tienen dueño. Asignalos a un cliente para que pueda verlos.</p>
+            </div>
+          </div>
+          <div className="AdminTableWrap">
+            <table className="AdminTable">
+              <thead>
+                <tr>
+                  <th>Dispositivo</th>
+                  <th>MAC</th>
+                  <th>Asignar a</th>
+                </tr>
+              </thead>
+              <tbody>
+                {unassignedDevices.map((device) => (
+                  <tr key={device.id}>
+                    <td>
+                      <div className="AdminUserCell">
+                        <strong>{device.name}</strong>
+                        <span>{device.device_code}</span>
+                      </div>
+                    </td>
+                    <td>{device.mac_address || "MAC pendiente"}</td>
+                    <td>
+                      <select
+                        className="AdminRowSelect"
+                        value=""
+                        onChange={(event) => handleAssignOwner(device, event.target.value)}
+                      >
+                        <option value="">Elegí un cliente…</option>
+                        {deviceOwners.map((ownerOption) => (
+                          <option value={ownerOption.id} key={ownerOption.id}>
+                            {ownerOption.name} ({roleLabel[ownerOption.role]})
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <section className="AdminSection">
         <div className="AdminSectionHeader">
           <div>
@@ -485,39 +751,68 @@ export default function AdminPanel() {
             <p>Provisioning HTTP/SMS</p>
           </div>
         </div>
-        <div className="AdminFormGrid AdminDeviceForm">
-          <input value={deviceDraft.name} onChange={(event) => setDeviceDraft({ ...deviceDraft, name: event.target.value })} placeholder="Nombre" />
-          <input value={deviceDraft.device_code} onChange={(event) => setDeviceDraft({ ...deviceDraft, device_code: event.target.value })} placeholder="Codigo" />
-          <input value={deviceDraft.mac_address} onChange={(event) => setDeviceDraft({ ...deviceDraft, mac_address: event.target.value })} placeholder="MAC AA:BB:CC:DD:EE:FF" />
-          <input value={deviceDraft.location} onChange={(event) => setDeviceDraft({ ...deviceDraft, location: event.target.value })} placeholder="Ubicacion" />
-          <select value={deviceDraft.user_id} onChange={(event) => setDeviceDraft({ ...deviceDraft, user_id: event.target.value, group_id: "" })}>
-            <option value="">Sin asignar</option>
-            {deviceOwners.map((owner) => (
-              <option value={owner.id} key={owner.id}>
-                {owner.name} - {roleLabel[owner.role]}
-              </option>
-            ))}
-          </select>
-          <select value={deviceDraft.group_id} onChange={(event) => setDeviceDraft({ ...deviceDraft, group_id: event.target.value })}>
-            <option value="">Sin grupo</option>
-            {groups
-              .filter((group) => !deviceDraft.user_id || Number(deviceDraft.user_id) === Number(group.user_id))
-              .map((group) => (
-                <option value={group.id} key={group.id}>
-                  {group.name}
+        <form
+          className="AdminFormGrid AdminDeviceForm"
+          autoComplete="off"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleCreateDevice();
+          }}
+        >
+          <Field label="Nombre de la heladera">
+            <input value={deviceDraft.name} onChange={(event) => setDeviceDraft({ ...deviceDraft, name: event.target.value })} placeholder="Ej: Cámara Vacunas" autoComplete="off" />
+          </Field>
+          <Field label="Código del dispositivo">
+            <input value={deviceDraft.device_code} onChange={(event) => setDeviceDraft({ ...deviceDraft, device_code: event.target.value })} placeholder="ESP-XXXX" autoComplete="off" />
+          </Field>
+          <Field label="MAC (opcional)">
+            <input value={deviceDraft.mac_address} onChange={(event) => setDeviceDraft({ ...deviceDraft, mac_address: event.target.value })} placeholder="AA:BB:CC:DD:EE:FF" autoComplete="off" />
+          </Field>
+          <Field label="Ubicación">
+            <input value={deviceDraft.location} onChange={(event) => setDeviceDraft({ ...deviceDraft, location: event.target.value })} placeholder="Ej: Depósito central" autoComplete="off" />
+          </Field>
+          <Field label="Dueño (cliente)">
+            <select value={deviceDraft.user_id} onChange={(event) => setDeviceDraft({ ...deviceDraft, user_id: event.target.value, group_id: "" })}>
+              <option value="">Sin asignar</option>
+              {deviceOwners.map((owner) => (
+                <option value={owner.id} key={owner.id}>
+                  {owner.name} - {roleLabel[owner.role]}
                 </option>
               ))}
-          </select>
-          <input value={deviceDraft.min_temp} onChange={(event) => setDeviceDraft({ ...deviceDraft, min_temp: event.target.value })} placeholder="Temp min" />
-          <input value={deviceDraft.max_temp} onChange={(event) => setDeviceDraft({ ...deviceDraft, max_temp: event.target.value })} placeholder="Temp max" />
-          <input value={deviceDraft.firmware_version} onChange={(event) => setDeviceDraft({ ...deviceDraft, firmware_version: event.target.value })} placeholder="Firmware" />
-          <input value={deviceDraft.protocol_version} onChange={(event) => setDeviceDraft({ ...deviceDraft, protocol_version: event.target.value })} placeholder="Protocolo" />
-          <input value={deviceDraft.send_interval_seconds} onChange={(event) => setDeviceDraft({ ...deviceDraft, send_interval_seconds: event.target.value })} placeholder="Intervalo seg." />
-          <button className="AdminPrimaryButton" type="button" onClick={handleCreateDevice}>
+            </select>
+          </Field>
+          <Field label="Grupo">
+            <select value={deviceDraft.group_id} disabled={!deviceDraft.user_id} onChange={(event) => setDeviceDraft({ ...deviceDraft, group_id: event.target.value })}>
+              <option value="">{deviceDraft.user_id ? "Sin grupo" : "Elegí dueño primero"}</option>
+              {groups
+                .filter((group) => !deviceDraft.user_id || Number(deviceDraft.user_id) === Number(group.user_id))
+                .map((group) => (
+                  <option value={group.id} key={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+          <Field label="Temp. mínima (°C)">
+            <input value={deviceDraft.min_temp} onChange={(event) => setDeviceDraft({ ...deviceDraft, min_temp: event.target.value })} placeholder="2" inputMode="decimal" autoComplete="off" />
+          </Field>
+          <Field label="Temp. máxima (°C)">
+            <input value={deviceDraft.max_temp} onChange={(event) => setDeviceDraft({ ...deviceDraft, max_temp: event.target.value })} placeholder="8" inputMode="decimal" autoComplete="off" />
+          </Field>
+          <Field label="Versión firmware">
+            <input value={deviceDraft.firmware_version} onChange={(event) => setDeviceDraft({ ...deviceDraft, firmware_version: event.target.value })} placeholder="1.0.0" autoComplete="off" />
+          </Field>
+          <Field label="Versión protocolo">
+            <input value={deviceDraft.protocol_version} onChange={(event) => setDeviceDraft({ ...deviceDraft, protocol_version: event.target.value })} placeholder="2.0" autoComplete="off" />
+          </Field>
+          <Field label="Intervalo de envío (seg)">
+            <input value={deviceDraft.send_interval_seconds} onChange={(event) => setDeviceDraft({ ...deviceDraft, send_interval_seconds: event.target.value })} placeholder="900" inputMode="numeric" autoComplete="off" />
+          </Field>
+          <button className="AdminPrimaryButton AdminFormSubmit" type="submit">
             <Plus size={16} />
-            Dispositivo
+            Crear dispositivo
           </button>
-        </div>
+        </form>
 
         {provisioning && (
           <div className="AdminProvisioning">
@@ -546,25 +841,78 @@ export default function AdminPanel() {
             <thead>
               <tr>
                 <th>Dispositivo</th>
+                <th>Dueño / Grupo</th>
                 <th>Rango</th>
                 <th>Comunicacion</th>
                 <th>Acceso lectura</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {devices.map((device) => {
                 const draft = accessDrafts[device.id] || { user_id: "", can_modify: false };
                 const target = users.find((item) => item.id === Number(draft.user_id));
+                const isEditingDevice = editingDeviceId === device.id;
 
                 return (
                   <tr key={device.id}>
                     <td>
-                      <div className="AdminUserCell">
-                        <strong>{device.name}</strong>
-                        <span>{device.device_code} | {device.location || "Sin ubicacion"}</span>
+                      {isEditingDevice ? (
+                        <div className="AdminInlineFields">
+                          <input value={editDeviceDraft.name} onChange={(event) => setEditDeviceDraft({ ...editDeviceDraft, name: event.target.value })} placeholder="Nombre" />
+                          <input value={editDeviceDraft.location} onChange={(event) => setEditDeviceDraft({ ...editDeviceDraft, location: event.target.value })} placeholder="Ubicación" />
+                          <input value={editDeviceDraft.firmware_version} onChange={(event) => setEditDeviceDraft({ ...editDeviceDraft, firmware_version: event.target.value })} placeholder="Firmware" />
+                        </div>
+                      ) : (
+                        <div className="AdminUserCell">
+                          <strong>{device.name}</strong>
+                          <span>{device.device_code} | {device.location || "Sin ubicación"}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <div className="AdminOwnerCell">
+                        <select
+                          className="AdminRowSelect"
+                          value={device.user_id ? String(device.user_id) : ""}
+                          onChange={(event) => handleAssignOwner(device, event.target.value)}
+                          title="Reasignar dueño"
+                        >
+                          <option value="" disabled>Sin asignar</option>
+                          {deviceOwners.map((ownerOption) => (
+                            <option value={ownerOption.id} key={ownerOption.id}>
+                              {ownerOption.name} ({roleLabel[ownerOption.role]})
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          className="AdminRowSelect"
+                          value={device.group_id ? String(device.group_id) : ""}
+                          disabled={!device.user_id}
+                          onChange={(event) => handleAssignGroup(device, event.target.value)}
+                          title="Asignar a un grupo"
+                        >
+                          <option value="">Sin grupo</option>
+                          {groups
+                            .filter((group) => Number(group.user_id) === Number(device.user_id))
+                            .map((group) => (
+                              <option value={group.id} key={group.id}>
+                                {group.name}
+                              </option>
+                            ))}
+                        </select>
                       </div>
                     </td>
-                    <td>{device.min_temp} / {device.max_temp} C</td>
+                    <td>
+                      {isEditingDevice ? (
+                        <div className="AdminInlineFields AdminRangeFields">
+                          <input value={editDeviceDraft.min_temp} onChange={(event) => setEditDeviceDraft({ ...editDeviceDraft, min_temp: event.target.value })} placeholder="mín" inputMode="decimal" />
+                          <input value={editDeviceDraft.max_temp} onChange={(event) => setEditDeviceDraft({ ...editDeviceDraft, max_temp: event.target.value })} placeholder="máx" inputMode="decimal" />
+                        </div>
+                      ) : (
+                        <>{device.min_temp} / {device.max_temp} C</>
+                      )}
+                    </td>
                     <td>
                       <div className="AdminUserCell">
                         <span>{device.mac_address || "MAC pendiente"}</span>
@@ -608,9 +956,148 @@ export default function AdminPanel() {
                         </button>
                       </div>
                     </td>
+                    <td>
+                      <div className="AdminActions">
+                        {isEditingDevice ? (
+                          <>
+                            <button type="button" onClick={() => handleSaveDevice(device)} title="Guardar cambios">
+                              <Save size={16} />
+                            </button>
+                            <button type="button" onClick={() => setEditingDeviceId(null)} title="Cancelar">
+                              <X size={16} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button type="button" onClick={() => startEditDevice(device)} title="Editar heladera">
+                              <Pencil size={16} />
+                            </button>
+                            <button type="button" onClick={() => handleDeleteDevice(device)} title="Eliminar heladera">
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="AdminSection">
+        <div className="AdminSectionHeader">
+          <div>
+            <h3>Grupos</h3>
+            <p>Agrupá las heladeras de un cliente (por sucursal, cámara, etc.)</p>
+          </div>
+        </div>
+        <form
+          className="AdminFormGrid AdminGroupForm"
+          autoComplete="off"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleCreateGroup();
+          }}
+        >
+          <Field label="Cliente">
+            <select value={groupDraft.user_id} onChange={(event) => setGroupDraft({ ...groupDraft, user_id: event.target.value })}>
+              <option value="">Elegí un cliente</option>
+              {deviceOwners.map((ownerOption) => (
+                <option value={ownerOption.id} key={ownerOption.id}>
+                  {ownerOption.name} ({roleLabel[ownerOption.role]})
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Nombre del grupo">
+            <input value={groupDraft.name} onChange={(event) => setGroupDraft({ ...groupDraft, name: event.target.value })} placeholder="Ej: Sucursal Centro" autoComplete="off" />
+          </Field>
+          <Field label="Descripción (opcional)">
+            <input value={groupDraft.description} onChange={(event) => setGroupDraft({ ...groupDraft, description: event.target.value })} placeholder="Detalle" autoComplete="off" />
+          </Field>
+          <button className="AdminPrimaryButton AdminFormSubmit" type="submit">
+            <Plus size={16} />
+            Crear grupo
+          </button>
+        </form>
+
+        <div className="AdminTableWrap">
+          <table className="AdminTable">
+            <thead>
+              <tr>
+                <th>Grupo</th>
+                <th>Cliente</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="AdminTagMuted">No hay grupos creados todavía.</td>
+                </tr>
+              ) : (
+                groups.map((group) => {
+                  const groupOwner = users.find((item) => item.id === Number(group.user_id));
+                  const isEditingGroup = editingGroupId === group.id;
+                  return (
+                    <tr key={group.id}>
+                      <td>
+                        {isEditingGroup ? (
+                          <input value={editGroupDraft.name} onChange={(event) => setEditGroupDraft({ ...editGroupDraft, name: event.target.value })} />
+                        ) : (
+                          <strong>{group.name}</strong>
+                        )}
+                      </td>
+                      <td>
+                        <div className="AdminUserCell">
+                          {groupOwner ? (
+                            <>
+                              <strong>{groupOwner.name}</strong>
+                              <span>@{groupOwner.username}</span>
+                            </>
+                          ) : (
+                            <span className="AdminTagMuted">—</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        {isEditingGroup ? (
+                          <input value={editGroupDraft.description} onChange={(event) => setEditGroupDraft({ ...editGroupDraft, description: event.target.value })} placeholder="Descripción" />
+                        ) : (
+                          group.description || "—"
+                        )}
+                      </td>
+                      <td>
+                        <div className="AdminActions">
+                          {isEditingGroup ? (
+                            <>
+                              <button type="button" onClick={() => handleSaveGroup(group)} title="Guardar grupo">
+                                <Save size={16} />
+                              </button>
+                              <button type="button" onClick={() => setEditingGroupId(null)} title="Cancelar">
+                                <X size={16} />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button type="button" onClick={() => startEditGroup(group)} title="Editar grupo">
+                                <Pencil size={16} />
+                              </button>
+                              <button type="button" onClick={() => handleDeleteGroup(group)} title="Eliminar grupo">
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -730,8 +1217,8 @@ export default function AdminPanel() {
     <section className="AdminPanel">
       <div className="AdminHeader">
         <div>
-          <h2>Administracion</h2>
-          <p>{roleLabel[user.role]} | auditoria, usuarios y dispositivos</p>
+          <h2>Administración</h2>
+          <p>{roleLabel[user.role]} | auditoría, usuarios y dispositivos</p>
         </div>
         <button className="AdminRefresh" type="button" onClick={loadAdminData} disabled={isLoading}>
           <RefreshCw size={16} />
@@ -743,8 +1230,9 @@ export default function AdminPanel() {
 
       {message && <p className="AdminMessage">{message}</p>}
       {error && <p className="AdminError">{error}</p>}
-      {isLoading && <p className="AdminMuted">Cargando administracion...</p>}
+      {isLoading && <p className="AdminMuted">Cargando administración...</p>}
 
+      {!isLoading && selectedTab === "clients" && renderClients()}
       {!isLoading && selectedTab === "users" && renderUsers()}
       {!isLoading && selectedTab === "devices" && renderDevices()}
       {!isLoading && selectedTab === "logs" && renderLogs()}

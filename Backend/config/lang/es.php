@@ -107,6 +107,24 @@ return [
     'GROUP_NOT_OWNED' => 'El grupo no pertenece al usuario asignado.',
 
 
+    // * Alertas
+    'ALERT_LIST' => 'Listado de alertas.',
+    'ALERT_RESOLVED' => 'Alerta marcada como resuelta.',
+    'ALERT_ACKNOWLEDGED' => 'Alarma reconocida.',
+    'ALERT_NOT_FOUND' => 'La alerta no existe.',
+
+    // * Stock
+    'STOCK_LIST' => 'Listado de stock.',
+    'STOCK_CREATED' => 'Ítem de stock creado correctamente.',
+    'STOCK_UPDATED' => 'Ítem de stock actualizado correctamente.',
+    'STOCK_DELETED' => 'Ítem de stock eliminado correctamente.',
+    'STOCK_NOT_FOUND' => 'El ítem de stock no existe.',
+    'MOVEMENT_LIST' => 'Listado de movimientos de stock.',
+
+    // * Temperaturas
+    'TEMPERATURE_LIST' => 'Listado de temperaturas.',
+
     // * General
+    'CANNOT_DELETE_SELF' => 'No puede eliminar su propio usuario.',
     'SUCCESS' => 'Operación exitosa.',
 ];

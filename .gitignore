@@ -1,12 +1,46 @@
-Backend/.env
-Backend/logs/*.log
+# --- Secretos -----------------------------------------------------------
+# Nunca versionar credenciales. Solo viaja Backend/.env.example.
+.env
+.env.local
+.env.*.local
+!Backend/.env.example
+
+# --- Dependencias y build -----------------------------------------------
 Backend/vendor/
 Frontend/node_modules/
 Frontend/dist/
 Frontend/.firebase/
+
+# --- Logs ----------------------------------------------------------------
+Backend/logs/*.log
+*.log
+
+# --- Paquete de despliegue ----------------------------------------------
+# deploy/ se ignora ENTERO por defecto y se habilita archivo por archivo.
+# Es a proposito: la carpeta mezcla codigo generado con secretos reales de
+# produccion (CREDENCIALES_TEMP.txt, seed_prod.php con la clave del superadmin,
+# temp_segura.sql con su hash). Una lista negra se olvida; esta lista blanca no.
+deploy/*
+!deploy/README.md
+!deploy/DEPLOY_HOSTINGER.md
+
+# public_html/ se regenera desde Backend/ y Frontend/dist (ver deploy/README.md).
+# Solo se versiona lo que se escribe a mano: config de Apache y front controller.
+!deploy/public_html/
+deploy/public_html/*
+!deploy/public_html/.htaccess
+!deploy/public_html/api/
+deploy/public_html/api/*
+!deploy/public_html/api/.htaccess
+!deploy/public_html/api/index.php
+
+# --- Volcados historicos de la base --------------------------------------
 Database/sistemas_heladeras*.sql
 Database/heladeras_proyectofinal*.sql
+
+# --- Varios ---------------------------------------------------------------
 *.7z
 *.zip
 *.tmp
+*.bak
 Document/**/.*.docx.*

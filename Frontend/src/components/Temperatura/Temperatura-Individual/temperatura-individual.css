@@ -3,12 +3,16 @@
   align-items: center;
   justify-content: center;
   /* max-width: 1000px; */
-  width: 100%;
+  flex: 1.5 1 0;
+  min-width: 0;
   /* height: calc(100vh - 80px); */
   height: 100%;
 }
 .TemperaturaIndividualContenido{
   display: flex;
+  gap: 1.5rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
   /* height: 70%; */
   height: 100%;
 }
@@ -62,9 +66,26 @@
   justify-content: start;
   height: 100%;
   flex-direction: column;
-  
+
   height: calc(100vh - 80px - 1rem);
   margin-bottom: 1rem;
+  overflow-y: auto;
+}
+
+/* La vista individual reutiliza .TemperaturaTotal y queda ANIDADA dentro de la
+   lista, duplicando padding/overflow/height. Anulamos el wrapper interno para
+   que el contenido use todo el ancho (clave en mobile). */
+.TemperaturaTotal .TemperaturaTotal {
+  padding: 0;
+  margin-bottom: 0;
+  height: auto;
+  overflow: visible;
+}
+
+/* Al mostrar el detalle, el wrapper de la lista no debe agregar padding:
+   así el gráfico + la card ocupan el 100% del ancho disponible. */
+.TemperaturaTotal.detalle {
+  padding: 0;
 }
 
 .TemperaturaIndividualEstado {
@@ -74,12 +95,16 @@
 }
 
 .ControladoresIndicadoresTotal {
-  margin: 2em 2em 0em 2em;
+  margin: 1.5em 0 0 0;
   height: max-content;
   display: flex;
-  align-items: start;
+  align-items: stretch;
   flex-direction: column;
-  width: 400px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--BorderColor3);
+  border-radius: 12px;
+  overflow: hidden; /* recorta las esquinas cuadradas de los hijos -> sin notch oscuro */
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 
 }
@@ -94,8 +119,169 @@
 
 .Controladoressolos {
   padding: 1em;
-  width: calc(100% - 2em);
+  width: 100%;
+  box-sizing: border-box;
   background-color: var(--ColorFondo2);
+}
+
+/* ===== Columna lateral: indicadores/controladores + alarmas debajo ===== */
+.DetalleLateral {
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 560px;
+}
+
+/* ===== Panel de alertas de temperatura ===== */
+.AlertasPanel {
+  margin: 1.25em 0 2em 0;
+  padding: 1em 1.25em;
+  width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
+  background-color: var(--ColorFondo2);
+  border: 1px solid var(--BorderColor3);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  font-family: "Inter", sans-serif;
+}
+
+.AlertasPanelCabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-bottom: 0.75em;
+}
+
+.AlertasPanelTitulo {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--LetrasColor1);
+}
+
+.AlertasBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2em 0.6em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.AlertasBadge.activa {
+  color: #fff;
+  background-color: #dc2626;
+}
+
+.AlertasBadge.ok {
+  color: #fff;
+  background-color: #16a34a;
+}
+
+.AlertasVacio {
+  margin: 0;
+  color: var(--LetrasColor2);
+  font-size: 0.875rem;
+}
+
+.AlertasLista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.AlertaItem {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--BorderColor3);
+  border-radius: 8px;
+}
+
+.AlertaItem.resuelta {
+  opacity: 0.6;
+}
+
+/* Reconocida: vista por alguien pero el problema sigue abierto. */
+.AlertaItem.reconocida {
+  border-color: rgba(217, 119, 6, 0.5);
+}
+
+.AlertaTipo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15em 0.5em;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.AlertaTipo.alta {
+  background-color: #dc2626;
+}
+
+.AlertaTipo.baja {
+  background-color: #2563eb;
+}
+
+.AlertaTemp {
+  font-weight: 600;
+  color: var(--LetrasColor1);
+  font-size: 0.85rem;
+}
+
+.AlertaFecha {
+  color: var(--LetrasColor2);
+  font-size: 0.75rem;
+}
+
+.AlertaEstado {
+  font-size: 0.75rem;
+  color: var(--LetrasColor2);
+}
+
+.AlertaItem .AlertaAcciones {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: flex;
+  gap: 0.4em;
+  margin-top: 0.25em;
+}
+
+.AlertaResolver,
+.AlertaReconocer {
+  cursor: pointer;
+  border: 1px solid var(--BorderColor2);
+  background-color: transparent;
+  color: var(--LetrasColor1);
+  font-size: 0.75rem;
+  padding: 0.3em 0.8em;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+}
+
+.AlertaReconocer {
+  border-color: rgba(217, 119, 6, 0.5);
+}
+
+.AlertaResolver:hover,
+.AlertaReconocer:hover {
+  background-color: var(--ColorFondo5);
+}
+
+.AlertaResolver:disabled,
+.AlertaReconocer:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 
@@ -205,4 +391,61 @@
   max-width: calc(250px - 2rem);
   width: 100%;
 }
+}
+
+/* ===== Fix responsive: en pantallas medianas/chicas la columna lateral
+   (controladores + alarmas) debe ser fluida y nunca desbordar el viewport.
+   Va al final para ganar sobre los anchos fijos de arriba. ===== */
+@media (max-width: 1000px) {
+  /* Por debajo de 1000px todo apila a ancho completo (gráfico arriba, panel abajo) */
+  .TemperaturaIndividualContenido {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding-right: 0;
+    gap: 1rem;
+    box-sizing: border-box;
+  }
+  .GraficoTotal {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  .GraficoSolo {
+    width: 100%;
+    height: 320px;
+    min-height: 260px;
+    padding-right: 0;
+  }
+  .DetalleLateral {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+    align-self: stretch;
+    align-items: stretch;
+    box-sizing: border-box;
+  }
+  .ControladoresIndicadoresTotal {
+    width: 100%;
+    max-width: 100%;
+    margin: 0.5rem 0 1.5rem 0;
+    box-sizing: border-box;
+  }
+  .ControladoresIndicadoresSolos {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .Controladoressolos {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  .AlertasPanel {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 2rem 0;
+    box-sizing: border-box;
+  }
 }

@@ -1,0 +1,739 @@
+{
+  "info": {
+    "_postman_id": "0c5b0d7e-9d01-4c2b-esp32-manual-json",
+    "name": "Temp Segura - ESP32 manual sin scripts",
+    "description": "Coleccion manual para simular el ESP32 con JSON raw visible. No contiene scripts de Postman. Completar timestamp, packet_id y signature a mano segun docs/postman-esp32-sin-scripts.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "esp_mac",
+      "value": "A1:B2:C3:D4:E5:01",
+      "type": "string"
+    },
+    {
+      "key": "esp_mac_new",
+      "value": "AA:BB:CC:DD:EE:90",
+      "type": "string"
+    },
+    {
+      "key": "unknown_mac",
+      "value": "AA:BB:CC:DD:EE:FE",
+      "type": "string"
+    },
+    {
+      "key": "esp_shared_secret",
+      "value": "local-dev-esp-secret",
+      "type": "string"
+    },
+    {
+      "key": "activation_keyword",
+      "value": "clavesecreta4321",
+      "type": "string"
+    },
+    {
+      "key": "device_model",
+      "value": "ESP32-GSM-V3",
+      "type": "string"
+    },
+    {
+      "key": "firmware_version",
+      "value": "2.1.0",
+      "type": "string"
+    },
+    {
+      "key": "protocol_version",
+      "value": "2.1",
+      "type": "string"
+    },
+    {
+      "key": "sim_imei",
+      "value": "354829071122334",
+      "type": "string"
+    },
+    {
+      "key": "esp_timestamp",
+      "value": "1780345017",
+      "type": "string"
+    },
+    {
+      "key": "old_timestamp",
+      "value": "1000000000",
+      "type": "string"
+    },
+    {
+      "key": "record_time_1",
+      "value": "1780344957",
+      "type": "string"
+    },
+    {
+      "key": "record_time_2",
+      "value": "1780344987",
+      "type": "string"
+    },
+    {
+      "key": "record_time_3",
+      "value": "1780344997",
+      "type": "string"
+    },
+    {
+      "key": "sync_packet_id",
+      "value": "sync-manual-001",
+      "type": "string"
+    },
+    {
+      "key": "sync_alert_packet_id",
+      "value": "sync-alert-manual-001",
+      "type": "string"
+    },
+    {
+      "key": "invalid_packet_id",
+      "value": "sync manual invalido",
+      "type": "string"
+    },
+    {
+      "key": "cmd_packet_id",
+      "value": "cmd-manual-001",
+      "type": "string"
+    },
+    {
+      "key": "signature_sync_normal",
+      "value": "PEGAR_HMAC_SYNC_NORMAL",
+      "type": "string"
+    },
+    {
+      "key": "signature_sync_alerts",
+      "value": "PEGAR_HMAC_SYNC_ALERTS",
+      "type": "string"
+    },
+    {
+      "key": "signature_sync_conflict",
+      "value": "PEGAR_HMAC_SYNC_CONFLICTO",
+      "type": "string"
+    },
+    {
+      "key": "signature_invalid_packet",
+      "value": "PEGAR_HMAC_PACKET_INVALIDO",
+      "type": "string"
+    },
+    {
+      "key": "signature_command_response",
+      "value": "PEGAR_HMAC_COMMAND_RESPONSE",
+      "type": "string"
+    },
+    {
+      "key": "bad_signature",
+      "value": "deadbeef",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Preparacion",
+      "item": [
+        {
+          "name": "0.1 Consultar hora del servidor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/esp/time",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "time"
+              ]
+            },
+            "description": "Copiar server_time a la variable esp_timestamp. Usar record_time_1/2/3 un poco menores que esp_timestamp."
+          },
+          "response": []
+        },
+        {
+          "name": "0.2 Registro inicial de nueva MAC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{esp_mac_new}}\",\n  \"modelo\": \"{{device_model}}\",\n  \"firmware_version\": \"{{firmware_version}}\",\n  \"protocol_version\": \"{{protocol_version}}\",\n  \"sim_imei\": \"{{sim_imei}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"palabra_clave\": \"{{activation_keyword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "register"
+              ]
+            },
+            "description": "No requiere firma. Si la respuesta trae provisioning.shared_secret, copiarlo a esp_shared_secret."
+          },
+          "response": []
+        },
+        {
+          "name": "0.3 Registro sin palabra_clave - esperado 401 ERR_ACTIVACION",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{esp_mac_new}}\",\n  \"modelo\": \"{{device_model}}\",\n  \"firmware_version\": \"{{firmware_version}}\",\n  \"protocol_version\": \"{{protocol_version}}\",\n  \"sim_imei\": \"{{sim_imei}}\",\n  \"timestamp\": {{esp_timestamp}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "register"
+              ]
+            },
+            "description": "Prueba negativa. El backend no debe filtrar palabra_clave ni shared_secret en errores."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Sync firmado manual",
+      "item": [
+        {
+          "name": "1.1 Sync normal - pegar signature_sync_normal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{sync_packet_id}}\",\n  \"seq\": 1,\n  \"data\": [\n    { \"temp\": 4.3, \"time\": {{record_time_1}} },\n    { \"temp\": 4.6, \"time\": {{record_time_2}} }\n  ],\n  \"local_alerts\": [],\n  \"optional\": {\n    \"uptime\": 86400,\n    \"signal_strength\": -67,\n    \"battery_level\": 89\n  },\n  \"signature\": \"{{signature_sync_normal}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Esperado 200. Para firmar, usar json_data sin mac/timestamp/signature y HMAC_SHA256(mac + timestamp + json_data, esp_shared_secret)."
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Reintento exacto del mismo sync - esperado duplicate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{sync_packet_id}}\",\n  \"seq\": 1,\n  \"data\": [\n    { \"temp\": 4.3, \"time\": {{record_time_1}} },\n    { \"temp\": 4.6, \"time\": {{record_time_2}} }\n  ],\n  \"local_alerts\": [],\n  \"optional\": {\n    \"uptime\": 86400,\n    \"signal_strength\": -67,\n    \"battery_level\": 89\n  },\n  \"signature\": \"{{signature_sync_normal}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Debe ser el mismo JSON que 1.1. Esperado 200 con duplicate=true y ack.status=duplicate."
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Sync con alerta local y diagnostico",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{sync_alert_packet_id}}\",\n  \"seq\": 2,\n  \"data\": [\n    { \"temp\": 1.0, \"time\": {{record_time_1}} },\n    { \"temp\": 10.2, \"time\": {{record_time_2}} }\n  ],\n  \"local_alerts\": [\n    { \"type\": \"temp_high\", \"temp\": 10.2, \"time\": {{record_time_2}} },\n    { \"type\": \"power_outage\", \"time\": {{record_time_3}} },\n    { \"type\": \"gsm_sms_sent\", \"phone\": \"+5492610000000\", \"time\": {{record_time_3}} }\n  ],\n  \"optional\": {\n    \"uptime\": 90000,\n    \"signal_strength\": -71,\n    \"battery_level\": 77,\n    \"free_heap\": 120000,\n    \"reset_reason\": \"power_on\"\n  },\n  \"signature\": \"{{signature_sync_alerts}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Simula lecturas fuera de rango, alertas locales y diagnostico. Requiere firma propia para este JSON."
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Firma invalida - esperado 401 ERR_FIRMA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"sync-firma-invalida-001\",\n  \"seq\": 3,\n  \"data\": [\n    { \"temp\": 4.4, \"time\": {{record_time_1}} }\n  ],\n  \"local_alerts\": [],\n  \"optional\": {\n    \"uptime\": 86400,\n    \"signal_strength\": -67,\n    \"battery_level\": 89\n  },\n  \"signature\": \"{{bad_signature}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Prueba negativa. El error esperado es ERR_FIRMA."
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Packet_id invalido - esperado 400 ERR_PACKET_ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{invalid_packet_id}}\",\n  \"seq\": 4,\n  \"data\": [\n    { \"temp\": 4.4, \"time\": {{record_time_1}} }\n  ],\n  \"local_alerts\": [],\n  \"signature\": \"{{signature_invalid_packet}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Para llegar a ERR_PACKET_ID, la firma debe ser valida para este JSON aunque el packet_id tenga espacios."
+          },
+          "response": []
+        },
+        {
+          "name": "1.6 Replay conflictivo - esperado 409 ERR_REPLAY",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{sync_packet_id}}\",\n  \"seq\": 1,\n  \"data\": [\n    { \"temp\": 1.1, \"time\": {{record_time_1}} },\n    { \"temp\": 4.6, \"time\": {{record_time_2}} }\n  ],\n  \"local_alerts\": [],\n  \"optional\": {\n    \"uptime\": 86400,\n    \"signal_strength\": -67,\n    \"battery_level\": 89\n  },\n  \"signature\": \"{{signature_sync_conflict}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Primero ejecutar 1.1. Luego firmar este JSON cambiado con el mismo packet_id. Esperado 409 ERR_REPLAY."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Respuesta de comando",
+      "item": [
+        {
+          "name": "2.1 Command-response OK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{cmd_packet_id}}\",\n  \"seq\": 10,\n  \"respuesta_comando\": {\n    \"tipo\": \"cambio_config\",\n    \"estado\": \"ok\",\n    \"detalle\": \"Parametros aplicados correctamente\"\n  },\n  \"signature\": \"{{signature_command_response}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/command-response",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "command-response"
+              ]
+            },
+            "description": "Se usa cuando el ESP aplico una config o comando recibido."
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Command-response duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"{{cmd_packet_id}}\",\n  \"seq\": 10,\n  \"respuesta_comando\": {\n    \"tipo\": \"cambio_config\",\n    \"estado\": \"ok\",\n    \"detalle\": \"Parametros aplicados correctamente\"\n  },\n  \"signature\": \"{{signature_command_response}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/command-response",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "command-response"
+              ]
+            },
+            "description": "Mismo JSON que 2.1. Esperado duplicate=true."
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Command-response firma invalida - esperado 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"cmd-firma-invalida-001\",\n  \"seq\": 11,\n  \"respuesta_comando\": {\n    \"tipo\": \"cambio_config\",\n    \"estado\": \"error\",\n    \"detalle\": \"Firma invalida simulada\"\n  },\n  \"signature\": \"{{bad_signature}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/command-response",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "command-response"
+              ]
+            },
+            "description": "Prueba negativa de firma para command-response."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Entrada unica /api/esp",
+      "item": [
+        {
+          "name": "3.1 Registro por /esp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"registro\",\n  \"mac\": \"{{esp_mac_new}}\",\n  \"modelo\": \"{{device_model}}\",\n  \"firmware_version\": \"{{firmware_version}}\",\n  \"protocol_version\": \"{{protocol_version}}\",\n  \"sim_imei\": \"{{sim_imei}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"palabra_clave\": \"{{activation_keyword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp"
+              ]
+            },
+            "description": "La entrada unica detecta accion=registro y llama al flujo de registro."
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Sync por /esp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"sync-unico-manual-001\",\n  \"seq\": 20,\n  \"data\": [\n    { \"temp\": 5.1, \"time\": {{record_time_1}} }\n  ],\n  \"local_alerts\": [],\n  \"signature\": \"PEGAR_HMAC_SYNC_UNICO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp"
+              ]
+            },
+            "description": "La entrada unica detecta que no es registro ni respuesta_comando y lo trata como sync."
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Command-response por /esp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"cmd-unico-manual-001\",\n  \"seq\": 21,\n  \"respuesta_comando\": {\n    \"tipo\": \"cambio_config\",\n    \"estado\": \"ok\",\n    \"detalle\": \"Aplicado desde entrada unica\"\n  },\n  \"signature\": \"PEGAR_HMAC_CMD_UNICO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp"
+              ]
+            },
+            "description": "La entrada unica detecta respuesta_comando y llama al flujo de command-response."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Errores comunes",
+      "item": [
+        {
+          "name": "4.1 MAC no registrada - esperado 404 ERR_DISPOSITIVO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{unknown_mac}}\",\n  \"timestamp\": {{esp_timestamp}},\n  \"packet_id\": \"sync-mac-desconocida-001\",\n  \"seq\": 30,\n  \"data\": [\n    { \"temp\": 4.0, \"time\": {{record_time_1}} }\n  ],\n  \"local_alerts\": [],\n  \"signature\": \"{{bad_signature}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Como la MAC no existe, el backend responde ERR_DISPOSITIVO antes de validar firma."
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Timestamp viejo - esperado 400 ERR_TIMESTAMP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\": {{old_timestamp}},\n  \"packet_id\": \"sync-timestamp-viejo-001\",\n  \"seq\": 31,\n  \"data\": [\n    { \"temp\": 4.0, \"time\": {{record_time_1}} }\n  ],\n  \"local_alerts\": [],\n  \"signature\": \"{{bad_signature}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "El timestamp se valida antes que la firma."
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 JSON mal formado - esperado 400 ERR_FORMATO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mac\": \"{{esp_mac}}\",\n  \"timestamp\":",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/esp/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "esp",
+                "sync"
+              ]
+            },
+            "description": "Simula cuerpo JSON roto."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
