@@ -22,7 +22,6 @@ void ServerClient::begin() {
 
   sharedSecret = prefs.getString("secret", "");
   seq = prefs.getUInt("seq", 1);
-  lastServerTime = 0;
 
   if (sharedSecret.length() == 0 && String(MANUAL_SHARED_SECRET).length() > 0) {
     sharedSecret = MANUAL_SHARED_SECRET;
@@ -253,64 +252,6 @@ bool ServerClient::registerDevice(uint32_t timestamp) {
   return true;
 }
 
-bool ServerClient::fetchThresholds(int& umbralInf, int& umbralSup) {
-  (void)umbralInf;
-  (void)umbralSup;
-  Serial.println("Configuracion remota: se actualiza desde la respuesta de /esp/sync.");
-  return false;
-}
-
-bool ServerClient::sendTemperatureBatch(EstadoTemperatura estado, TemperatureSample* samples, uint8_t count) {
-  ServerConfigUpdate configUpdate;
-  return syncTemperatureBatch(estado, (const TemperatureSample*)samples, count, configUpdate);
-}
-
-bool ServerClient::sendRfidEvent(const RfidEvent& event) {
-  (void)event;
-  Serial.println("RFID pendiente: el protocolo del servidor aun no tiene endpoint habilitado.");
-  return false;
-}
-
-bool ServerClient::sendPendingRecord(const PendingRecord& record) {
-  if (record.kind == 1) {
-    TemperatureSample sample;
-    sample.value = record.temperature;
-    strncpy(sample.timestamp, record.timestamp, sizeof(sample.timestamp));
-    sample.timestamp[sizeof(sample.timestamp) - 1] = '\0';
-
-    return sendTemperatureBatch((EstadoTemperatura)record.estado, &sample, 1);
-  }
-
-  if (record.kind == 2) {
-    RfidEvent event;
-    event.valid = true;
-    event.tipo = (TipoRfid)record.rfidTipo;
-    memcpy(event.uid, record.uid, 4);
-
-    return sendRfidEvent(event);
-  }
-
-  return false;
-}
-
-bool ServerClient::syncTemperatureBatch(EstadoTemperatura estado, const TemperatureSample* samples, uint8_t count, ServerConfigUpdate& configUpdate) {
-  (void)estado;
-
-  if (count == 0 || count > MAX_SAMPLES) {
-    Serial.println("Cantidad de muestras invalida para convertir a /esp/sync.");
-    return false;
-  }
-
-  ServerTemperatureSample converted[MAX_SAMPLES];
-
-  for (uint8_t i = 0; i < count; i++) {
-    converted[i].temp = samples[i].value;
-    converted[i].time = timestampToEpoch(samples[i].timestamp);
-  }
-
-  return syncTemperatureBatch(converted, count, configUpdate);
-}
-
 bool ServerClient::syncTemperatureBatch(const ServerTemperatureSample* samples, uint8_t count, ServerConfigUpdate& configUpdate) {
   configUpdate = {};
 
@@ -328,26 +269,6 @@ bool ServerClient::syncTemperatureBatch(const ServerTemperatureSample* samples, 
     return false;
   }
 
-  const ServerTemperatureSample* samplesToSend = samples;
-  ServerTemperatureSample normalizedSamples[120];
-
-  for (uint8_t i = 0; i < count; i++) {
-    if (samples[i].time == 0) {
-      samplesToSend = normalizedSamples;
-      break;
-    }
-  }
-
-  if (samplesToSend == normalizedSamples) {
-    for (uint8_t i = 0; i < count; i++) {
-      normalizedSamples[i] = samples[i];
-
-      if (normalizedSamples[i].time == 0) {
-        normalizedSamples[i].time = timestamp;
-      }
-    }
-  }
-
   if (!ensureProvisioned(timestamp)) {
     return false;
   }
@@ -361,10 +282,10 @@ bool ServerClient::syncTemperatureBatch(const ServerTemperatureSample* samples, 
   uint32_t packetSeq = seq;
   String packetId = buildPacketId(timestamp, packetSeq);
 
-  String canonicalData = buildCanonicalSyncData(packetId, packetSeq, samplesToSend, count, rssi);
+  String canonicalData = buildCanonicalSyncData(packetId, packetSeq, samples, count, rssi);
   String stringToSign = deviceMac + String(timestamp) + canonicalData;
   String signature = hmacSha256Hex(stringToSign, sharedSecret);
-  String body = buildSyncBody(timestamp, packetId, packetSeq, signature, samplesToSend, count, rssi);
+  String body = buildSyncBody(timestamp, packetId, packetSeq, signature, samples, count, rssi);
 
   int statusCode;
   String response = httpPostJson(String(SERVER_BASE_URL) + "/esp/sync", body, statusCode);
@@ -390,8 +311,69 @@ bool ServerClient::syncTemperatureBatch(const ServerTemperatureSample* samples, 
   return true;
 }
 
+bool ServerClient::syncTemperatureBatch(EstadoTemperatura estado, const TemperatureSample* samples, uint8_t count, ServerConfigUpdate& configUpdate) {
+  (void)estado;
+
+  if (count == 0 || count > MAX_SAMPLES) {
+    Serial.println("Cantidad de muestras invalida para convertir a /esp/sync.");
+    return false;
+  }
+
+  ServerTemperatureSample converted[MAX_SAMPLES];
+
+  for (uint8_t i = 0; i < count; i++) {
+    converted[i].temp = samples[i].value;
+    converted[i].time = timestampToEpoch(samples[i].timestamp);
+
+    if (converted[i].time == 0) {
+      uint32_t serverTime;
+      converted[i].time = getServerTime(serverTime) ? serverTime : lastServerTime;
+    }
+  }
+
+  return syncTemperatureBatch(converted, count, configUpdate);
+}
+
+bool ServerClient::syncTemperatureBatch(EstadoTemperatura estado, TemperatureSample* samples, uint8_t count) {
+  ServerConfigUpdate configUpdate;
+  return syncTemperatureBatch(estado, (const TemperatureSample*)samples, count, configUpdate);
+}
+
+bool ServerClient::sendTemperatureBatch(EstadoTemperatura estado, TemperatureSample* samples, uint8_t count) {
+  return syncTemperatureBatch(estado, samples, count);
+}
+
+bool ServerClient::sendRfidEvent(const RfidEvent& event) {
+  (void)event;
+  Serial.println("RFID pendiente: el protocolo nuevo de ServerClient no define endpoint RFID.");
+  return false;
+}
+
+bool ServerClient::sendPendingRecord(const PendingRecord& record) {
+  if (record.kind == 1) {
+    TemperatureSample sample;
+    sample.value = record.temperature;
+    strncpy(sample.timestamp, record.timestamp, sizeof(sample.timestamp));
+    sample.timestamp[sizeof(sample.timestamp) - 1] = '\0';
+
+    return sendTemperatureBatch((EstadoTemperatura)record.estado, &sample, 1);
+  }
+
+  if (record.kind == 2) {
+    RfidEvent event;
+    event.valid = true;
+    event.tipo = (TipoRfid)record.rfidTipo;
+    memcpy(event.uid, record.uid, 4);
+
+    return sendRfidEvent(event);
+  }
+
+  return false;
+}
+
 String ServerClient::buildPacketId(uint32_t timestamp, uint32_t packetSeq) {
-  return "pkt-" + String(timestamp) + "-" + String(packetSeq);
+  (void)packetSeq;
+  return "pkt-" + String(timestamp);
 }
 
 String ServerClient::formatJsonNumber(float value) {
@@ -410,6 +392,36 @@ String ServerClient::formatJsonNumber(float value) {
   }
 
   return text;
+}
+
+uint32_t ServerClient::timestampToEpoch(const char* timestamp) {
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+
+  if (sscanf(timestamp, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second) != 6) {
+    return 0;
+  }
+
+  struct tm parsedTime;
+  memset(&parsedTime, 0, sizeof(parsedTime));
+  parsedTime.tm_year = year - 1900;
+  parsedTime.tm_mon = month - 1;
+  parsedTime.tm_mday = day;
+  parsedTime.tm_hour = hour;
+  parsedTime.tm_min = minute;
+  parsedTime.tm_sec = second;
+  parsedTime.tm_isdst = -1;
+
+  time_t epoch = mktime(&parsedTime);
+  if (epoch < 0) {
+    return 0;
+  }
+
+  return (uint32_t)epoch;
 }
 
 String ServerClient::buildCanonicalSyncData(const String& packetId, uint32_t packetSeq, const ServerTemperatureSample* samples, uint8_t count, int rssi) {
@@ -495,52 +507,6 @@ String ServerClient::hmacSha256Hex(const String& message, const String& secret) 
   hex[64] = '\0';
 
   return String(hex);
-}
-
-String ServerClient::uidToString(const byte uid[4]) {
-  char buffer[12];
-
-  snprintf(
-    buffer,
-    sizeof(buffer),
-    "%02X%02X%02X%02X",
-    uid[0],
-    uid[1],
-    uid[2],
-    uid[3]
-  );
-
-  return String(buffer);
-}
-
-uint32_t ServerClient::timestampToEpoch(const char* timestamp) {
-  int year;
-  int month;
-  int day;
-  int hour;
-  int minute;
-  int second;
-
-  if (sscanf(timestamp, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second) != 6) {
-    return lastServerTime;
-  }
-
-  struct tm parsedTime;
-  memset(&parsedTime, 0, sizeof(parsedTime));
-  parsedTime.tm_year = year - 1900;
-  parsedTime.tm_mon = month - 1;
-  parsedTime.tm_mday = day;
-  parsedTime.tm_hour = hour;
-  parsedTime.tm_min = minute;
-  parsedTime.tm_sec = second;
-  parsedTime.tm_isdst = -1;
-
-  time_t epoch = mktime(&parsedTime);
-  if (epoch < 0) {
-    return lastServerTime;
-  }
-
-  return (uint32_t)epoch;
 }
 
 uint32_t ServerClient::extractUInt(const String& json, const String& key) {

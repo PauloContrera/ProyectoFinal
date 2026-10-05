@@ -2,7 +2,6 @@
 #define SERVER_CLIENT_H
 
 #include <Arduino.h>
-#include "types.h"
 
 struct ServerTemperatureSample {
   float temp;
@@ -21,17 +20,11 @@ struct ServerConfigUpdate {
 class ServerClient {
 public:
   void begin();
+
   bool isConnected();
-
-  bool fetchThresholds(int& umbralInf, int& umbralSup);
-  bool sendTemperatureBatch(EstadoTemperatura estado, TemperatureSample* samples, uint8_t count);
-  bool sendRfidEvent(const RfidEvent& event);
-  bool sendPendingRecord(const PendingRecord& record);
-
   bool getServerTime(uint32_t& serverTimeOut);
   bool ensureProvisioned(uint32_t timestamp);
   bool syncTemperatureBatch(const ServerTemperatureSample* samples, uint8_t count, ServerConfigUpdate& configUpdate);
-  bool syncTemperatureBatch(EstadoTemperatura estado, const TemperatureSample* samples, uint8_t count, ServerConfigUpdate& configUpdate);
 
   String getMac() const;
   uint32_t getSeq() const;
@@ -57,8 +50,6 @@ private:
 
   String hmacSha256Hex(const String& message, const String& secret);
   String formatJsonNumber(float value);
-  String uidToString(const byte uid[4]);
-  uint32_t timestampToEpoch(const char* timestamp);
 
   uint32_t extractUInt(const String& json, const String& key);
   float extractFloat(const String& json, const String& key, float fallback);

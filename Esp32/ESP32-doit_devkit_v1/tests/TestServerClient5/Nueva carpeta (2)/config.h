@@ -33,7 +33,7 @@
 
 // Prueba: 1 = HTTPS sin validar CA.
 // Produccion: 0 = HTTPS validando la cadena de certificados.
-#define USE_INSECURE_TLS_FOR_TEST 1
+#define USE_INSECURE_TLS_FOR_TEST 0
 
 // Epoch aproximado por si NTP falla antes de validar TLS.
 #define TLS_FALLBACK_EPOCH 1782699725UL

@@ -15,17 +15,21 @@ bool TemperatureLogger::registerSample(EstadoTemperatura estado, float temperatu
     return false;
   }
 
+  return addSample(estado, temperature, timestamp);
+}
+
+bool TemperatureLogger::addSample(EstadoTemperatura estado, float temperature, const char* timestamp) {
   switch (estado) {
     case ESTADO_NORMAL:
-      addSample(normalSamples, normalCount, temperature, timestamp);
+      addSampleToBuffer(normalSamples, normalCount, temperature, timestamp);
       return normalCount >= MAX_SAMPLES;
 
     case ESTADO_ALERTA:
-      addSample(alertSamples, alertCount, temperature, timestamp);
+      addSampleToBuffer(alertSamples, alertCount, temperature, timestamp);
       return alertCount >= MAX_SAMPLES;
 
     case ESTADO_PELIGRO:
-      addSample(dangerSamples, dangerCount, temperature, timestamp);
+      addSampleToBuffer(dangerSamples, dangerCount, temperature, timestamp);
       return dangerCount >= MAX_SAMPLES;
   }
 
@@ -77,7 +81,7 @@ bool TemperatureLogger::shouldSample(EstadoTemperatura estado) {
   return false;
 }
 
-void TemperatureLogger::addSample(TemperatureSample* buffer, uint8_t& count, float temperature, const char* timestamp) {
+void TemperatureLogger::addSampleToBuffer(TemperatureSample* buffer, uint8_t& count, float temperature, const char* timestamp) {
   if (count >= MAX_SAMPLES) {
     return;
   }

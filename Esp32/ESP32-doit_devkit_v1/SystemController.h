@@ -4,6 +4,8 @@
 #include "types.h"
 #include "config.h"
 
+struct ServerConfigUpdate;
+
 class SystemController {
 public:
   void begin();
@@ -16,14 +18,17 @@ public:
 
 private:
   float temperaturaActual;
-  char timestampActual[20];
   EstadoTemperatura estadoActual;
 
   bool hayTemperaturaPendiente;
+  bool sincronizacionInicialPendiente;
+  unsigned long ultimoIntentoSyncInicialMs;
   TemperatureSample muestrasPendientes[MAX_SAMPLES];
   uint8_t cantidadMuestrasPendientes;
 
   void cargarConfiguracion();
+  bool sincronizarInicioServidor();
+  void aplicarConfiguracionServidor(const ServerConfigUpdate& configUpdate);
   void procesarRegistroTemperatura();
   void enviarSmsSiCorresponde();
   void reenviarPendientesSiHayConexion();

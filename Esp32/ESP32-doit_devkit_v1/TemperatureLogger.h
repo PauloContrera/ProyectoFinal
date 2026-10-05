@@ -8,6 +8,8 @@ public:
   TemperatureLogger();
 
   bool registerSample(EstadoTemperatura estado, float temperature, const char* timestamp);
+  bool shouldSample(EstadoTemperatura estado);
+  bool addSample(EstadoTemperatura estado, float temperature, const char* timestamp);
   void popBatch(EstadoTemperatura estado, TemperatureSample output[MAX_SAMPLES], uint8_t& count);
 
 private:
@@ -23,8 +25,7 @@ private:
   unsigned long lastAlertMs;
   unsigned long lastDangerMs;
 
-  bool shouldSample(EstadoTemperatura estado);
-  void addSample(TemperatureSample* buffer, uint8_t& count, float temperature, const char* timestamp);
+  void addSampleToBuffer(TemperatureSample* buffer, uint8_t& count, float temperature, const char* timestamp);
 };
 
 extern TemperatureLogger temperatureLogger;

@@ -18,10 +18,10 @@ void setup() {
     return;
   }
 
-  samples[0].temp = 4.5;
+  samples[0].temp = 5.5;
   samples[0].time = now;
 
-  samples[1].temp = 5.1;
+  samples[1].temp = 6.1;
   samples[1].time = now - 60;
 
   ServerConfigUpdate configUpdate;

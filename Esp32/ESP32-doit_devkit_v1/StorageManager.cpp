@@ -94,6 +94,10 @@ void StorageManager::flushPending(ServerClient& client) {
       continue;
     }
 
+    if (record.kind == 2) {
+      continue;
+    }
+
     if (client.sendPendingRecord(record)) {
       clearRecord(i);
       EEPROM.commit();
